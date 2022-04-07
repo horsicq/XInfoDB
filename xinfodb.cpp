@@ -43,7 +43,6 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, REG_OPTIONS regOptions)
     g_statusCurrent.mapRegs.clear();
 
 #ifdef Q_OS_WIN
-
     CONTEXT context={0};
     context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions | CONTEXT_FLOATING_POINT | CONTEXT_EXTENDED_REGISTERS;
 
@@ -232,6 +231,62 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, REG_OPTIONS regOptions)
     #endif
     }
 #endif
+#ifdef Q_OS_LINUX
+    user_regs_struct regs={};
+//    user_regs_struct regs;
+    errno=0;
+
+    if(ptrace(PTRACE_GETREGS,hidThread.nID,nullptr,&regs)!=-1)
+    {
+        if(regOptions.bGeneral)
+        {
+            g_statusCurrent.mapRegs.insert(REG_RAX,XBinary::getXVariant((quint64)(regs.rax)));
+            g_statusCurrent.mapRegs.insert(REG_RBX,XBinary::getXVariant((quint64)(regs.rbx)));
+            g_statusCurrent.mapRegs.insert(REG_RCX,XBinary::getXVariant((quint64)(regs.rcx)));
+            g_statusCurrent.mapRegs.insert(REG_RDX,XBinary::getXVariant((quint64)(regs.rdx)));
+            g_statusCurrent.mapRegs.insert(REG_RBP,XBinary::getXVariant((quint64)(regs.rbp)));
+            g_statusCurrent.mapRegs.insert(REG_RSP,XBinary::getXVariant((quint64)(regs.rsp)));
+            g_statusCurrent.mapRegs.insert(REG_RSI,XBinary::getXVariant((quint64)(regs.rsi)));
+            g_statusCurrent.mapRegs.insert(REG_RDI,XBinary::getXVariant((quint64)(regs.rdi)));
+            g_statusCurrent.mapRegs.insert(REG_R8,XBinary::getXVariant((quint64)(regs.r8)));
+            g_statusCurrent.mapRegs.insert(REG_R9,XBinary::getXVariant((quint64)(regs.r9)));
+            g_statusCurrent.mapRegs.insert(REG_R10,XBinary::getXVariant((quint64)(regs.r10)));
+            g_statusCurrent.mapRegs.insert(REG_R11,XBinary::getXVariant((quint64)(regs.r11)));
+            g_statusCurrent.mapRegs.insert(REG_R12,XBinary::getXVariant((quint64)(regs.r12)));
+            g_statusCurrent.mapRegs.insert(REG_R13,XBinary::getXVariant((quint64)(regs.r13)));
+            g_statusCurrent.mapRegs.insert(REG_R14,XBinary::getXVariant((quint64)(regs.r14)));
+            g_statusCurrent.mapRegs.insert(REG_R15,XBinary::getXVariant((quint64)(regs.r15)));
+        }
+
+        if(regOptions.bIP)
+        {
+            g_statusCurrent.mapRegs.insert(REG_RIP,XBinary::getXVariant((quint64)(regs.rip)));
+        }
+
+        if(regOptions.bFlags)
+        {
+            g_statusCurrent.mapRegs.insert(REG_EFLAGS,XBinary::getXVariant((quint32)(regs.eflags)));
+        }
+
+        if(regOptions.bSegments)
+        {
+            g_statusCurrent.mapRegs.insert(REG_GS,XBinary::getXVariant((quint16)(regs.gs)));
+            g_statusCurrent.mapRegs.insert(REG_FS,XBinary::getXVariant((quint16)(regs.fs)));
+            g_statusCurrent.mapRegs.insert(REG_ES,XBinary::getXVariant((quint16)(regs.es)));
+            g_statusCurrent.mapRegs.insert(REG_DS,XBinary::getXVariant((quint16)(regs.ds)));
+            g_statusCurrent.mapRegs.insert(REG_CS,XBinary::getXVariant((quint16)(regs.cs)));
+            g_statusCurrent.mapRegs.insert(REG_SS,XBinary::getXVariant((quint16)(regs.ss)));
+        }
+    }
+    else
+    {
+        qDebug("errno: %s",strerror(errno));
+    }
+
+//    __extension__ unsigned long long int orig_rax;
+//    __extension__ unsigned long long int fs_base;
+//    __extension__ unsigned long long int gs_base;
+#endif
 }
 
 void XInfoDB::updateMemoryRegionsList()
@@ -270,29 +325,103 @@ QList<XBinary::MODULE> *XInfoDB::getCurrentModulesList()
 
 bool XInfoDB::isRegChanged(REG reg)
 {
-    // TODO
-    return false;
+    return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
 }
 
 QString XInfoDB::regIdToString(REG reg)
 {
-    QString result="DDD";
+    QString sResult="Unknown";
 
-    return result;
+    if      (reg==REG_EAX)      sResult=QString("EAX");
+    else if (reg==REG_ECX)      sResult=QString("ECX");
+    else if (reg==REG_EDX)      sResult=QString("EDX");
+    else if (reg==REG_EBX)      sResult=QString("EBX");
+    else if (reg==REG_ESP)      sResult=QString("ESP");
+    else if (reg==REG_EBP)      sResult=QString("EBP");
+    else if (reg==REG_ESI)      sResult=QString("ESI");
+    else if (reg==REG_EDI)      sResult=QString("EDI");
+    else if (reg==REG_EIP)      sResult=QString("EIP");
+    else if (reg==REG_RAX)      sResult=QString("RAX");
+    else if (reg==REG_RCX)      sResult=QString("RCX");
+    else if (reg==REG_RDX)      sResult=QString("RDX");
+    else if (reg==REG_RBX)      sResult=QString("RBX");
+    else if (reg==REG_RSP)      sResult=QString("RSP");
+    else if (reg==REG_RBP)      sResult=QString("RBP");
+    else if (reg==REG_RSI)      sResult=QString("RSI");
+    else if (reg==REG_RDI)      sResult=QString("RDI");
+    else if (reg==REG_R8)       sResult=QString("R8");
+    else if (reg==REG_R9)       sResult=QString("R9");
+    else if (reg==REG_R10)      sResult=QString("R10");
+    else if (reg==REG_R11)      sResult=QString("R11");
+    else if (reg==REG_R12)      sResult=QString("R12");
+    else if (reg==REG_R13)      sResult=QString("R13");
+    else if (reg==REG_R14)      sResult=QString("R14");
+    else if (reg==REG_R15)      sResult=QString("R15");
+    else if (reg==REG_RIP)      sResult=QString("RIP");
+    else if (reg==REG_EFLAGS)   sResult=QString("EFLAGS");
+    else if (reg==REG_CS)       sResult=QString("CS");
+    else if (reg==REG_DS)       sResult=QString("DS");
+    else if (reg==REG_ES)       sResult=QString("ES");
+    else if (reg==REG_FS)       sResult=QString("FS");
+    else if (reg==REG_GS)       sResult=QString("GS");
+    else if (reg==REG_SS)       sResult=QString("SS");
+    else if (reg==REG_DR0)      sResult=QString("DR0");
+    else if (reg==REG_DR1)      sResult=QString("DR1");
+    else if (reg==REG_DR2)      sResult=QString("DR2");
+    else if (reg==REG_DR3)      sResult=QString("DR3");
+    else if (reg==REG_DR6)      sResult=QString("DR6");
+    else if (reg==REG_DR7)      sResult=QString("DR7");
+    else if (reg==REG_CF)       sResult=QString("CF");
+    else if (reg==REG_PF)       sResult=QString("PF");
+    else if (reg==REG_AF)       sResult=QString("AF");
+    else if (reg==REG_ZF)       sResult=QString("ZF");
+    else if (reg==REG_SF)       sResult=QString("SF");
+    else if (reg==REG_TF)       sResult=QString("TF");
+    else if (reg==REG_IF)       sResult=QString("IF");
+    else if (reg==REG_DF)       sResult=QString("DF");
+    else if (reg==REG_OF)       sResult=QString("OF");
+    else if (reg==REG_ST0)      sResult=QString("ST0");
+    else if (reg==REG_ST1)      sResult=QString("ST1");
+    else if (reg==REG_ST2)      sResult=QString("ST2");
+    else if (reg==REG_ST3)      sResult=QString("ST3");
+    else if (reg==REG_ST4)      sResult=QString("ST4");
+    else if (reg==REG_ST5)      sResult=QString("ST5");
+    else if (reg==REG_ST6)      sResult=QString("ST6");
+    else if (reg==REG_ST7)      sResult=QString("ST7");
+    else if (reg==REG_XMM0)     sResult=QString("XMM0");
+    else if (reg==REG_XMM1)     sResult=QString("XMM1");
+    else if (reg==REG_XMM2)     sResult=QString("XMM2");
+    else if (reg==REG_XMM3)     sResult=QString("XMM3");
+    else if (reg==REG_XMM4)     sResult=QString("XMM4");
+    else if (reg==REG_XMM5)     sResult=QString("XMM5");
+    else if (reg==REG_XMM6)     sResult=QString("XMM6");
+    else if (reg==REG_XMM7)     sResult=QString("XMM7");
+    else if (reg==REG_XMM8)     sResult=QString("XMM8");
+    else if (reg==REG_XMM9)     sResult=QString("XMM9");
+    else if (reg==REG_XMM10)    sResult=QString("XMM10");
+    else if (reg==REG_XMM11)    sResult=QString("XMM11");
+    else if (reg==REG_XMM12)    sResult=QString("XMM12");
+    else if (reg==REG_XMM13)    sResult=QString("XMM13");
+    else if (reg==REG_XMM14)    sResult=QString("XMM14");
+    else if (reg==REG_XMM15)    sResult=QString("XMM15");
+
+    return sResult;
 }
 
 XBinary::XVARIANT XInfoDB::_getReg(QMap<REG, XBinary::XVARIANT> *pMapRegs, REG reg)
 {
     XBinary::XVARIANT result={};
 
+    REG _reg=reg;
+
     if( (reg==REG_CF)||(reg==REG_PF)||(reg==REG_AF)||
         (reg==REG_ZF)||(reg==REG_SF)||(reg==REG_TF)||
         (reg==REG_IF)||(reg==REG_DF)||(reg==REG_OF))
     {
-        reg=REG_EFLAGS;
+        _reg=REG_EFLAGS;
     }
 
-    result=pMapRegs->value(reg);
+    result=pMapRegs->value(_reg);
 
     if(result.mode!=XBinary::MODE_UNKNOWN)
     {
