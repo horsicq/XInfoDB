@@ -36,7 +36,7 @@ public:
         MODE_PROCESS
     };
 
-    struct REG_OPTIONS
+    struct XREG_OPTIONS
     {
         bool bGeneral;
         bool bIP;
@@ -47,112 +47,111 @@ public:
         bool bXMM;
     };
 
-    enum REG
+    enum XREG
     {
-        REG_UNKNOWN=0,
-        REG_EAX,
-        REG_ECX,
-        REG_EDX,
-        REG_EBX,
-        REG_ESP,
-        REG_EBP,
-        REG_ESI,
-        REG_EDI,
-        REG_EIP,
-        REG_RAX,
-        REG_RCX,
-        REG_RDX,
-        REG_RBX,
-        REG_RSP,
-        REG_RBP,
-        REG_RSI,
-        REG_RDI,
-        REG_R8,
-        REG_R9,
-        REG_R10,
-        REG_R11,
-        REG_R12,
-        REG_R13,
-        REG_R14,
-        REG_R15,
-        REG_RIP,
-        REG_EFLAGS,
-        REG_CS,
-        REG_DS,
-        REG_ES,
-        REG_FS,
-        REG_GS,
-        REG_SS,
-        REG_DR0,
-        REG_DR1,
-        REG_DR2,
-        REG_DR3,
-        REG_DR6,
-        REG_DR7,
-        REG_CF,
-        REG_PF,
-        REG_AF,
-        REG_ZF,
-        REG_SF,
-        REG_TF,
-        REG_IF,
-        REG_DF,
-        REG_OF,
-        REG_ST0,
-        REG_ST1,
-        REG_ST2,
-        REG_ST3,
-        REG_ST4,
-        REG_ST5,
-        REG_ST6,
-        REG_ST7,
-        REG_XMM0,
-        REG_XMM1,
-        REG_XMM2,
-        REG_XMM3,
-        REG_XMM4,
-        REG_XMM5,
-        REG_XMM6,
-        REG_XMM7,
-        REG_XMM8,
-        REG_XMM9,
-        REG_XMM10,
-        REG_XMM11,
-        REG_XMM12,
-        REG_XMM13,
-        REG_XMM14,
-        REG_XMM15,
+        XREG_UNKNOWN=0,
+        XREG_EAX,
+        XREG_ECX,
+        XREG_EDX,
+        XREG_EBX,
+        XREG_ESP,
+        XREG_EBP,
+        XREG_ESI,
+        XREG_EDI,
+        XREG_EIP,
+        XREG_RAX,
+        XREG_RCX,
+        XREG_RDX,
+        XREG_RBX,
+        XREG_RSP,
+        XREG_RBP,
+        XREG_RSI,
+        XREG_RDI,
+        XREG_R8,
+        XREG_R9,
+        XREG_R10,
+        XREG_R11,
+        XREG_R12,
+        XREG_R13,
+        XREG_R14,
+        XREG_R15,
+        XREG_RIP,
+        XREG_EFLAGS,
+        XREG_CS,
+        XREG_DS,
+        XREG_ES,
+        XREG_FS,
+        XREG_GS,
+        XREG_SS,
+        XREG_DR0,
+        XREG_DR1,
+        XREG_DR2,
+        XREG_DR3,
+        XREG_DR6,
+        XREG_DR7,
+        XREG_CF,
+        XREG_PF,
+        XREG_AF,
+        XREG_ZF,
+        XREG_SF,
+        XREG_TF,
+        XREG_IF,
+        XREG_DF,
+        XREG_OF,
+        XREG_ST0,
+        XREG_ST1,
+        XREG_ST2,
+        XREG_ST3,
+        XREG_ST4,
+        XREG_ST5,
+        XREG_ST6,
+        XREG_ST7,
+        XREG_XMM0,
+        XREG_XMM1,
+        XREG_XMM2,
+        XREG_XMM3,
+        XREG_XMM4,
+        XREG_XMM5,
+        XREG_XMM6,
+        XREG_XMM7,
+        XREG_XMM8,
+        XREG_XMM9,
+        XREG_XMM10,
+        XREG_XMM11,
+        XREG_XMM12,
+        XREG_XMM13,
+        XREG_XMM14,
+        XREG_XMM15,
     };
 
     explicit XInfoDB(QObject *pParent=nullptr);
     ~XInfoDB();
 
     void setProcess(XProcess::HANDLEID hidProcess);
-    void updateRegs(XProcess::HANDLEID hidThread,REG_OPTIONS regOptions);
+    void updateRegs(XProcess::HANDLEID hidThread,XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
-    XBinary::XVARIANT getCurrentReg(REG reg);
+    XBinary::XVARIANT getCurrentReg(XREG reg);
     QList<XBinary::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XBinary::MODULE> *getCurrentModulesList();
-    bool isRegChanged(REG reg);
+    bool isRegChanged(XREG reg);
 
-    static QString regIdToString(REG reg);
+    static QString regIdToString(XREG reg);
 
 private:
 
     struct STATUS
     {
-        QMap<REG,XBinary::XVARIANT> mapRegs;
+        QMap<XREG,XBinary::XVARIANT> mapRegs;
         QList<XBinary::MEMORY_REGION> listMemoryRegions;
         QList<XBinary::MODULE> listModules;
     };
 
-    XBinary::XVARIANT _getReg(QMap<REG,XBinary::XVARIANT> *pMapRegs,REG reg);
+    XBinary::XVARIANT _getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
 
 private:
     XProcess::HANDLEID g_hidProcess;
     MODE g_mode;
-
     STATUS g_statusCurrent;
     STATUS g_statusPrev;
 };
