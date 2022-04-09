@@ -50,7 +50,7 @@ quint64 XInfoDB::read_uint64(quint64 nAddress, bool bIsBigEndian)
     return nResult;
 }
 
-qint64 XInfoDB::read_array(quint64 nAddress, char *pData, quint64 nSize)
+qint64 XInfoDB::read_array(quint64 nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
