@@ -23,7 +23,9 @@
 
 #include <QObject>
 #include "xbinary.h"
-#include "xprocess.h" // TODO def
+#ifdef USE_XPROCESS
+#include "xprocess.h"
+#endif
 
 class XInfoDB : public QObject
 {
@@ -33,7 +35,9 @@ public:
     enum MODE
     {
         MODE_UNKNOWN=0,
+    #ifdef USE_XPROCESS
         MODE_PROCESS
+    #endif
     };
 
     struct XREG_OPTIONS
@@ -124,16 +128,155 @@ public:
         XREG_XMM15,
     };
 
+    enum BPT
+    {
+        BPT_UNKNOWN=0,
+        BPT_CODE_SOFTWARE,    // for X86 0xCC Check for ARM
+        BPT_CODE_HARDWARE
+    };
+
+    enum BPI
+    {
+        BPI_UNKNOWN=0,
+        BPI_USER,
+        BPI_PROCESSENTRYPOINT,
+        BPI_PROGRAMENTRYPOINT,
+        BPI_TLSFUNCTION, // TODO
+        BPI_FUNCTIONENTER,
+        BPI_FUNCTIONLEAVE,
+        BPI_STEP,
+        BPI_STEPINTO,
+        BPI_STEPOVER
+    };
+
+    struct BREAKPOINT
+    {
+        quint64 nAddress;
+        qint64 nSize;
+        qint32 nCount;
+        BPT bpType;
+        BPI bpInfo;
+        QString sInfo;
+        qint32 nOrigDataSize;
+        char origData[4]; // TODO consts check
+        QString sGUID;
+    };
+
+    struct THREAD_INFO
+    {
+        qint64 nThreadID;
+        qint64 nThreadLocalBase;
+        quint64 nStartAddress;
+        void *hThread;
+    };
+
+    struct EXITTHREAD_INFO
+    {
+        qint64 nThreadID;
+        qint64 nExitCode;
+    };
+
+    struct PROCESS_INFO
+    {
+        qint64 nProcessID;
+        qint64 nThreadID;
+        QString sFileName;
+        quint64 nImageBase;
+        quint64 nImageSize;
+        quint64 nStartAddress;
+        quint64 nThreadLocalBase;
+        void *hProcessMemoryIO;
+        void *hProcessMemoryQuery;
+        void *hMainThread;
+    };
+
+    struct EXITPROCESS_INFO
+    {
+        qint64 nProcessID;
+        qint64 nThreadID;
+        qint64 nExitCode;
+    };
+
+    struct SHAREDOBJECT_INFO // DLL on Windows
+    {
+        QString sName;
+        QString sFileName;
+        quint64 nImageBase;
+        quint64 nImageSize;
+    };
+
+    struct DEBUGSTRING_INFO
+    {
+        qint64 nThreadID;
+        QString sDebugString;
+    };
+
+    struct BREAKPOINT_INFO
+    {
+        quint64 nAddress;
+        XInfoDB::BPT bpType;
+        XInfoDB::BPI bpInfo;
+        QString sInfo;
+        qint64 nProcessID;
+        void *pHProcessMemoryIO;
+        void *pHProcessMemoryQuery;
+        qint64 nThreadID;
+        void *pHThread;
+    };
+
+    struct PROCESSENTRY_INFO
+    {
+        quint64 nAddress;
+    };
+
+    struct FUNCTIONHOOK_INFO
+    {
+        QString sName;
+        quint64 nAddress;
+    };
+
+    struct FUNCTION_INFO
+    {
+        QString sName;
+        quint64 nAddress;
+        qint64 nRetAddress;
+        quint64 nParameter0;
+        quint64 nParameter1;
+        quint64 nParameter2;
+        quint64 nParameter3;
+        quint64 nParameter4;
+        quint64 nParameter5;
+        quint64 nParameter6;
+        quint64 nParameter7;
+        quint64 nParameter8;
+        quint64 nParameter9;
+    };
+
     explicit XInfoDB(QObject *pParent=nullptr);
     ~XInfoDB();
-
-    void setProcess(XProcess::HANDLEID hidProcess);
+    quint32 read_uint32(quint64 nAddress,bool bIsBigEndian=false);
+    quint64 read_uint64(quint64 nAddress,bool bIsBigEndian=false);
+    qint64 read_array(quint64 nAddress,char *pData,quint64 nSize);
+    qint64 write_array(quint64 nAddress,char *pData,quint64 nSize);
+    QByteArray read_array(quint64 nAddress,quint64 nSize);
+    QString read_ansiString(quint64 nAddress,quint64 nMaxSize=256);
+    QString read_unicodeString(quint64 nAddress,quint64 nMaxSize=256); // TODO endian ??
+#ifdef USE_XPROCESS
+    void setProcessInfo(PROCESS_INFO processInfo);
+    PROCESS_INFO *getProcessInfo();
     void updateRegs(XProcess::HANDLEID hidThread,XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
-    XBinary::XVARIANT getCurrentReg(XREG reg);
     QList<XBinary::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XBinary::MODULE> *getCurrentModulesList();
+    bool addBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
+    bool removeBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    bool isBreakPointPresent(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    QMap<qint64,BREAKPOINT> *getSoftwareBreakpoints();
+    QMap<qint64,BREAKPOINT> *getHardwareBreakpoints();
+    QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
+#endif
+    XBinary::XVARIANT getCurrentReg(XREG reg);
     bool isRegChanged(XREG reg);
 
     static QString regIdToString(XREG reg);
@@ -143,14 +286,19 @@ private:
     struct STATUS
     {
         QMap<XREG,XBinary::XVARIANT> mapRegs;
+    #ifdef USE_XPROCESS
         QList<XBinary::MEMORY_REGION> listMemoryRegions;
         QList<XBinary::MODULE> listModules;
+    #endif
     };
-
     XBinary::XVARIANT _getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
-
 private:
-    XProcess::HANDLEID g_hidProcess;
+#ifdef USE_XPROCESS
+    XInfoDB::PROCESS_INFO g_processInfo;
+    QMap<qint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
+    QMap<qint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
+    QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP
+#endif
     MODE g_mode;
     STATUS g_statusCurrent;
     STATUS g_statusPrev;

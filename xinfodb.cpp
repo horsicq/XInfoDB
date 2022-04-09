@@ -23,19 +23,92 @@
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
     g_mode=MODE_UNKNOWN;
-    g_hidProcess={};
+#ifdef USE_XPROCESS
+    g_processInfo={};
+#endif
 }
 
 XInfoDB::~XInfoDB()
 {
 }
 
-void XInfoDB::setProcess(XProcess::HANDLEID hidProcess)
+quint32 XInfoDB::read_uint32(quint64 nAddress, bool bIsBigEndian)
 {
-    g_hidProcess=hidProcess;
-    g_mode=MODE_PROCESS;
+    quint32 nResult=0;
+#ifdef USE_XPROCESS
+    nResult=XProcess::read_uint32(g_processInfo.hProcessMemoryIO,nAddress,bIsBigEndian);
+#endif
+    return nResult;
 }
 
+quint64 XInfoDB::read_uint64(quint64 nAddress, bool bIsBigEndian)
+{
+    quint64 nResult=0;
+#ifdef USE_XPROCESS
+    nResult=XProcess::read_uint64(g_processInfo.hProcessMemoryIO,nAddress,bIsBigEndian);
+#endif
+    return nResult;
+}
+
+qint64 XInfoDB::read_array(quint64 nAddress, char *pData, quint64 nSize)
+{
+    qint64 nResult=0;
+#ifdef USE_XPROCESS
+    nResult=XProcess::read_array(g_processInfo.hProcessMemoryIO,nAddress,pData,nSize);
+#endif
+    return nResult;
+}
+
+qint64 XInfoDB::write_array(quint64 nAddress, char *pData, quint64 nSize)
+{
+    qint64 nResult=0;
+#ifdef USE_XPROCESS
+    nResult=XProcess::write_array(g_processInfo.hProcessMemoryIO,nAddress,pData,nSize);
+#endif
+    return nResult;
+}
+
+QByteArray XInfoDB::read_array(quint64 nAddress, quint64 nSize)
+{
+    QByteArray baResult;
+#ifdef USE_XPROCESS
+    baResult=XProcess::read_array(g_processInfo.hProcessMemoryIO,nAddress,nSize);
+#endif
+    return baResult;
+}
+
+QString XInfoDB::read_ansiString(quint64 nAddress, quint64 nMaxSize)
+{
+    QString sResult;
+#ifdef USE_XPROCESS
+    sResult=XProcess::read_ansiString(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
+    return sResult;
+}
+
+QString XInfoDB::read_unicodeString(quint64 nAddress, quint64 nMaxSize)
+{
+    QString sResult;
+#ifdef USE_XPROCESS
+    sResult=XProcess::read_ansiString(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
+    return sResult;
+}
+
+#ifdef USE_XPROCESS
+void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
+{
+    g_processInfo=processInfo;
+    g_mode=MODE_PROCESS;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
+{
+    return &g_processInfo;
+}
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
@@ -288,41 +361,149 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
 //    __extension__ unsigned long long int gs_base;
 #endif
 }
-
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::updateMemoryRegionsList()
 {
     g_statusPrev.listMemoryRegions=g_statusCurrent.listMemoryRegions;
 
     g_statusCurrent.listMemoryRegions.clear();
 
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_hidProcess,0,0xFFFFFFFFFFFFFFFF);
+    XProcess::HANDLEID hidProcess={};
+    hidProcess.hHandle=g_processInfo.hProcessMemoryIO;
+    hidProcess.nID=g_processInfo.nProcessID;
+
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(hidProcess,0,0xFFFFFFFFFFFFFFFF);
 
 }
-
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::updateModulesList()
 {
     g_statusPrev.listModules=g_statusCurrent.listModules;
 
     g_statusCurrent.listModules.clear();
 
-    g_statusCurrent.listModules=XProcess::getModulesList(g_hidProcess.nID);
+    g_statusCurrent.listModules=XProcess::getModulesList(g_processInfo.nProcessID);
 }
-
+#endif
 XBinary::XVARIANT XInfoDB::getCurrentReg(XREG reg)
 {
     return _getReg(&(g_statusCurrent.mapRegs),reg);
 }
-
+#ifdef USE_XPROCESS
 QList<XBinary::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
 {
     return &(g_statusCurrent.listMemoryRegions);
 }
-
+#endif
+#ifdef USE_XPROCESS
 QList<XBinary::MODULE> *XInfoDB::getCurrentModulesList()
 {
     return &(g_statusCurrent.listModules);
 }
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::addBreakPoint(quint64 nAddress, BPT bpType, BPI bpInfo, qint32 nCount, QString sInfo, QString sGUID)
+{
+    bool bResult=false;
 
+    if(bpType==BPT_CODE_SOFTWARE)
+    {
+        if(!g_mapSoftwareBreakpoints.contains(nAddress))
+        {
+            BREAKPOINT bp={};
+            bp.nAddress=nAddress;
+            bp.nSize=1;
+            bp.nCount=nCount;
+            bp.bpInfo=bpInfo;
+            bp.bpType=bpType;
+            bp.sInfo=sInfo;
+            bp.sGUID=sGUID;
+
+            bp.nOrigDataSize=1;
+
+            if(read_array(nAddress,bp.origData,bp.nOrigDataSize)==bp.nOrigDataSize)
+            {
+                if(write_array(nAddress,(char *)"\xCC",bp.nOrigDataSize)) // TODO Check if x86
+                {
+                    g_mapSoftwareBreakpoints.insert(nAddress,bp);
+
+                    bResult=true;
+                }
+            }
+        }
+    }
+    else if(bpType==BPT_CODE_HARDWARE)
+    {
+        // TODO
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::removeBreakPoint(quint64 nAddress, BPT bpType)
+{
+    bool bResult=false;
+
+    if(bpType==BPT_CODE_SOFTWARE)
+    {
+        if(g_mapSoftwareBreakpoints.contains(nAddress))
+        {
+            BREAKPOINT bp=g_mapSoftwareBreakpoints.value(nAddress);
+
+            if(write_array(nAddress,(char *)bp.origData,bp.nOrigDataSize)) // TODO Check
+            {
+                g_mapSoftwareBreakpoints.remove(nAddress);
+
+                bResult=true;
+            }
+        }
+    }
+    else if(bpType==XInfoDB::BPT_CODE_HARDWARE)
+    {
+        // TODO
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::isBreakPointPresent(quint64 nAddress, BPT bpType)
+{
+    bool bResult=false;
+
+    if(bpType==BPT_CODE_SOFTWARE)
+    {
+        bResult=g_mapSoftwareBreakpoints.contains(nAddress);
+    }
+    else if(bpType==XInfoDB::BPT_CODE_HARDWARE)
+    {
+        bResult=g_mapHardwareBreakpoints.contains(nAddress);
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
+{
+    return &g_mapSoftwareBreakpoints;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getHardwareBreakpoints()
+{
+    return &g_mapHardwareBreakpoints;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+{
+    return &g_mapThreadBreakpoints;
+}
+#endif
 bool XInfoDB::isRegChanged(XREG reg)
 {
     return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
