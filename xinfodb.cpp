@@ -59,7 +59,7 @@ qint64 XInfoDB::read_array(quint64 nAddress,char *pData,quint64 nSize)
     return nResult;
 }
 
-qint64 XInfoDB::write_array(quint64 nAddress, char *pData, quint64 nSize)
+qint64 XInfoDB::write_array(quint64 nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
