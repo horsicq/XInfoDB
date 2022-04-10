@@ -589,7 +589,7 @@ QString XInfoDB::regIdToString(XREG reg)
     return sResult;
 }
 
-XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg)
+XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)
 {
     // TODO AX AL AH
     XBinary::XVARIANT result={};
