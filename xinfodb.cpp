@@ -470,7 +470,7 @@ bool XInfoDB::removeBreakPoint(quint64 nAddress, BPT bpType)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::isBreakPointPresent(quint64 nAddress, BPT bpType)
+bool XInfoDB::isBreakPointPresent(quint64 nAddress,BPT bpType)
 {
     bool bResult=false;
 
