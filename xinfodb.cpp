@@ -404,7 +404,7 @@ QList<XBinary::MODULE> *XInfoDB::getCurrentModulesList()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(quint64 nAddress, BPT bpType, BPI bpInfo, qint32 nCount, QString sInfo, QString sGUID)
+bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount,QString sInfo,QString sGUID)
 {
     bool bResult=false;
 
