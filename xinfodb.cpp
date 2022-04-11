@@ -32,6 +32,11 @@ XInfoDB::~XInfoDB()
 {
 }
 
+void XInfoDB::reload(bool bDataReload)
+{
+    emit dataChanged(bDataReload);
+}
+
 quint32 XInfoDB::read_uint32(quint64 nAddress, bool bIsBigEndian)
 {
     quint32 nResult=0;
@@ -124,14 +129,14 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
         if(regOptions.bGeneral)
         {
         #ifdef Q_PROCESSOR_X86_32
-            result.EAX=(quint32)(context.Eax);
-            result.EBX=(quint32)(context.Ebx);
-            result.ECX=(quint32)(context.Ecx);
-            result.EDX=(quint32)(context.Edx);
-            result.EBP=(quint32)(context.Ebp);
-            result.ESP=(quint32)(context.Esp);
-            result.ESI=(quint32)(context.Esi);
-            result.EDI=(quint32)(context.Edi);
+            g_statusCurrent.mapRegs.insert(XREG_EAX,XBinary::getXVariant((quint32)(context.Eax)));
+            g_statusCurrent.mapRegs.insert(XREG_EBX,XBinary::getXVariant((quint32)(context.Ebx)));
+            g_statusCurrent.mapRegs.insert(XREG_ECX,XBinary::getXVariant((quint32)(context.Ecx)));
+            g_statusCurrent.mapRegs.insert(XREG_EDX,XBinary::getXVariant((quint32)(context.Edx)));
+            g_statusCurrent.mapRegs.insert(XREG_EBP,XBinary::getXVariant((quint32)(context.Ebp)));
+            g_statusCurrent.mapRegs.insert(XREG_ESP,XBinary::getXVariant((quint32)(context.Esp)));
+            g_statusCurrent.mapRegs.insert(XREG_ESI,XBinary::getXVariant((quint32)(context.Esi)));
+            g_statusCurrent.mapRegs.insert(XREG_EDI,XBinary::getXVariant((quint32)(context.Edi)));
         #endif
         #ifdef Q_PROCESSOR_X86_64
             g_statusCurrent.mapRegs.insert(XREG_RAX,XBinary::getXVariant((quint64)(context.Rax)));
@@ -156,7 +161,7 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
         if(regOptions.bIP)
         {
         #ifdef Q_PROCESSOR_X86_32
-            result.EIP=(quint32)(context.Eip);
+            g_statusCurrent.mapRegs.insert(XREG_EIP,XBinary::getXVariant((quint32)(context.Eip)));
         #endif
         #ifdef Q_PROCESSOR_X86_64
             g_statusCurrent.mapRegs.insert(XREG_RIP,XBinary::getXVariant((quint64)(context.Rip)));
@@ -181,12 +186,12 @@ void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
         if(regOptions.bDebug)
         {
         #ifdef Q_PROCESSOR_X86_32
-            result.DR[0]=(quint32)(context.Dr0);
-            result.DR[1]=(quint32)(context.Dr1);
-            result.DR[2]=(quint32)(context.Dr2);
-            result.DR[3]=(quint32)(context.Dr3);
-            result.DR[6]=(quint32)(context.Dr6);
-            result.DR[7]=(quint32)(context.Dr7);
+            g_statusCurrent.mapRegs.insert(XREG_DR0,XBinary::getXVariant((quint32)(context.Dr0)));
+            g_statusCurrent.mapRegs.insert(XREG_DR1,XBinary::getXVariant((quint32)(context.Dr1)));
+            g_statusCurrent.mapRegs.insert(XREG_DR2,XBinary::getXVariant((quint32)(context.Dr2)));
+            g_statusCurrent.mapRegs.insert(XREG_DR3,XBinary::getXVariant((quint32)(context.Dr3)));
+            g_statusCurrent.mapRegs.insert(XREG_DR6,XBinary::getXVariant((quint32)(context.Dr6)));
+            g_statusCurrent.mapRegs.insert(XREG_DR7,XBinary::getXVariant((quint32)(context.Dr7)));
         #endif
         #ifdef Q_PROCESSOR_X86_64
             g_statusCurrent.mapRegs.insert(XREG_DR0,XBinary::getXVariant((quint64)(context.Dr0)));
@@ -370,11 +375,10 @@ void XInfoDB::updateMemoryRegionsList()
     g_statusCurrent.listMemoryRegions.clear();
 
     XProcess::HANDLEID hidProcess={};
-    hidProcess.hHandle=g_processInfo.hProcessMemoryIO;
+    hidProcess.hHandle=g_processInfo.hProcessMemoryQuery;
     hidProcess.nID=g_processInfo.nProcessID;
 
     g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(hidProcess,0,0xFFFFFFFFFFFFFFFF);
-
 }
 #endif
 #ifdef USE_XPROCESS
@@ -392,13 +396,13 @@ XBinary::XVARIANT XInfoDB::getCurrentReg(XREG reg)
     return _getReg(&(g_statusCurrent.mapRegs),reg);
 }
 #ifdef USE_XPROCESS
-QList<XBinary::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
+QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
 {
     return &(g_statusCurrent.listMemoryRegions);
 }
 #endif
 #ifdef USE_XPROCESS
-QList<XBinary::MODULE> *XInfoDB::getCurrentModulesList()
+QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList()
 {
     return &(g_statusCurrent.listModules);
 }

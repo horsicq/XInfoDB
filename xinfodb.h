@@ -254,6 +254,9 @@ public:
 
     explicit XInfoDB(QObject *pParent=nullptr);
     ~XInfoDB();
+
+    void reload(bool bDataReload);
+
     quint32 read_uint32(quint64 nAddress,bool bIsBigEndian=false);
     quint64 read_uint64(quint64 nAddress,bool bIsBigEndian=false);
     qint64 read_array(quint64 nAddress,char *pData,quint64 nSize);
@@ -267,8 +270,8 @@ public:
     void updateRegs(XProcess::HANDLEID hidThread,XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
-    QList<XBinary::MEMORY_REGION> *getCurrentMemoryRegionsList();
-    QList<XBinary::MODULE> *getCurrentModulesList();
+    QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
+    QList<XProcess::MODULE> *getCurrentModulesList();
     bool addBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
     bool removeBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
     bool isBreakPointPresent(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
@@ -281,14 +284,17 @@ public:
 
     static QString regIdToString(XREG reg);
 
+signals:
+    void dataChanged(bool bDataReload);
+
 private:
 
     struct STATUS
     {
         QMap<XREG,XBinary::XVARIANT> mapRegs;
     #ifdef USE_XPROCESS
-        QList<XBinary::MEMORY_REGION> listMemoryRegions;
-        QList<XBinary::MODULE> listModules;
+        QList<XProcess::MEMORY_REGION> listMemoryRegions;
+        QList<XProcess::MODULE> listModules;
     #endif
     };
     XBinary::XVARIANT _getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
