@@ -278,6 +278,26 @@ public:
     QMap<qint64,BREAKPOINT> *getSoftwareBreakpoints();
     QMap<qint64,BREAKPOINT> *getHardwareBreakpoints();
     QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
+    bool breakpointToggle(quint64 nAddress);
+    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
+
+    void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
+    void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
+
+    void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
+    void removeThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
+
+    bool setFunctionHook(QString sFunctionName);
+    bool removeFunctionHook(QString sFunctionName);
+
+    QMap<qint64,SHAREDOBJECT_INFO> *getSharedObjectInfos();
+    QMap<qint64,THREAD_INFO> *getThreadInfos();
+    QMap<QString,FUNCTIONHOOK_INFO> *getFunctionHookInfos();
+
+    SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
+    SHAREDOBJECT_INFO findSharedInfoByAddress(quint64 nAddress);
+
+    quint64 getFunctionAddress(QString sFunctionName);
 #endif
     XBinary::XVARIANT getCurrentReg(XREG reg);
     bool isRegChanged(XREG reg);
@@ -304,6 +324,9 @@ private:
     QMap<qint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
     QMap<qint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP
+    QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;
+    QMap<qint64,THREAD_INFO> g_mapThreadInfos;
+    QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;
 #endif
     MODE g_mode;
     STATUS g_statusCurrent;

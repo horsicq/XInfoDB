@@ -99,7 +99,198 @@ QString XInfoDB::read_unicodeString(quint64 nAddress, quint64 nMaxSize)
 #endif
     return sResult;
 }
+#ifdef USE_XPROCESS
+bool XInfoDB::breakpointToggle(quint64 nAddress)
+{
+    bool bResult=false;
 
+    if(!isBreakPointPresent(nAddress))
+    {
+        if(addBreakPoint(nAddress))
+        {
+            bResult=true;
+        }
+    }
+    else
+    {
+        if(removeBreakPoint(nAddress))
+        {
+            bResult=true;
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase,quint64 nSize)
+{
+    QList<XBinary::MEMORY_REPLACE> listResult;
+
+    QMapIterator<qint64,XInfoDB::BREAKPOINT> i(g_mapSoftwareBreakpoints);
+
+    while (i.hasNext())
+    {
+        i.next();
+        XInfoDB::BREAKPOINT breakPoint=i.value();
+
+        if(breakPoint.nOrigDataSize)
+        {
+            if((breakPoint.nAddress>=nBase)&&(breakPoint.nAddress<nBase+nSize))
+            {
+                XBinary::MEMORY_REPLACE record={};
+                record.nAddress=breakPoint.nAddress;
+                record.baOriginal=QByteArray(breakPoint.origData,breakPoint.nOrigDataSize);
+                record.nSize=record.baOriginal.size();
+
+                listResult.append(record);
+            }
+        }
+    }
+
+    return listResult;
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::addSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
+{
+    g_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase,*pSharedObjectInfo);
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
+{
+    g_mapSharedObjectInfos.remove(pSharedObjectInfo->nImageBase);
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
+{
+    g_mapThreadInfos.insert(pThreadInfo->nThreadID,*pThreadInfo);
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::removeThreadInfo(THREAD_INFO *pThreadInfo)
+{
+    g_mapThreadInfos.remove(pThreadInfo->nThreadID);
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setFunctionHook(QString sFunctionName)
+{
+    bool bResult=false;
+
+    qint64 nFunctionAddress=getFunctionAddress(sFunctionName);
+
+    if(nFunctionAddress!=-1)
+    {
+        bResult=addBreakPoint(nFunctionAddress,XInfoDB::BPT_CODE_SOFTWARE,XInfoDB::BPI_FUNCTIONENTER,-1,sFunctionName);
+
+        XInfoDB::FUNCTIONHOOK_INFO functionhook_info={};
+        functionhook_info.sName=sFunctionName;
+        functionhook_info.nAddress=nFunctionAddress;
+
+        g_mapFunctionHookInfos.insert(sFunctionName,functionhook_info);
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::removeFunctionHook(QString sFunctionName)
+{
+    bool bResult=false;
+    // TODO Check !!!
+    for(QMap<qint64,XInfoDB::BREAKPOINT>::iterator it=getSoftwareBreakpoints()->begin();it!=getSoftwareBreakpoints()->end();)
+    {
+        if(it.value().sInfo==sFunctionName)
+        {
+            it=getSoftwareBreakpoints()->erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
+
+    if(g_mapFunctionHookInfos.contains(sFunctionName))
+    {
+        g_mapFunctionHookInfos.remove(sFunctionName);
+
+        bResult=true;
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<qint64, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
+{
+    return &g_mapSharedObjectInfos;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<qint64, XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
+{
+    return &g_mapThreadInfos;
+}
+#endif
+#ifdef USE_XPROCESS
+QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
+{
+    return &g_mapFunctionHookInfos;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName)
+{
+    XInfoDB::SHAREDOBJECT_INFO result={};
+
+    for(QMap<qint64,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
+    {
+        if(it.value().sName==sName)
+        {
+            result=it.value();
+
+            break;
+        }
+
+        ++it;
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(quint64 nAddress)
+{
+    XInfoDB::SHAREDOBJECT_INFO result={};
+
+    for(QMap<qint64,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
+    {
+        XInfoDB::SHAREDOBJECT_INFO record=it.value();
+
+        if((record.nImageBase<=nAddress)&&(record.nImageBase+record.nImageSize>nAddress))
+        {
+            result=record;
+
+            break;
+        }
+
+        ++it;
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
+{
+    Q_UNUSED(sFunctionName)
+    // TODO
+    return 0;
+}
+#endif
 #ifdef USE_XPROCESS
 void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
