@@ -305,7 +305,7 @@ XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegs(XProcess::HANDLEID hidThread, XREG_OPTIONS regOptions)
+void XInfoDB::updateRegs(XProcess::HANDLEID hidThread,XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
