@@ -54,6 +54,17 @@ public:
     enum XREG
     {
         XREG_UNKNOWN=0,
+        XREG_NONE,
+        XREG_AX,
+        XREG_CX,
+        XREG_DX,
+        XREG_BX,
+        XREG_SP,
+        XREG_BP,
+        XREG_SI,
+        XREG_DI,
+        XREG_IP,
+        XREG_FLAGS,
         XREG_EAX,
         XREG_ECX,
         XREG_EDX,
@@ -63,6 +74,7 @@ public:
         XREG_ESI,
         XREG_EDI,
         XREG_EIP,
+        XREG_EFLAGS,
         XREG_RAX,
         XREG_RCX,
         XREG_RDX,
@@ -80,7 +92,7 @@ public:
         XREG_R14,
         XREG_R15,
         XREG_RIP,
-        XREG_EFLAGS,
+        XREG_RFLAGS,
         XREG_CS,
         XREG_DS,
         XREG_ES,
@@ -126,6 +138,42 @@ public:
         XREG_XMM13,
         XREG_XMM14,
         XREG_XMM15,
+        XREG_AH,
+        XREG_CH,
+        XREG_DH,
+        XREG_BH,
+        XREG_AL,
+        XREG_CL,
+        XREG_DL,
+        XREG_BL,
+        XREG_SPL,
+        XREG_BPL,
+        XREG_SIL,
+        XREG_DIL,
+        XREG_R8D,
+        XREG_R9D,
+        XREG_R10D,
+        XREG_R11D,
+        XREG_R12D,
+        XREG_R13D,
+        XREG_R14D,
+        XREG_R15D,
+        XREG_R8W,
+        XREG_R9W,
+        XREG_R10W,
+        XREG_R11W,
+        XREG_R12W,
+        XREG_R13W,
+        XREG_R14W,
+        XREG_R15W,
+        XREG_R8B,
+        XREG_R9B,
+        XREG_R10B,
+        XREG_R11B,
+        XREG_R12B,
+        XREG_R13B,
+        XREG_R14B,
+        XREG_R15B,
     };
 
     enum BPT
@@ -266,8 +314,9 @@ public:
     QString read_unicodeString(quint64 nAddress,quint64 nMaxSize=256); // TODO endian ??
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
+    void setCurrentThread(XProcess::HANDLEID hidThread);
     PROCESS_INFO *getProcessInfo();
-    void updateRegs(XProcess::HANDLEID hidThread,XREG_OPTIONS regOptions);
+    void updateRegs(XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
@@ -279,7 +328,6 @@ public:
     QMap<qint64,BREAKPOINT> *getHardwareBreakpoints();
     QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
     bool breakpointToggle(quint64 nAddress);
-    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
@@ -299,10 +347,49 @@ public:
 
     quint64 getFunctionAddress(QString sFunctionName);
 #endif
+    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
     XBinary::XVARIANT getCurrentReg(XREG reg);
+    bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
     static QString regIdToString(XREG reg);
+
+    static XREG getSubReg32(XREG reg);
+    static XREG getSubReg16(XREG reg);
+    static XREG getSubReg8H(XREG reg);
+    static XREG getSubReg8L(XREG reg);
+
+    enum ST
+    {
+        ST_UNKNOWN=0,
+        ST_ANSI,
+        ST_UTF8,
+        ST_UNICODE
+    };
+
+    struct XSTRING
+    {
+        QString sString;
+        ST stringType;
+    };
+
+    struct RECORD_INFO
+    {
+        quint64 nAddress;   // If invalid -1
+        QString sModule;
+        XSTRING xString;
+        QString sInfo;
+    };
+
+    RECORD_INFO getRecordInfo(quint64 nValue); // mb extra parameters
+
+    enum RI_TYPE
+    {
+        RI_TYPE_GENERAL=0,
+        RI_TYPE_ADDRESS
+    };
+
+    static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType);
 
 signals:
     void dataChanged(bool bDataReload);
@@ -321,6 +408,7 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
+    XProcess::HANDLEID g_hidThread;
     QMap<qint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
     QMap<qint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP
