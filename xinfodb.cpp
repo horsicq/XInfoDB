@@ -670,7 +670,7 @@ bool XInfoDB::isBreakPointPresent(quint64 nAddress,BPT bpType)
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
+QMap<qint64,XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
 {
     return &g_mapSoftwareBreakpoints;
 }
