@@ -324,8 +324,11 @@ public:
     bool addBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
     bool removeBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
     bool isBreakPointPresent(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    QMap<qint64,BREAKPOINT> *getSoftwareBreakpoints();
-    QMap<qint64,BREAKPOINT> *getHardwareBreakpoints();
+    BREAKPOINT findBreakPointByAddress(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
+
+    QMap<quint64,BREAKPOINT> *getSoftwareBreakpoints();
+    QMap<quint64,BREAKPOINT> *getHardwareBreakpoints();
     QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
     bool breakpointToggle(quint64 nAddress);
 
@@ -409,8 +412,8 @@ private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     XProcess::HANDLEID g_hidThread;
-    QMap<qint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
-    QMap<qint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
+    QMap<quint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
+    QMap<quint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP
     QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;
     QMap<qint64,THREAD_INFO> g_mapThreadInfos;

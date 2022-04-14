@@ -100,6 +100,46 @@ QString XInfoDB::read_unicodeString(quint64 nAddress, quint64 nMaxSize)
 #endif
     return sResult;
 }
+
+#ifdef USE_XPROCESS
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType)
+{
+    BREAKPOINT result={};
+
+    if(bpType==BPT_CODE_SOFTWARE)
+    {
+        result=g_mapSoftwareBreakpoints.value(nAddress);
+    }
+    else if(bpType==BPT_CODE_HARDWARE)
+    {
+        result=g_mapHardwareBreakpoints.value(nAddress);
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nExceptionAddress, BPT bpType)
+{
+    BREAKPOINT result={};
+
+    QMapIterator<quint64,XInfoDB::BREAKPOINT> i(*getSoftwareBreakpoints());
+    while (i.hasNext())
+    {
+        i.next();
+        XInfoDB::BREAKPOINT breakPoint=i.value();
+
+        if(breakPoint.nAddress==(nExceptionAddress-breakPoint.nOrigDataSize))
+        {
+            result=breakPoint;
+
+            break;
+        }
+    }
+
+    return result;
+}
+#endif
 #ifdef USE_XPROCESS
 bool XInfoDB::breakpointToggle(quint64 nAddress)
 {
@@ -173,7 +213,7 @@ bool XInfoDB::removeFunctionHook(QString sFunctionName)
 {
     bool bResult=false;
     // TODO Check !!!
-    for(QMap<qint64,XInfoDB::BREAKPOINT>::iterator it=getSoftwareBreakpoints()->begin();it!=getSoftwareBreakpoints()->end();)
+    for(QMap<quint64,XInfoDB::BREAKPOINT>::iterator it=getSoftwareBreakpoints()->begin();it!=getSoftwareBreakpoints()->end();)
     {
         if(it.value().sInfo==sFunctionName)
         {
@@ -670,13 +710,13 @@ bool XInfoDB::isBreakPointPresent(quint64 nAddress,BPT bpType)
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64,XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
+QMap<quint64,XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
 {
     return &g_mapSoftwareBreakpoints;
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getHardwareBreakpoints()
+QMap<quint64, XInfoDB::BREAKPOINT> *XInfoDB::getHardwareBreakpoints()
 {
     return &g_mapHardwareBreakpoints;
 }
@@ -696,7 +736,7 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 {
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
-    QMapIterator<qint64,XInfoDB::BREAKPOINT> i(g_mapSoftwareBreakpoints);
+    QMapIterator<quint64,XInfoDB::BREAKPOINT> i(g_mapSoftwareBreakpoints);
 
     while (i.hasNext())
     {
