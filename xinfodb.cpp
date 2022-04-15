@@ -985,7 +985,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue)
     return result;
 }
 
-QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
+QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
 {
     QString sResult="";
 
