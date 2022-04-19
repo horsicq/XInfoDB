@@ -348,6 +348,8 @@ public:
     SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
     SHAREDOBJECT_INFO findSharedInfoByAddress(quint64 nAddress);
 
+    THREAD_INFO findThreadInfoByID(qint64 nThreadID);
+
     quint64 getFunctionAddress(QString sFunctionName);
 #endif
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
@@ -412,12 +414,12 @@ private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     XProcess::HANDLEID g_hidThread;
-    QMap<quint64,BREAKPOINT> g_mapSoftwareBreakpoints;       // Address/BP
-    QMap<quint64,BREAKPOINT> g_mapHardwareBreakpoints;       // Address/BP
-    QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP
-    QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;
-    QMap<qint64,THREAD_INFO> g_mapThreadInfos;
-    QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;
+    QMap<quint64,BREAKPOINT> g_mapSoftwareBreakpoints;      // Address/BP TODO QList
+    QMap<quint64,BREAKPOINT> g_mapHardwareBreakpoints;      // Address/BP TODO QList
+    QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+    QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
+    QMap<qint64,THREAD_INFO> g_mapThreadInfos;              // TODO QList
+    QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList
 #endif
     MODE g_mode;
     STATUS g_statusCurrent;

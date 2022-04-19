@@ -296,6 +296,28 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(quint64 nAddress)
 }
 #endif
 #ifdef USE_XPROCESS
+XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(qint64 nThreadID)
+{
+    XInfoDB::THREAD_INFO result={};
+
+    for(QMap<qint64,XInfoDB::THREAD_INFO>::iterator it=g_mapThreadInfos.begin();it!=g_mapThreadInfos.end();)
+    {
+        XInfoDB::THREAD_INFO record=it.value();
+
+        if(record.nThreadID==nThreadID)
+        {
+            result=record;
+
+            break;
+        }
+
+        ++it;
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
 quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
 {
     Q_UNUSED(sFunctionName)
