@@ -101,6 +101,15 @@ QString XInfoDB::read_unicodeString(quint64 nAddress, quint64 nMaxSize)
     return sResult;
 }
 
+QString XInfoDB::read_utf8String(quint64 nAddress, quint64 nMaxSize)
+{
+    QString sResult;
+#ifdef USE_XPROCESS
+    sResult=XProcess::read_utf8String(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
+    return sResult;
+}
+
 #ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType)
 {
@@ -274,7 +283,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName)
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(quint64 nAddress)
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress)
 {
     XInfoDB::SHAREDOBJECT_INFO result={};
 
@@ -1002,14 +1011,72 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue)
 {
     RECORD_INFO result={};
 
-    // TODO
+    result.nAddress=-1;
+
+    if((nValue>=g_processInfo.nImageBase)&&(nValue<(g_processInfo.nImageBase+g_processInfo.nImageSize)))
+    {
+        result.sModule=g_processInfo.sBaseFileName;
+        result.nAddress=nValue;
+    }
+    else
+    {
+        SHAREDOBJECT_INFO sbi=findSharedInfoByAddress(nValue);
+
+        if(sbi.sName!="")
+        {
+            result.sModule=sbi.sName;
+            result.nAddress=nValue;
+        }
+    }
+
+    if(result.nAddress!=-1)
+    {
+        result.baData=read_array(result.nAddress,32);
+
+        // TODO getSymbol
+    }
 
     return result;
 }
 
 QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
 {
-    QString sResult="";
+    QString sResult;
+
+    if(recordInfo.nAddress!=-1)
+    {
+        if(riType==RI_TYPE_GENERAL)
+        {
+            QString sAnsiString;
+            QString sUnicodeString;
+
+            if(XBinary::_read_uint8(recordInfo.baData.data())<128)
+            {
+                sAnsiString=QString(recordInfo.baData);
+            }
+
+            if(XBinary::_read_uint16(recordInfo.baData.data())<128)
+            {
+                sUnicodeString=QString::fromUtf16((quint16 *)(recordInfo.baData.data()),recordInfo.baData.size()/2);
+            }
+
+            qint32 nAnsiSize=sAnsiString.size();
+            qint32 nUnicodeSize=sUnicodeString.size();
+
+            if((nAnsiSize>=nUnicodeSize)&&(nAnsiSize>5))
+            {
+                sResult=QString("A: \"%1\"").arg(sAnsiString);
+            }
+            else if((nUnicodeSize>=nAnsiSize)&&(nUnicodeSize>5))
+            {
+                sResult=QString("U: \"%1\"").arg(sUnicodeString);
+            }
+            else
+            {
+                sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
+            }
+        }
+    }
 
     return sResult;
 }

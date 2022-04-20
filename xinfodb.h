@@ -229,10 +229,11 @@ public:
         qint64 nProcessID;
         qint64 nThreadID;
         QString sFileName;
-        quint64 nImageBase;
+        QString sBaseFileName;
+        XADDR nImageBase;
         quint64 nImageSize;
-        quint64 nStartAddress;
-        quint64 nThreadLocalBase;
+        XADDR nStartAddress;
+        XADDR nThreadLocalBase;
         void *hProcessMemoryIO;
         void *hProcessMemoryQuery;
         void *hMainThread;
@@ -312,6 +313,7 @@ public:
     QByteArray read_array(quint64 nAddress,quint64 nSize);
     QString read_ansiString(quint64 nAddress,quint64 nMaxSize=256);
     QString read_unicodeString(quint64 nAddress,quint64 nMaxSize=256); // TODO endian ??
+    QString read_utf8String(quint64 nAddress,quint64 nMaxSize=256);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     void setCurrentThread(XProcess::HANDLEID hidThread);
@@ -346,7 +348,7 @@ public:
     QMap<QString,FUNCTIONHOOK_INFO> *getFunctionHookInfos();
 
     SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
-    SHAREDOBJECT_INFO findSharedInfoByAddress(quint64 nAddress);
+    SHAREDOBJECT_INFO findSharedInfoByAddress(XADDR nAddress);
 
     THREAD_INFO findThreadInfoByID(qint64 nThreadID);
 
@@ -364,25 +366,27 @@ public:
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
 
-    enum ST
-    {
-        ST_UNKNOWN=0,
-        ST_ANSI,
-        ST_UTF8,
-        ST_UNICODE
-    };
+//    enum ST
+//    {
+//        ST_UNKNOWN=0,
+//        ST_ANSI,
+//        ST_UTF8,
+//        ST_UNICODE
+//    };
 
     struct XSTRING
     {
-        QString sString;
-        ST stringType;
+        QString sAnsiString;
+        QString sUnicodeString;
+        QString sUTFString;
     };
 
     struct RECORD_INFO
     {
-        quint64 nAddress;   // If invalid -1
+        quint64 nAddress;       // If invalid -1
         QString sModule;
-        XSTRING xString;
+        QByteArray baData;
+        QString sSymbol;
         QString sInfo;
     };
 
@@ -394,7 +398,7 @@ public:
         RI_TYPE_ADDRESS
     };
 
-    static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType);
+    static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
 
 signals:
     void dataChanged(bool bDataReload);
