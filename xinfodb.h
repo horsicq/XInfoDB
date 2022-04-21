@@ -395,7 +395,11 @@ public:
     enum RI_TYPE
     {
         RI_TYPE_GENERAL=0,
-        RI_TYPE_ADDRESS
+        RI_TYPE_ADDRESS,
+        RI_TYPE_ANSI,
+        RI_TYPE_UNICODE,
+        RI_TYPE_UTF8,
+        // TODO Symbol
     };
 
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);

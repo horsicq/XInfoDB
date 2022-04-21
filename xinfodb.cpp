@@ -1052,7 +1052,7 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
 
             if(XBinary::_read_uint8(recordInfo.baData.data())<128)
             {
-                sAnsiString=QString(recordInfo.baData);
+                sAnsiString=QString::fromLatin1(recordInfo.baData);
             }
 
             if(XBinary::_read_uint16(recordInfo.baData.data())<128)
@@ -1075,6 +1075,22 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
             {
                 sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
             }
+        }
+        else if(riType==RI_TYPE_ADDRESS)
+        {
+            sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
+        }
+        else if(riType==RI_TYPE_ANSI)
+        {
+            sResult=QString::fromLatin1(recordInfo.baData);
+        }
+        else if(riType==RI_TYPE_UNICODE)
+        {
+            sResult=QString::fromUtf16((quint16 *)(recordInfo.baData.data()),recordInfo.baData.size()/2);
+        }
+        else if(riType==RI_TYPE_UTF8)
+        {
+            sResult=QString::fromUtf8(recordInfo.baData);
         }
     }
 
