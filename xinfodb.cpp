@@ -1022,14 +1022,14 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue)
     {
         SHAREDOBJECT_INFO sbi=findSharedInfoByAddress(nValue);
 
-        if(sbi.sName!="")
+        if(sbi.nImageSize!=0)
         {
             result.sModule=sbi.sName;
             result.nAddress=nValue;
         }
     }
 
-    if(result.nAddress!=-1)
+    if(result.nAddress!=(quint64)-1)
     {
         result.baData=read_array(result.nAddress,32);
 
@@ -1043,7 +1043,7 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
 {
     QString sResult;
 
-    if(recordInfo.nAddress!=-1)
+    if(recordInfo.nAddress!=(quint64)-1)
     {
         if(riType==RI_TYPE_GENERAL)
         {
