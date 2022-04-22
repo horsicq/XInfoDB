@@ -1007,7 +1007,7 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
     return result;
 }
 
-XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue)
+XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
 {
     RECORD_INFO result={};
 
@@ -1029,11 +1029,34 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue)
         }
     }
 
-    if(result.nAddress!=(quint64)-1)
+    if( (riType==RI_TYPE_GENERAL)||
+        (riType==RI_TYPE_DATA)||
+        (riType==RI_TYPE_ANSI)||
+        (riType==RI_TYPE_UNICODE)||
+        (riType==RI_TYPE_UTF8))
     {
-        result.baData=read_array(result.nAddress,32);
+        if(result.nAddress!=(quint64)-1)
+        {
+            result.baData=read_array(result.nAddress,32);
+        }
+    }
 
-        // TODO getSymbol
+    if( (riType==RI_TYPE_GENERAL)||
+        (riType==RI_TYPE_SYMBOL))
+    {
+        if(result.nAddress!=(quint64)-1)
+        {
+            // TODO getSymbol
+            // TODO
+            // If not use address
+            if(riType==RI_TYPE_SYMBOL)
+            {
+                if(result.sSymbol=="")
+                {
+                    result.sSymbol=QString("%1.%2").arg(result.sModule,XBinary::valueToHexOS(result.nAddress));
+                }
+            }
+        }
     }
 
     return result;
@@ -1071,6 +1094,10 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
             {
                 sResult=QString("U: \"%1\"").arg(sUnicodeString);
             }
+            else if(recordInfo.sSymbol!="")
+            {
+                sResult=recordInfo.sSymbol;
+            }
             else
             {
                 sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
@@ -1079,6 +1106,10 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
         else if(riType==RI_TYPE_ADDRESS)
         {
             sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
+        }
+        else if(riType==RI_TYPE_SYMBOL)
+        {
+            sResult=recordInfo.sSymbol;
         }
         else if(riType==RI_TYPE_ANSI)
         {

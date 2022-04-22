@@ -390,18 +390,18 @@ public:
         QString sInfo;
     };
 
-    RECORD_INFO getRecordInfo(quint64 nValue); // mb extra parameters
-
     enum RI_TYPE
     {
         RI_TYPE_GENERAL=0,
         RI_TYPE_ADDRESS,
+        RI_TYPE_DATA,
         RI_TYPE_ANSI,
         RI_TYPE_UNICODE,
         RI_TYPE_UTF8,
-        // TODO Symbol
+        RI_TYPE_SYMBOL
     };
 
+    RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
 
 signals:
