@@ -7,7 +7,7 @@ HEADERS += \
 SOURCES += \
     $$PWD/xinfodb.cpp
 
-# TODO add Xbinary
+# TODO add XBinary
 
 DISTFILES += \
     $$PWD/xinfodb.cmake
