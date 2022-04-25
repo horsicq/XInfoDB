@@ -1012,7 +1012,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
     RECORD_INFO result={};
 
     result.nAddress=-1;
-
+#ifdef USE_XPROCESS
     if((nValue>=g_processInfo.nImageBase)&&(nValue<(g_processInfo.nImageBase+g_processInfo.nImageSize)))
     {
         result.sModule=g_processInfo.sBaseFileName;
@@ -1028,6 +1028,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
             result.nAddress=nValue;
         }
     }
+#endif
 
     if( (riType==RI_TYPE_GENERAL)||
         (riType==RI_TYPE_DATA)||
