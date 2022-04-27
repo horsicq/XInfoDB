@@ -20,6 +20,23 @@
  */
 #include "xinfodb.h"
 
+
+bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
+{
+    bool bResult=false;
+
+    if(v1.nModule!=v2.nModule)
+    {
+        bResult=(v1.nModule>v2.nModule);
+    }
+    else
+    {
+        bResult=(v1.nAddress>v2.nAddress);
+    }
+
+    return bResult;
+}
+
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
     g_mode=MODE_UNKNOWN;
@@ -1127,6 +1144,81 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
     }
 
     return sResult;
+}
+
+QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
+{
+    // TODO Check if empty. If empty run export from file.
+    return &g_listSymbols;
+}
+
+QMap<quint32, QString> *XInfoDB::getSymbolModules()
+{
+    return &g_mapSymbolModules;
+}
+
+void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sLabel, ST symbolType)
+{
+    qint32 nInsertIndex=0;
+    qint32 nIndex=_getSymbolIndex(nAddress,nModule,&nInsertIndex);
+
+    if(nIndex!=-1)
+    {
+        g_listSymbols[nIndex].sLabel=sLabel;
+        g_listSymbols[nIndex].symbolType=symbolType;
+    }
+    else
+    {
+        SYMBOL symbol={};
+        symbol.nAddress=nAddress;
+        symbol.nModule=nModule;
+        symbol.sLabel=sLabel;
+        symbol.symbolType=symbolType;
+
+        g_listSymbols.insert(nInsertIndex,symbol);
+    }
+}
+
+void XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sLabel, ST symbolType)
+{
+    SYMBOL symbol={};
+    symbol.nAddress=nAddress;
+    symbol.nModule=nModule;
+    symbol.sLabel=sLabel;
+    symbol.symbolType=symbolType;
+
+    g_listSymbols.append(symbol);
+}
+
+void XInfoDB::_sortSymbols()
+{
+    std::sort(g_listSymbols.begin(),g_listSymbols.end(),_symbolSort);
+}
+
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, quint32 nModule, qint32 *pnInsertIndex)
+{
+    // For sorted g_listSymbols!
+    qint32 nResult=-1;
+
+    qint32 nNumberOfRecords=g_listSymbols.count();
+
+    for(qint32 i=0;i<nNumberOfRecords;i++)
+    {
+        if((g_listSymbols.at(i).nAddress==nAddress)&&(g_listSymbols.at(i).nModule==nModule))
+        {
+            nResult=i;
+
+            break;
+        }
+        else if(g_listSymbols.at(i).nAddress<nAddress)
+        {
+            *pnInsertIndex=i;
+
+            break;
+        }
+    }
+
+    return nResult;
 }
 
 XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)

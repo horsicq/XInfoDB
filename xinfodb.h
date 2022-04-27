@@ -404,6 +404,29 @@ public:
     RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
 
+    enum ST
+    {
+        ST_UNKNOWN=0,
+        ST_FILE,
+        ST_USER
+    };
+
+    struct SYMBOL
+    {
+        XADDR nAddress;
+        quint32 nModule; // ModuleIndex; 0 = main module
+        QString sLabel;
+        ST symbolType;
+    };
+
+    QList<SYMBOL> *getSymbols();
+    QMap<quint32,QString> *getSymbolModules();
+
+    void addSymbol(XADDR nAddress,quint32 nModule,QString sLabel,ST symbolType=ST_USER);
+    void _addSymbol(XADDR nAddress,quint32 nModule,QString sLabel,ST symbolType=ST_USER);
+    void _sortSymbols();
+    qint32 _getSymbolIndex(XADDR nAddress,quint32 nModule, qint32 *pnInsertIndex);
+
 signals:
     void dataChanged(bool bDataReload);
 
@@ -432,6 +455,8 @@ private:
     MODE g_mode;
     STATUS g_statusCurrent;
     STATUS g_statusPrev;
+    QList<SYMBOL> g_listSymbols;
+    QMap<quint32,QString> g_mapSymbolModules;
 };
 
 #endif // XINFODB_H
