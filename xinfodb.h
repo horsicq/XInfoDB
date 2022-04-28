@@ -186,6 +186,7 @@ public:
     enum BPI
     {
         BPI_UNKNOWN=0,
+        BPI_SYSTEM,
         BPI_USER,
         BPI_PROCESSENTRYPOINT,
         BPI_PROGRAMENTRYPOINT,
