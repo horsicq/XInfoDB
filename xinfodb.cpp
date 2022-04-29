@@ -1146,6 +1146,29 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
     return sResult;
 }
 
+void XInfoDB::clearRecordInfoCache()
+{
+    g_mapSRecordInfoCache.clear();
+}
+
+XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
+{
+    RECORD_INFO result={};
+
+    if(g_mapSRecordInfoCache.contains(nValue))
+    {
+        result=g_mapSRecordInfoCache.value(nValue);
+    }
+    else
+    {
+        result=getRecordInfo(nValue,RI_TYPE_GENERAL);
+
+        g_mapSRecordInfoCache.insert(nValue,result);
+    }
+
+    return result;
+}
+
 QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
 {
     // TODO Check if empty. If empty run export from file.

@@ -405,6 +405,9 @@ public:
     RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
 
+    void clearRecordInfoCache();
+    RECORD_INFO getRecordInfoCache(quint64 nValue);
+
     enum ST
     {
         ST_UNKNOWN=0,
@@ -458,6 +461,7 @@ private:
     STATUS g_statusPrev;
     QList<SYMBOL> g_listSymbols;
     QMap<quint32,QString> g_mapSymbolModules;
+    QMap<quint64,RECORD_INFO> g_mapSRecordInfoCache;
 };
 
 #endif // XINFODB_H
