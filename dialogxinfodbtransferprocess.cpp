@@ -54,7 +54,7 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QString sFileName,XBinary::FT fileType)
 {
     setWindowTitle(tr("Import"));
 
@@ -62,7 +62,7 @@ void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileNa
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileName)
+void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB,QString sFileName)
 {
     setWindowTitle(tr("Export"));
 
