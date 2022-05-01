@@ -61,6 +61,7 @@ quint32 XInfoDB::read_uint32(quint64 nAddress,bool bIsBigEndian)
 #ifdef USE_XPROCESS
     nResult=XProcess::read_uint32(g_processInfo.hProcessMemoryIO,nAddress,bIsBigEndian);
 #endif
+    // TODO XBinary
     return nResult;
 }
 
