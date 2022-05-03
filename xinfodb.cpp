@@ -1142,6 +1142,15 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
         {
             sResult=QString::fromUtf8(recordInfo.baData);
         }
+        else if(riType==RI_TYPE_SYMBOLADDRESS)
+        {
+            sResult=recordInfoToString(recordInfo,RI_TYPE_SYMBOL);
+
+            if(sResult=="")
+            {
+                sResult=recordInfoToString(recordInfo,RI_TYPE_ADDRESS);
+            }
+        }
     }
 
     return sResult;

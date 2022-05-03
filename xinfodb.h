@@ -399,7 +399,8 @@ public:
         RI_TYPE_ANSI,
         RI_TYPE_UNICODE,
         RI_TYPE_UTF8,
-        RI_TYPE_SYMBOL
+        RI_TYPE_SYMBOL,
+        RI_TYPE_SYMBOLADDRESS
     };
 
     RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
