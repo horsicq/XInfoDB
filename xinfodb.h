@@ -367,14 +367,6 @@ public:
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
 
-//    enum ST
-//    {
-//        ST_UNKNOWN=0,
-//        ST_ANSI,
-//        ST_UTF8,
-//        ST_UNICODE
-//    };
-
     struct XSTRING
     {
         QString sAnsiString;

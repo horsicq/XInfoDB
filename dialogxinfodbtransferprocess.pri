@@ -14,3 +14,6 @@ SOURCES += \
     XCONFIG += xinfodbtransfer
     include($$PWD/xinfodbtransfer.pri)
 }
+
+DISTFILES += \
+    $$PWD/dialogxinfodbtransferprocess.cmake
