@@ -132,14 +132,18 @@ QString XInfoDB::read_utf8String(quint64 nAddress, quint64 nMaxSize)
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType)
 {
     BREAKPOINT result={};
+    result.nAddress=-1;
 
-    if(bpType==BPT_CODE_SOFTWARE)
+    qint32 nNumberOfRecords=g_listBreakpoints.count();
+
+    for(qint32 i=0;i<nNumberOfRecords;i++)
     {
-        result=g_mapSoftwareBreakpoints.value(nAddress);
-    }
-    else if(bpType==BPT_CODE_HARDWARE)
-    {
-        result=g_mapHardwareBreakpoints.value(nAddress);
+        if((g_listBreakpoints.at(i).nAddress==nAddress)&&(g_listBreakpoints.at(i).bpType==bpType))
+        {
+            result=g_listBreakpoints.at(i);
+
+            break;
+        }
     }
 
     return result;
@@ -149,12 +153,13 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nExceptionAddress, BPT bpType)
 {
     BREAKPOINT result={};
+    result.nAddress=-1;
 
-    QMapIterator<quint64,XInfoDB::BREAKPOINT> i(*getSoftwareBreakpoints());
-    while (i.hasNext())
+    qint32 nNumberOfRecords=g_listBreakpoints.count();
+
+    for(qint32 i=0;i<nNumberOfRecords;i++)
     {
-        i.next();
-        XInfoDB::BREAKPOINT breakPoint=i.value();
+        XInfoDB::BREAKPOINT breakPoint=g_listBreakpoints.at(i);
 
         if(breakPoint.nAddress==(nExceptionAddress-breakPoint.nOrigDataSize))
         {
@@ -240,15 +245,17 @@ bool XInfoDB::removeFunctionHook(QString sFunctionName)
 {
     bool bResult=false;
     // TODO Check !!!
-    for(QMap<quint64,XInfoDB::BREAKPOINT>::iterator it=getSoftwareBreakpoints()->begin();it!=getSoftwareBreakpoints()->end();)
+
+    qint32 nNumberOfRecords=g_listBreakpoints.count();
+
+    // TODO Check!
+    for(qint32 i=0;i<nNumberOfRecords;i++)
     {
-        if(it.value().sInfo==sFunctionName)
+        XInfoDB::BREAKPOINT breakPoint=g_listBreakpoints.at(i);
+
+        if(breakPoint.sInfo==sFunctionName)
         {
-            it=getSoftwareBreakpoints()->erase(it);
-        }
-        else
-        {
-            ++it;
+            g_listBreakpoints.removeAt(i);
         }
     }
 
@@ -682,7 +689,7 @@ bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount
 
     if(bpType==BPT_CODE_SOFTWARE)
     {
-        if(!g_mapSoftwareBreakpoints.contains(nAddress))
+        if(!isBreakPointPresent(nAddress,bpType))
         {
             BREAKPOINT bp={};
             bp.nAddress=nAddress;
@@ -699,7 +706,7 @@ bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount
             {
                 if(write_array(nAddress,(char *)"\xCC",bp.nOrigDataSize)) // TODO Check if x86
                 {
-                    g_mapSoftwareBreakpoints.insert(nAddress,bp);
+                    g_listBreakpoints.append(bp);
 
                     bResult=true;
                 }
@@ -721,14 +728,12 @@ bool XInfoDB::removeBreakPoint(quint64 nAddress, BPT bpType)
 
     if(bpType==BPT_CODE_SOFTWARE)
     {
-        if(g_mapSoftwareBreakpoints.contains(nAddress))
-        {
-            BREAKPOINT bp=g_mapSoftwareBreakpoints.value(nAddress);
+        BREAKPOINT bp=findBreakPointByAddress(nAddress,bpType);
 
+        if(bp.nAddress==nAddress)
+        {
             if(write_array(nAddress,(char *)bp.origData,bp.nOrigDataSize)) // TODO Check
             {
-                g_mapSoftwareBreakpoints.remove(nAddress);
-
                 bResult=true;
             }
         }
@@ -736,6 +741,21 @@ bool XInfoDB::removeBreakPoint(quint64 nAddress, BPT bpType)
     else if(bpType==XInfoDB::BPT_CODE_HARDWARE)
     {
         // TODO
+    }
+
+    if(bResult)
+    {
+        qint32 nNumberOfRecords=g_listBreakpoints.count();
+
+        for(qint32 i=0;i<nNumberOfRecords;i++)
+        {
+            if((g_listBreakpoints.at(i).nAddress==nAddress)&&(g_listBreakpoints.at(i).bpType==bpType))
+            {
+                g_listBreakpoints.removeAt(i);
+
+                break;
+            }
+        }
     }
 
     return bResult;
@@ -746,28 +766,17 @@ bool XInfoDB::isBreakPointPresent(quint64 nAddress,BPT bpType)
 {
     bool bResult=false;
 
-    if(bpType==BPT_CODE_SOFTWARE)
-    {
-        bResult=g_mapSoftwareBreakpoints.contains(nAddress);
-    }
-    else if(bpType==XInfoDB::BPT_CODE_HARDWARE)
-    {
-        bResult=g_mapHardwareBreakpoints.contains(nAddress);
-    }
+    BREAKPOINT bp=findBreakPointByAddress(nAddress,bpType);
+
+    bResult=(bp.nAddress==nAddress);
 
     return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<quint64,XInfoDB::BREAKPOINT> *XInfoDB::getSoftwareBreakpoints()
+QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 {
-    return &g_mapSoftwareBreakpoints;
-}
-#endif
-#ifdef USE_XPROCESS
-QMap<quint64, XInfoDB::BREAKPOINT> *XInfoDB::getHardwareBreakpoints()
-{
-    return &g_mapHardwareBreakpoints;
+    return &g_listBreakpoints;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -785,12 +794,11 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 {
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
-    QMapIterator<quint64,XInfoDB::BREAKPOINT> i(g_mapSoftwareBreakpoints);
+    qint32 nNumberOfRecords=g_listBreakpoints.count();
 
-    while (i.hasNext())
+    for(qint32 i=0;i<nNumberOfRecords;i++)
     {
-        i.next();
-        XInfoDB::BREAKPOINT breakPoint=i.value();
+        XInfoDB::BREAKPOINT breakPoint=g_listBreakpoints.at(i);
 
         if(breakPoint.nOrigDataSize)
         {

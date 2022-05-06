@@ -75,6 +75,7 @@ public:
         XREG_EDI,
         XREG_EIP,
         XREG_EFLAGS,
+    #ifdef Q_PROCESSOR_X86_64
         XREG_RAX,
         XREG_RCX,
         XREG_RDX,
@@ -93,6 +94,7 @@ public:
         XREG_R15,
         XREG_RIP,
         XREG_RFLAGS,
+    #endif
         XREG_CS,
         XREG_DS,
         XREG_ES,
@@ -146,6 +148,7 @@ public:
         XREG_CL,
         XREG_DL,
         XREG_BL,
+    #ifdef Q_PROCESSOR_X86_64
         XREG_SPL,
         XREG_BPL,
         XREG_SIL,
@@ -174,6 +177,7 @@ public:
         XREG_R13B,
         XREG_R14B,
         XREG_R15B,
+    #endif
     };
 
     enum BPT
@@ -200,6 +204,7 @@ public:
 
     struct BREAKPOINT
     {
+        // TODO bValid
         quint64 nAddress;
         qint64 nSize;
         qint32 nCount;
@@ -330,8 +335,7 @@ public:
     BREAKPOINT findBreakPointByAddress(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
     BREAKPOINT findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
 
-    QMap<quint64,BREAKPOINT> *getSoftwareBreakpoints();
-    QMap<quint64,BREAKPOINT> *getHardwareBreakpoints();
+    QList<BREAKPOINT> *getBreakpoints();
     QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
     bool breakpointToggle(quint64 nAddress);
 
@@ -442,8 +446,7 @@ private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     XProcess::HANDLEID g_hidThread;
-    QMap<quint64,BREAKPOINT> g_mapSoftwareBreakpoints;      // Address/BP TODO QList
-    QMap<quint64,BREAKPOINT> g_mapHardwareBreakpoints;      // Address/BP TODO QList
+    QList<BREAKPOINT> g_listBreakpoints;
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
     QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
     QMap<qint64,THREAD_INFO> g_mapThreadInfos;              // TODO QList
