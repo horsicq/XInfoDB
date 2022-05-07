@@ -36,7 +36,7 @@ public:
     };
 
     void setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType=XBinary::FT_UNKNOWN);
-    bool loadFromFile(QString sFileName, XBinary::FT fileType);
+    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:
     bool process();
