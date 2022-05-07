@@ -28,7 +28,7 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
     g_fileType=XBinary::FT_UNKNOWN;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
