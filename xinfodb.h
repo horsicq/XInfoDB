@@ -55,6 +55,7 @@ public:
     {
         XREG_UNKNOWN=0,
         XREG_NONE,
+    #ifdef Q_PROCESSOR_X86
         XREG_AX,
         XREG_CX,
         XREG_DX,
@@ -177,6 +178,7 @@ public:
         XREG_R13B,
         XREG_R14B,
         XREG_R15B,
+    #endif
     #endif
     };
 
@@ -310,6 +312,9 @@ public:
     explicit XInfoDB(QObject *pParent=nullptr);
     ~XInfoDB();
 
+    void setDevice(QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
+    QIODevice *getDevice();
+
     void reload(bool bDataReload);
 
     quint32 read_uint32(quint64 nAddress,bool bIsBigEndian=false);
@@ -343,13 +348,13 @@ public:
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
 
     void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
-    void removeThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
+    void removeThreadInfo(qint64 nThreadID);
 
     bool setFunctionHook(QString sFunctionName);
     bool removeFunctionHook(QString sFunctionName);
 
     QMap<qint64,SHAREDOBJECT_INFO> *getSharedObjectInfos();
-    QMap<qint64,THREAD_INFO> *getThreadInfos();
+    QList<THREAD_INFO> *getThreadInfos();
     QMap<QString,FUNCTIONHOOK_INFO> *getFunctionHookInfos();
 
     SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
@@ -449,7 +454,7 @@ private:
     QList<BREAKPOINT> g_listBreakpoints;
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
     QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
-    QMap<qint64,THREAD_INFO> g_mapThreadInfos;              // TODO QList
+    QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList
 #endif
     MODE g_mode;
@@ -458,6 +463,8 @@ private:
     QList<SYMBOL> g_listSymbols;
     QMap<quint32,QString> g_mapSymbolModules;
     QMap<quint64,RECORD_INFO> g_mapSRecordInfoCache;
+    QIODevice *g_pDevice;
+    XBinary::FT g_fileType;
 };
 
 #endif // XINFODB_H

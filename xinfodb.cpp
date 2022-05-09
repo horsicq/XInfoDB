@@ -44,10 +44,23 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_processInfo={};
     g_hidThread={};
 #endif
+    g_pDevice=nullptr;
+    g_fileType=XBinary::FT_UNKNOWN;
 }
 
 XInfoDB::~XInfoDB()
 {
+}
+
+void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
+{
+    g_pDevice=pDevice;
+    g_fileType=fileType;
+}
+
+QIODevice *XInfoDB::getDevice()
+{
+    return g_pDevice;
 }
 
 void XInfoDB::reload(bool bDataReload)
@@ -210,13 +223,23 @@ void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
 #ifdef USE_XPROCESS
 void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
 {
-    g_mapThreadInfos.insert(pThreadInfo->nThreadID,*pThreadInfo);
+    g_listThreadInfos.append(*pThreadInfo);
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::removeThreadInfo(THREAD_INFO *pThreadInfo)
+void XInfoDB::removeThreadInfo(qint64 nThreadID)
 {
-    g_mapThreadInfos.remove(pThreadInfo->nThreadID);
+    qint32 nNumberOfThread=g_listThreadInfos.count();
+
+    for(qint32 i=0;i<nNumberOfThread;i++)
+    {
+        if(g_listThreadInfos.at(i).nThreadID==nThreadID)
+        {
+            g_listThreadInfos.removeAt(i);
+
+            break;
+        }
+    }
 }
 #endif
 #ifdef USE_XPROCESS
@@ -276,9 +299,9 @@ QMap<qint64, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64, XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
+QList<XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
 {
-    return &g_mapThreadInfos;
+    return &g_listThreadInfos;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -334,18 +357,16 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(qint64 nThreadID)
 {
     XInfoDB::THREAD_INFO result={};
 
-    for(QMap<qint64,XInfoDB::THREAD_INFO>::iterator it=g_mapThreadInfos.begin();it!=g_mapThreadInfos.end();)
-    {
-        XInfoDB::THREAD_INFO record=it.value();
+    qint32 nNumberOfRecords=g_listThreadInfos.count();
 
-        if(record.nThreadID==nThreadID)
+    for(qint32 i=0;i<nNumberOfRecords;i++)
+    {
+        if(g_listThreadInfos.at(i).nThreadID==nThreadID)
         {
-            result=record;
+            result=g_listThreadInfos.at(i);
 
             break;
         }
-
-        ++it;
     }
 
     return result;
@@ -822,6 +843,7 @@ QString XInfoDB::regIdToString(XREG reg)
     QString sResult="Unknown";
 
     if      (reg==XREG_NONE)        sResult=QString("");
+#ifdef Q_PROCESSOR_X86
     else if (reg==XREG_AX)          sResult=QString("AX");
     else if (reg==XREG_CX)          sResult=QString("CX");
     else if (reg==XREG_DX)          sResult=QString("DX");
@@ -842,6 +864,7 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg==XREG_EDI)         sResult=QString("EDI");
     else if (reg==XREG_EIP)         sResult=QString("EIP");
     else if (reg==XREG_EFLAGS)      sResult=QString("EFLAGS");
+#ifdef Q_PROCESSOR_X86_64
     else if (reg==XREG_RAX)         sResult=QString("RAX");
     else if (reg==XREG_RCX)         sResult=QString("RCX");
     else if (reg==XREG_RDX)         sResult=QString("RDX");
@@ -860,6 +883,7 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg==XREG_R15)         sResult=QString("R15");
     else if (reg==XREG_RIP)         sResult=QString("RIP");
     else if (reg==XREG_RFLAGS)      sResult=QString("RFLAGS");
+#endif
     else if (reg==XREG_CS)          sResult=QString("CS");
     else if (reg==XREG_DS)          sResult=QString("DS");
     else if (reg==XREG_ES)          sResult=QString("ES");
@@ -913,6 +937,7 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg==XREG_CL)          sResult=QString("CL");
     else if (reg==XREG_DL)          sResult=QString("DL");
     else if (reg==XREG_BL)          sResult=QString("BL");
+#ifdef Q_PROCESSOR_X86_64
     else if (reg==XREG_SPL)         sResult=QString("SPL");
     else if (reg==XREG_BPL)         sResult=QString("BPL");
     else if (reg==XREG_SIL)         sResult=QString("SIL");
@@ -941,14 +966,16 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg==XREG_R13B)        sResult=QString("R13B");
     else if (reg==XREG_R14B)        sResult=QString("R14B");
     else if (reg==XREG_R15B)        sResult=QString("R15B");
-
+#endif
+#endif
     return sResult;
 }
 
 XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
 {
     XREG result=XREG_NONE;
-
+#ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86_64
     if      (reg==XREG_RAX)         result=XREG_EAX;
     else if (reg==XREG_RCX)         result=XREG_ECX;
     else if (reg==XREG_RDX)         result=XREG_EDX;
@@ -967,14 +994,28 @@ XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
     else if (reg==XREG_R15)         result=XREG_R15D;
     else if (reg==XREG_RIP)         result=XREG_EIP;
     else if (reg==XREG_RFLAGS)      result=XREG_EFLAGS;
-
+#endif
+#endif
     return result;
 }
 
 XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
 {
     XREG result=XREG_NONE;
-
+#ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86_32
+    if      (reg==XREG_EAX)             result=XREG_AX;
+    else if (reg==XREG_ECX)             result=XREG_CX;
+    else if (reg==XREG_EDX)             result=XREG_DX;
+    else if (reg==XREG_EBX)             result=XREG_BX;
+    else if (reg==XREG_ESP)             result=XREG_SP;
+    else if (reg==XREG_EBP)             result=XREG_BP;
+    else if (reg==XREG_ESI)             result=XREG_SI;
+    else if (reg==XREG_EDI)             result=XREG_DI;
+    else if (reg==XREG_EIP)             result=XREG_IP;
+    else if (reg==XREG_EFLAGS)          result=XREG_FLAGS;
+#endif
+#ifdef Q_PROCESSOR_X86_64
     if      ((reg==XREG_RAX)||(reg==XREG_EAX))          result=XREG_AX;
     else if ((reg==XREG_RCX)||(reg==XREG_ECX))          result=XREG_CX;
     else if ((reg==XREG_RDX)||(reg==XREG_EDX))          result=XREG_DX;
@@ -993,6 +1034,8 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
     else if ((reg==XREG_R15)||(reg==XREG_R15D))         result=XREG_R15W;
     else if ((reg==XREG_RIP)||(reg==XREG_EIP))          result=XREG_IP;
     else if ((reg==XREG_RFLAGS)||(reg==XREG_EFLAGS))    result=XREG_FLAGS;
+#endif
+#endif
 
     return result;
 }
@@ -1000,11 +1043,20 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
 XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
 {
     XREG result=XREG_NONE;
-
+#ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86_32
+    if      ((reg==XREG_EAX)||(reg==XREG_AX))       result=XREG_AH;
+    else if ((reg==XREG_ECX)||(reg==XREG_CX))       result=XREG_CH;
+    else if ((reg==XREG_EDX)||(reg==XREG_DX))       result=XREG_DH;
+    else if ((reg==XREG_EBX)||(reg==XREG_BX))       result=XREG_BH;
+#endif
+#ifdef Q_PROCESSOR_X86_64
     if      ((reg==XREG_RAX)||(reg==XREG_EAX)||(reg==XREG_AX))      result=XREG_AH;
     else if ((reg==XREG_RCX)||(reg==XREG_ECX)||(reg==XREG_CX))      result=XREG_CH;
     else if ((reg==XREG_RDX)||(reg==XREG_EDX)||(reg==XREG_DX))      result=XREG_DH;
     else if ((reg==XREG_RBX)||(reg==XREG_EBX)||(reg==XREG_BX))      result=XREG_BH;
+#endif
+#endif
 
     return result;
 }
@@ -1012,7 +1064,14 @@ XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
 XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
 {
     XREG result=XREG_NONE;
-
+#ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86_32
+    if      ((reg==XREG_EAX)||(reg==XREG_AX))       result=XREG_AL;
+    else if ((reg==XREG_ECX)||(reg==XREG_CX))       result=XREG_CL;
+    else if ((reg==XREG_EDX)||(reg==XREG_DX))       result=XREG_DL;
+    else if ((reg==XREG_EBX)||(reg==XREG_BX))       result=XREG_BL;
+#endif
+#ifdef Q_PROCESSOR_X86_64
     if      ((reg==XREG_RAX)||(reg==XREG_EAX)||(reg==XREG_AX))          result=XREG_AL;
     else if ((reg==XREG_RCX)||(reg==XREG_ECX)||(reg==XREG_CX))          result=XREG_CL;
     else if ((reg==XREG_RDX)||(reg==XREG_EDX)||(reg==XREG_DX))          result=XREG_DL;
@@ -1029,6 +1088,8 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
     else if ((reg==XREG_R13)||(reg==XREG_R13D)||(reg==XREG_R13W))       result=XREG_R13B;
     else if ((reg==XREG_R14)||(reg==XREG_R14D)||(reg==XREG_R14W))       result=XREG_R14B;
     else if ((reg==XREG_R15)||(reg==XREG_R15D)||(reg==XREG_R15W))       result=XREG_R15B;
+#endif
+#endif
 
     return result;
 }
@@ -1268,13 +1329,14 @@ XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG r
     XBinary::XVARIANT result={};
 
     XREG _reg=reg;
-
+#ifdef Q_PROCESSOR_X86
     if( (reg==XREG_CF)||(reg==XREG_PF)||(reg==XREG_AF)||
         (reg==XREG_ZF)||(reg==XREG_SF)||(reg==XREG_TF)||
         (reg==XREG_IF)||(reg==XREG_DF)||(reg==XREG_OF))
     {
         _reg=XREG_EFLAGS;
     }
+#endif
 #ifdef Q_PROCESSOR_X86_32
     // TODO
 #endif
@@ -1286,6 +1348,7 @@ XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG r
 
     if(result.mode!=XBinary::MODE_UNKNOWN)
     {
+    #ifdef Q_PROCESSOR_X86
         if      (reg==XREG_CF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0001));
         else if (reg==XREG_PF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0004));
         else if (reg==XREG_AF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0010));
@@ -1295,6 +1358,7 @@ XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG r
         else if (reg==XREG_IF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0200));
         else if (reg==XREG_DF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0400));
         else if (reg==XREG_OF) result=XBinary::getXVariant(bool((result.var.v_uint32)&0x0800));
+    #endif
     }
 
     return result;
