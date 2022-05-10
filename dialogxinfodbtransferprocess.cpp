@@ -27,14 +27,16 @@ DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) :
 {
     ui->setupUi(this);
 
+    g_bIsStop=false;
+
     g_pTransfer=new XInfoDBTransfer;
     g_pThread=new QThread;
 
     g_pTransfer->moveToThread(g_pThread);
 
     connect(g_pThread,SIGNAL(started()),g_pTransfer,SLOT(process()));
-//    connect(g_pTransfer,SIGNAL(completed(qint64)),this,SLOT(onCompleted(qint64)));
-//    connect(g_pTransfer,SIGNAL(errorMessage(QString)),this,SLOT(errorMessage(QString)));
+    connect(g_pTransfer,SIGNAL(completed(qint64)),this,SLOT(onCompleted(qint64)));
+    connect(g_pTransfer,SIGNAL(errorMessage(QString)),this,SLOT(errorMessage(QString)));
 //    connect(g_pTransfer,SIGNAL(progressValueChanged(qint32)),this,SLOT(onProgressValueChanged(qint32)));
 
 //    ui->progressBar->setMaximum(100);
@@ -62,11 +64,45 @@ void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QString sFileNam
     g_pThread->start();
 }
 
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+{
+    setWindowTitle(tr("Import"));
+
+    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_IMPORT,pDevice,fileType);
+    g_pThread->start();
+}
+
 void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB,QString sFileName)
 {
     setWindowTitle(tr("Export"));
 
     g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_EXPORT,sFileName,XBinary::FT_UNKNOWN);
     g_pThread->start();
+}
+
+void DialogXInfoDBTransferProcess::on_pushButtonCancel_clicked()
+{
+    g_bIsStop=true;
+
+    g_pTransfer->stop();
+}
+
+void DialogXInfoDBTransferProcess::errorMessage(QString sText)
+{
+
+}
+
+void DialogXInfoDBTransferProcess::onCompleted(qint64 nElapsed)
+{
+    Q_UNUSED(nElapsed)
+
+    if(!g_bIsStop)
+    {
+        accept();
+    }
+    else
+    {
+        reject();
+    }
 }
 

@@ -21,7 +21,7 @@
 #include "xinfodb.h"
 
 
-bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
+bool _symbolSort(const XInfoDB::SYMBOL &v1,const XInfoDB::SYMBOL &v2)
 {
     bool bResult=false;
 
@@ -46,21 +46,40 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #endif
     g_pDevice=nullptr;
     g_fileType=XBinary::FT_UNKNOWN;
+    g_nMainModuleAddress=0;
+    g_nMainModuleSize=0;
 }
 
 XInfoDB::~XInfoDB()
 {
 }
 
-void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
+void XInfoDB::setDevice(QIODevice *pDevice,XBinary::FT fileType)
 {
     g_pDevice=pDevice;
     g_fileType=fileType;
+    g_mode=MODE_DEVICE;
+
+    if(fileType==XBinary::FT_UNKNOWN)
+    {
+        g_fileType=XBinary::getPrefFileType(pDevice);
+    }
+
+    g_MainModuleMemoryMap=XFormats::getMemoryMap(g_fileType,pDevice);
+
+    g_nMainModuleAddress=g_MainModuleMemoryMap.nModuleAddress;
+    g_nMainModuleSize=g_MainModuleMemoryMap.nImageSize;
+    g_sMainModuleName=XBinary::getDeviceFileBaseName(pDevice);
 }
 
 QIODevice *XInfoDB::getDevice()
 {
     return g_pDevice;
+}
+
+XBinary::FT XInfoDB::getFileType()
+{
+    return g_fileType;
 }
 
 void XInfoDB::reload(bool bDataReload)
@@ -385,6 +404,11 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
     g_processInfo=processInfo;
     g_mode=MODE_PROCESS;
+
+    g_nMainModuleAddress=processInfo.nImageBase;
+    g_nMainModuleSize=processInfo.nImageSize;
+    g_sMainModuleName=g_processInfo.sBaseFileName;
+    //g_MainModuleMemoryMap=XFormats::getMemoryMap(XBinary::FT_REGION,0,true,) // TODO getRegionMemoryMap
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1099,12 +1123,13 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
     RECORD_INFO result={};
 
     result.nAddress=-1;
-#ifdef USE_XPROCESS
-    if((nValue>=g_processInfo.nImageBase)&&(nValue<(g_processInfo.nImageBase+g_processInfo.nImageSize)))
+
+    if((nValue>=g_nMainModuleAddress)&&(nValue<(g_nMainModuleAddress+g_nMainModuleSize)))
     {
-        result.sModule=g_processInfo.sBaseFileName;
+        result.sModule=g_sMainModuleName;
         result.nAddress=nValue;
     }
+#ifdef USE_XPROCESS
     else
     {
         SHAREDOBJECT_INFO sbi=findSharedInfoByAddress(nValue);
@@ -1250,7 +1275,6 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
 
 QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
 {
-    // TODO Check if empty. If empty run export from file.
     return &g_listSymbols;
 }
 
@@ -1259,14 +1283,14 @@ QMap<quint32, QString> *XInfoDB::getSymbolModules()
     return &g_mapSymbolModules;
 }
 
-void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sLabel, ST symbolType)
+void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol, ST symbolType,SS symbolSource)
 {
     qint32 nInsertIndex=0;
     qint32 nIndex=_getSymbolIndex(nAddress,nModule,&nInsertIndex);
 
     if(nIndex!=-1)
     {
-        g_listSymbols[nIndex].sLabel=sLabel;
+        g_listSymbols[nIndex].sSymbol=sSymbol;
         g_listSymbols[nIndex].symbolType=symbolType;
     }
     else
@@ -1274,20 +1298,22 @@ void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sLabel, ST symb
         SYMBOL symbol={};
         symbol.nAddress=nAddress;
         symbol.nModule=nModule;
-        symbol.sLabel=sLabel;
+        symbol.sSymbol=sSymbol;
         symbol.symbolType=symbolType;
+        symbol.symbolSource=symbolSource;
 
         g_listSymbols.insert(nInsertIndex,symbol);
     }
 }
 
-void XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sLabel, ST symbolType)
+void XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
 {
     SYMBOL symbol={};
     symbol.nAddress=nAddress;
     symbol.nModule=nModule;
-    symbol.sLabel=sLabel;
+    symbol.sSymbol=sSymbol;
     symbol.symbolType=symbolType;
+    symbol.symbolSource=symbolSource;
 
     g_listSymbols.append(symbol);
 }
@@ -1321,6 +1347,28 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, quint32 nModule, qint32 *pnInser
     }
 
     return nResult;
+}
+
+QString XInfoDB::symbolSourceIdToString(SS symbolSource)
+{
+    QString sResult=tr("Unknown");
+
+    if      (symbolSource==SS_FILE)         sResult=tr("File");
+    else if (symbolSource==SS_USER)         sResult=tr("User");
+
+    return sResult;
+}
+
+QString XInfoDB::symbolTypeIdToString(ST symbolType)
+{
+    QString sResult=tr("Unknown");
+
+    if      (symbolType==ST_LABEL)          sResult=tr("Label");
+    else if (symbolType==ST_ENTRYPOINT)     sResult=tr("Entry point");
+    else if (symbolType==ST_EXPORT)         sResult=tr("Export");
+    else if (symbolType==ST_IMPORT)         sResult=tr("Import");
+
+    return sResult;
 }
 
 XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)

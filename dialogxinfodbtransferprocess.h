@@ -38,12 +38,19 @@ public:
     ~DialogXInfoDBTransferProcess();
 
     void importData(XInfoDB *pXInfoDB,QString sFileName,XBinary::FT fileType=XBinary::FT_UNKNOWN);
+    void importData(XInfoDB *pXInfoDB,QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
     void exportData(XInfoDB *pXInfoDB,QString sFileName);
+
+private slots:
+    void on_pushButtonCancel_clicked();
+    void errorMessage(QString sText);
+    void onCompleted(qint64 nElapsed);
 
 private:
     Ui::DialogXInfoDBTransferProcess *ui;
     XInfoDBTransfer *g_pTransfer;
     QThread *g_pThread;
+    bool g_bIsStop;
 };
 
 #endif // DIALOGXINFODBTRANSFERPROCESS_H

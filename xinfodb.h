@@ -22,7 +22,7 @@
 #define XINFODB_H
 
 #include <QObject>
-#include "xbinary.h"
+#include "xformats.h"
 #ifdef USE_XPROCESS
 #include "xprocess.h"
 #endif
@@ -35,6 +35,7 @@ public:
     enum MODE
     {
         MODE_UNKNOWN=0,
+        MODE_DEVICE,
     #ifdef USE_XPROCESS
         MODE_PROCESS
     #endif
@@ -314,6 +315,7 @@ public:
 
     void setDevice(QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
     QIODevice *getDevice();
+    XBinary::FT getFileType();
 
     void reload(bool bDataReload);
 
@@ -410,28 +412,41 @@ public:
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
 
+    enum SS
+    {
+        SS_UNKNOWN=0,
+        SS_FILE,
+        SS_USER
+    };
+
     enum ST
     {
         ST_UNKNOWN=0,
-        ST_FILE,
-        ST_USER
+        ST_LABEL,
+        ST_ENTRYPOINT,
+        ST_EXPORT,
+        ST_IMPORT
     };
 
     struct SYMBOL
     {
         XADDR nAddress;
         quint32 nModule; // ModuleIndex; 0 = main module
-        QString sLabel;
+        QString sSymbol;
         ST symbolType;
+        SS symbolSource;
     };
 
     QList<SYMBOL> *getSymbols();
     QMap<quint32,QString> *getSymbolModules();
 
-    void addSymbol(XADDR nAddress,quint32 nModule,QString sLabel,ST symbolType=ST_USER);
-    void _addSymbol(XADDR nAddress,quint32 nModule,QString sLabel,ST symbolType=ST_USER);
+    void addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbolTyp,SS symbolSource);
+    void _addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress,quint32 nModule, qint32 *pnInsertIndex);
+
+    static QString symbolSourceIdToString(SS symbolSource);
+    static QString symbolTypeIdToString(ST symbolType);
 
 signals:
     void dataChanged(bool bDataReload);
@@ -465,6 +480,10 @@ private:
     QMap<quint64,RECORD_INFO> g_mapSRecordInfoCache;
     QIODevice *g_pDevice;
     XBinary::FT g_fileType;
+    XBinary::_MEMORY_MAP g_MainModuleMemoryMap;
+    XADDR g_nMainModuleAddress;
+    quint64 g_nMainModuleSize;
+    QString g_sMainModuleName;
 };
 
 #endif // XINFODB_H

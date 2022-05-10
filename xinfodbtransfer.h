@@ -22,6 +22,7 @@
 #define XINFODBTRANSFER_H
 
 #include "xinfodb.h"
+#include "xformats.h"
 
 class XInfoDBTransfer : public QObject
 {
@@ -36,18 +37,24 @@ public:
     };
 
     void setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType=XBinary::FT_UNKNOWN);
-    bool loadFromFile(QString sFileName,XBinary::FT fileType);
+    void setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
+//    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:
     bool process();
+    void stop();
 
 signals:
+    void errorMessage(QString sText);
+    void completed(qint64 nElapsed);
 
 private:
     XInfoDB *g_pXInfoDB;
     TT g_transferType;
     QString g_sFileName;
+    QIODevice *g_pDevice;
     XBinary::FT g_fileType;
+    bool g_bIsStop;
 };
 
 #endif // XINFODBTRANSFER_H

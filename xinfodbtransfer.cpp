@@ -26,6 +26,8 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
     g_pXInfoDB=nullptr;
     g_transferType=TT_IMPORT;
     g_fileType=XBinary::FT_UNKNOWN;
+    g_pDevice=nullptr;
+    g_bIsStop=false;
 }
 
 void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType)
@@ -36,14 +38,92 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileNam
     g_fileType=fileType;
 }
 
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType)
+{
+    g_pXInfoDB=pXInfoDB;
+    g_transferType=transferType;
+    g_pDevice=pDevice;
+    g_fileType=fileType;
+}
+
 bool XInfoDBTransfer::process()
 {
     bool bResult=false;
+    g_bIsStop=false;
+
+    QElapsedTimer scanTimer;
+    scanTimer.start();
 
     if(g_pXInfoDB)
     {
+        if(g_transferType==TT_IMPORT)
+        {
+            QIODevice *pDevice=g_pDevice;
 
+            bool bFile=false;
+
+            if((!pDevice)&&(g_sFileName!=""))
+            {
+                bFile=true;
+
+                QFile *pFile=new QFile;
+
+                pFile->setFileName(g_sFileName);
+
+                if(pFile->open(QIODevice::ReadOnly))
+                {
+                    pDevice=pFile;
+                }
+                else
+                {
+                    delete pFile;
+                }
+            }
+
+            if(pDevice)
+            {
+                XBinary::FT fileType=g_fileType;
+
+                if(fileType==XBinary::FT_UNKNOWN)
+                {
+                    fileType=XBinary::getPrefFileType(pDevice);
+                }
+
+                if(XBinary::checkFileType(XBinary::FT_ELF,fileType))
+                {
+                    XELF elf(pDevice);
+
+                    if(elf.isValid())
+                    {
+                        XBinary::_MEMORY_MAP memoryMap=elf.getMemoryMap();
+
+                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        g_pXInfoDB->_sortSymbols();
+                    }
+                }
+            }
+
+            if(bFile&&pDevice)
+            {
+                QFile *pFile=static_cast<QFile *>(pDevice);
+
+                pFile->close();
+
+                delete pFile;
+            }
+        }
+        else if(g_transferType==TT_EXPORT)
+        {
+            // TODO
+        }
     }
 
+    emit completed(scanTimer.elapsed());
+
     return bResult;
+}
+
+void XInfoDBTransfer::stop()
+{
+    g_bIsStop=true;
 }

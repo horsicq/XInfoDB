@@ -7,7 +7,10 @@ HEADERS += \
 SOURCES += \
     $$PWD/xinfodb.cpp
 
-# TODO add XBinary
+!contains(XCONFIG, xformats) {
+    XCONFIG += xformats
+    include($$PWD/../Formats/xformats.pri)
+}
 
 DISTFILES += \
     $$PWD/xinfodb.cmake
