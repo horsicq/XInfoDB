@@ -38,7 +38,7 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileNam
     g_fileType=fileType;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
