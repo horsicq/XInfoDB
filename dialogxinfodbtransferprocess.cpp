@@ -64,7 +64,7 @@ void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QString sFileNam
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QIODevice *pDevice,XBinary::FT fileType)
 {
     setWindowTitle(tr("Import"));
 
