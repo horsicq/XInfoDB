@@ -387,7 +387,8 @@ public:
 
     struct RECORD_INFO
     {
-        quint64 nAddress;       // If invalid -1
+        bool bValid;
+        quint64 nAddress;
         QString sModule;
         QByteArray baData;
         QString sSymbol;

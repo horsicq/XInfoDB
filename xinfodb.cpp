@@ -1122,22 +1122,29 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
 {
     RECORD_INFO result={};
 
-    result.nAddress=-1;
-
     if((nValue>=g_nMainModuleAddress)&&(nValue<(g_nMainModuleAddress+g_nMainModuleSize)))
     {
+        result.bValid=true;
         result.sModule=g_sMainModuleName;
         result.nAddress=nValue;
     }
 #ifdef USE_XPROCESS
     else
     {
-        SHAREDOBJECT_INFO sbi=findSharedInfoByAddress(nValue);
+        // TODO mapRegions
+        XProcess::MEMORY_REGION memoryRegion=XProcess::getMemoryRegionByAddress(&(g_statusCurrent.listMemoryRegions),nValue);
 
-        if(sbi.nImageSize!=0)
+        if(memoryRegion.nSize)
         {
-            result.sModule=sbi.sName;
+            result.bValid=true;
             result.nAddress=nValue;
+
+            XProcess::MODULE _module=XProcess::getModuleByAddress(&(g_statusCurrent.listModules),nValue);
+
+            if(_module.nSize)
+            {
+                result.sModule=_module.sName;
+            }
         }
     }
 #endif
@@ -1148,7 +1155,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
         (riType==RI_TYPE_UNICODE)||
         (riType==RI_TYPE_UTF8))
     {
-        if(result.nAddress!=(quint64)-1)
+        if(result.bValid)
         {
             result.baData=read_array(result.nAddress,32);
         }
@@ -1157,7 +1164,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
     if( (riType==RI_TYPE_GENERAL)||
         (riType==RI_TYPE_SYMBOL))
     {
-        if(result.nAddress!=(quint64)-1)
+        if(result.bValid)
         {
             // TODO getSymbol
             // TODO
@@ -1179,7 +1186,7 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
 {
     QString sResult;
 
-    if(recordInfo.nAddress!=(quint64)-1)
+    if(recordInfo.bValid)
     {
         if(riType==RI_TYPE_GENERAL)
         {
