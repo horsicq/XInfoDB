@@ -96,8 +96,37 @@ bool XInfoDBTransfer::process()
                     if(elf.isValid())
                     {
                         XBinary::_MEMORY_MAP memoryMap=elf.getMemoryMap();
+                        QList<XELF_DEF::Elf_Phdr> listProgramHeaders=elf.getElf_PhdrList();
 
-                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+
+                        QList<XELF::TAG_STRUCT> listTagStructs=elf.getTagStructs(&listProgramHeaders,&memoryMap);
+
+                        QList<XELF::TAG_STRUCT> listDynSym=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_SYMTAB);
+
+                        if(listDynSym.count())
+                        {
+                            qint64 nSymTabOffset=listDynSym.at(0).nValue;
+                            qint64 nSymTabSize=elf.getSymTableSize(nSymTabOffset);
+
+                            QList<XELF_DEF::Elf_Sym> listSymbols=elf.getElf_SymList(nSymTabOffset,nSymTabSize);
+
+                            qint32 nNumberOfRecords=listSymbols.count();
+
+                            for(qint32 i=0;i<nNumberOfRecords;i++)
+                            {
+                                XADDR nSymbolAddress=listSymbols.at(i).st_value;
+
+                                if(nSymbolAddress)
+                                {
+                                    if(XBinary::isAddressValid(&memoryMap,nSymbolAddress))
+                                    {
+
+                                    }
+                                }
+                            }
+                        }
+
                         g_pXInfoDB->_sortSymbols();
                     }
                 }

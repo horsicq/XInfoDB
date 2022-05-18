@@ -1290,10 +1290,10 @@ QMap<quint32, QString> *XInfoDB::getSymbolModules()
     return &g_mapSymbolModules;
 }
 
-void XInfoDB::addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource)
+void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
 {
     qint32 nInsertIndex=0;
-    qint32 nIndex=_getSymbolIndex(nAddress,nModule,&nInsertIndex);
+    qint32 nIndex=_getSymbolIndex(nAddress,nSize,nModule,&nInsertIndex);
 
     if(nIndex!=-1)
     {
@@ -1304,6 +1304,7 @@ void XInfoDB::addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbol
     {
         SYMBOL symbol={};
         symbol.nAddress=nAddress;
+        symbol.nSize=nSize;
         symbol.nModule=nModule;
         symbol.sSymbol=sSymbol;
         symbol.symbolType=symbolType;
@@ -1313,10 +1314,11 @@ void XInfoDB::addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbol
     }
 }
 
-void XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
 {
     SYMBOL symbol={};
     symbol.nAddress=nAddress;
+    symbol.nSize=nSize;
     symbol.nModule=nModule;
     symbol.sSymbol=sSymbol;
     symbol.symbolType=symbolType;
@@ -1330,7 +1332,7 @@ void XInfoDB::_sortSymbols()
     std::sort(g_listSymbols.begin(),g_listSymbols.end(),_symbolSort);
 }
 
-qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, quint32 nModule, qint32 *pnInsertIndex)
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
 {
     // For sorted g_listSymbols!
     qint32 nResult=-1;
@@ -1339,7 +1341,7 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, quint32 nModule, qint32 *pnInser
 
     for(qint32 i=0;i<nNumberOfRecords;i++)
     {
-        if((g_listSymbols.at(i).nAddress==nAddress)&&(g_listSymbols.at(i).nModule==nModule))
+        if((g_listSymbols.at(i).nAddress==nAddress)&&(g_listSymbols.at(i).nSize==nSize)&&(g_listSymbols.at(i).nModule==nModule))
         {
             nResult=i;
 

@@ -432,6 +432,7 @@ public:
     struct SYMBOL
     {
         XADDR nAddress;
+        qint64 nSize;
         quint32 nModule; // ModuleIndex; 0 = main module
         QString sSymbol;
         ST symbolType;
@@ -441,10 +442,10 @@ public:
     QList<SYMBOL> *getSymbols();
     QMap<quint32,QString> *getSymbolModules();
 
-    void addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbolTyp,SS symbolSource);
-    void _addSymbol(XADDR nAddress,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource);
+    void addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolTyp,SS symbolSource);
+    void _addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource);
     void _sortSymbols();
-    qint32 _getSymbolIndex(XADDR nAddress,quint32 nModule, qint32 *pnInsertIndex);
+    qint32 _getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule, qint32 *pnInsertIndex);
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
