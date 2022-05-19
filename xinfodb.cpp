@@ -27,11 +27,11 @@ bool _symbolSort(const XInfoDB::SYMBOL &v1,const XInfoDB::SYMBOL &v2)
 
     if(v1.nModule!=v2.nModule)
     {
-        bResult=(v1.nModule>v2.nModule);
+        bResult=(v1.nModule<v2.nModule);
     }
     else
     {
-        bResult=(v1.nAddress>v2.nAddress);
+        bResult=(v1.nAddress<v2.nAddress);
     }
 
     return bResult;
@@ -835,6 +835,34 @@ bool XInfoDB::isRegChanged(XREG reg)
     return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
 }
 
+XADDR XInfoDB::getCurrentStackPointer()
+{
+    XADDR nResult=0;
+
+#ifdef Q_PROCESSOR_X86_32
+    nResult=getCurrentReg(XInfoDB::XREG_ESP).var.v_uint32;
+#endif
+#ifdef Q_PROCESSOR_X86_64
+    nResult=getCurrentReg(XInfoDB::XREG_RSP).var.v_uint64;
+#endif
+
+    return nResult;
+}
+
+XADDR XInfoDB::getCurrentInstructionPointer()
+{
+    XADDR nResult=0;
+
+#ifdef Q_PROCESSOR_X86_32
+    nResult=getCurrentReg(XInfoDB::XREG_EIP).var.v_uint32;
+#endif
+#ifdef Q_PROCESSOR_X86_64
+    nResult=getCurrentReg(XInfoDB::XREG_RIP).var.v_uint64;
+#endif
+
+    return nResult;
+}
+
 QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize)
 {
     QList<XBinary::MEMORY_REPLACE> listResult;
@@ -1376,6 +1404,9 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
     else if (symbolType==ST_ENTRYPOINT)     sResult=tr("Entry point");
     else if (symbolType==ST_EXPORT)         sResult=tr("Export");
     else if (symbolType==ST_IMPORT)         sResult=tr("Import");
+    else if (symbolType==ST_DATA)           sResult=tr("Data");
+    else if (symbolType==ST_OBJECT)         sResult=tr("Object");
+    else if (symbolType==ST_FUNCTION)       sResult=tr("Function");
 
     return sResult;
 }

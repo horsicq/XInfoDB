@@ -98,30 +98,96 @@ bool XInfoDBTransfer::process()
                         XBinary::_MEMORY_MAP memoryMap=elf.getMemoryMap();
                         QList<XELF_DEF::Elf_Phdr> listProgramHeaders=elf.getElf_PhdrList();
 
-                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        if(memoryMap.nEntryPointAddress)
+                        {
+                            g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        }
 
                         QList<XELF::TAG_STRUCT> listTagStructs=elf.getTagStructs(&listProgramHeaders,&memoryMap);
 
                         QList<XELF::TAG_STRUCT> listDynSym=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_SYMTAB);
+                        QList<XELF::TAG_STRUCT> listStrTab=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_STRTAB);
+                        QList<XELF::TAG_STRUCT> listStrSize=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_STRSZ);
 
-                        if(listDynSym.count())
+                        if(listDynSym.count()&&listStrTab.count()&&listStrSize.count())
                         {
-                            qint64 nSymTabOffset=listDynSym.at(0).nValue;
-                            qint64 nSymTabSize=elf.getSymTableSize(nSymTabOffset);
+                            qint64 nSymTabOffset=XBinary::addressToOffset(&memoryMap,listDynSym.at(0).nValue);
+                            qint64 nStringTableOffset=XBinary::addressToOffset(&memoryMap,listStrTab.at(0).nValue);
+                            qint64 nStringTableSize=listStrSize.at(0).nValue;
 
-                            QList<XELF_DEF::Elf_Sym> listSymbols=elf.getElf_SymList(nSymTabOffset,nSymTabSize);
+                            bool bIs64=elf.is64();
+                            bool bIsBigEndian=elf.isBigEndian();
 
-                            qint32 nNumberOfRecords=listSymbols.count();
-
-                            for(qint32 i=0;i<nNumberOfRecords;i++)
+                            if(bIs64)
                             {
-                                XADDR nSymbolAddress=listSymbols.at(i).st_value;
+                                nSymTabOffset+=sizeof(XELF_DEF::Elf64_Sym);
+                            }
+                            else
+                            {
+                                nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
+                            }
+
+                            while(!g_bIsStop)
+                            {
+                                XELF_DEF::Elf_Sym record={};
+
+                                if(bIs64)
+                                {
+                                    XELF_DEF::Elf64_Sym _record=elf._readElf64_Sym(nSymTabOffset,bIsBigEndian);
+
+                                    record.st_name=_record.st_name;
+                                    record.st_info=_record.st_info;
+                                    record.st_other=_record.st_other;
+                                    record.st_shndx=_record.st_shndx;
+                                    record.st_value=_record.st_value;
+                                    record.st_size=_record.st_size;
+
+                                    nSymTabOffset+=sizeof(XELF_DEF::Elf64_Sym);
+                                }
+                                else
+                                {
+                                    XELF_DEF::Elf32_Sym _record=elf._readElf32_Sym(nSymTabOffset,bIsBigEndian);
+
+                                    record.st_name=_record.st_name;
+                                    record.st_info=_record.st_info;
+                                    record.st_other=_record.st_other;
+                                    record.st_shndx=_record.st_shndx;
+                                    record.st_value=_record.st_value;
+                                    record.st_size=_record.st_size;
+
+                                    nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
+                                }
+
+                                if((!record.st_info)||(record.st_other))
+                                {
+                                    break;
+                                }
+
+                                XADDR nSymbolAddress=record.st_value;
+                                quint64 nSymbolSize=record.st_size;
+
+                                qint32 nBind=S_ELF64_ST_BIND(record.st_info);
+                                qint32 nType=S_ELF64_ST_TYPE(record.st_info);
 
                                 if(nSymbolAddress)
                                 {
-                                    if(XBinary::isAddressValid(&memoryMap,nSymbolAddress))
+                                    if((nBind==1)||(nBind==2)) // GLOBAL,WEAK TODO consts
                                     {
+                                        if((nType==0)||(nType==1)||(nType==2)) // NOTYPE,OBJECT,FUNC TODO consts
+                                        {
+                                            XInfoDB::ST symbolType=XInfoDB::ST_LABEL;
 
+                                            if      (nType==0)      symbolType=XInfoDB::ST_LABEL;
+                                            else if (nType==1)      symbolType=XInfoDB::ST_OBJECT;
+                                            else if (nType==2)      symbolType=XInfoDB::ST_FUNCTION;
+
+                                            QString sSymbolName=elf.getStringFromIndex(nStringTableOffset,nStringTableSize,record.st_name);
+
+                                            if(XBinary::isAddressValid(&memoryMap,nSymbolAddress))
+                                            {
+                                                g_pXInfoDB->_addSymbol(nSymbolAddress,nSymbolSize,0,sSymbolName,symbolType,XInfoDB::SS_FILE);
+                                            }
+                                        }
                                     }
                                 }
                             }

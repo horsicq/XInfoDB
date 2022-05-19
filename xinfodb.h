@@ -371,6 +371,9 @@ public:
     bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
+    XADDR getCurrentStackPointer();
+    XADDR getCurrentInstructionPointer();
+
     static QString regIdToString(XREG reg);
 
     static XREG getSubReg32(XREG reg);
@@ -426,7 +429,10 @@ public:
         ST_LABEL,
         ST_ENTRYPOINT,
         ST_EXPORT,
-        ST_IMPORT
+        ST_IMPORT,
+        ST_DATA,
+        ST_OBJECT,
+        ST_FUNCTION
     };
 
     struct SYMBOL
