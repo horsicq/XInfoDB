@@ -1201,7 +1201,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
             {
                 if(result.sSymbol=="")
                 {
-                    result.sSymbol=QString("%1.%2").arg(result.sModule,XBinary::valueToHexOS(result.nAddress));
+                    result.sSymbol=QString("<%1.%2>").arg(result.sModule,XBinary::valueToHexOS(result.nAddress));
                 }
             }
         }
@@ -1248,12 +1248,12 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
             }
             else
             {
-                sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
+                sResult=QString("<%1.%2>").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
             }
         }
         else if(riType==RI_TYPE_ADDRESS)
         {
-            sResult=QString("%1.%2").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
+            sResult=QString("<%1.%2>").arg(recordInfo.sModule,XBinary::valueToHexOS(recordInfo.nAddress));
         }
         else if(riType==RI_TYPE_SYMBOL)
         {
