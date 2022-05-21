@@ -142,7 +142,7 @@ QString XInfoDB::read_ansiString(quint64 nAddress, quint64 nMaxSize)
     return sResult;
 }
 
-QString XInfoDB::read_unicodeString(quint64 nAddress, quint64 nMaxSize)
+QString XInfoDB::read_unicodeString(quint64 nAddress,quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
