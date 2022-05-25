@@ -400,6 +400,51 @@ quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
+bool XInfoDB::setStep()
+{
+    bool bResult=true;
+#if defined(Q_OS_LINUX)
+    if(ptrace(PTRACE_SINGLESTEP,g_hidThread.nID,0,0))
+    {
+        bResult=true;
+//        int wait_status;
+//        waitpid(g_hidThread.nID,&wait_status,0);
+    }
+#endif
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepInto()
+{
+    XInfoDB::BREAKPOINT breakPoint={};
+    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+
+    g_mapThreadBreakpoints.insert(g_hidThread.nID,breakPoint);
+
+    return setStep();
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::resumeThread(XProcess::HANDLEID handleThread)
+{
+    bool bResult=false;
+
+#if defined(Q_OS_LINUX)
+    if(ptrace(PTRACE_CONT,handleThread.nID,0,0))
+    {
+        bResult=true;
+        int wait_status;
+        waitpid(handleThread.nID,&wait_status,0);
+    }
+#endif
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
     g_processInfo=processInfo;

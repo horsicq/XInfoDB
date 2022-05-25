@@ -365,6 +365,9 @@ public:
     THREAD_INFO findThreadInfoByID(qint64 nThreadID);
 
     quint64 getFunctionAddress(QString sFunctionName);
+    bool setStep();
+    bool stepInto();
+    bool resumeThread(XProcess::HANDLEID handleThread);
 #endif
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
     XBinary::XVARIANT getCurrentReg(XREG reg);
