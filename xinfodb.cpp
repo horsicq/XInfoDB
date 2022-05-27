@@ -97,7 +97,7 @@ quint32 XInfoDB::read_uint32(quint64 nAddress,bool bIsBigEndian)
     return nResult;
 }
 
-quint64 XInfoDB::read_uint64(quint64 nAddress, bool bIsBigEndian)
+quint64 XInfoDB::read_uint64(quint64 nAddress,bool bIsBigEndian)
 {
     quint64 nResult=0;
 #ifdef USE_XPROCESS
@@ -906,6 +906,48 @@ XADDR XInfoDB::getCurrentInstructionPointer()
 #endif
 
     return nResult;
+}
+
+void XInfoDB::_lockId(quint32 nId)
+{
+    QMutex *pMutex=nullptr;
+
+    if(g_mapIds.contains(nId))
+    {
+        pMutex=g_mapIds.value(nId);
+    }
+    else
+    {
+        pMutex=new QMutex;
+        g_mapIds.insert(nId,pMutex);
+    }
+
+    if(pMutex)
+    {
+        pMutex->lock();
+    }
+}
+
+void XInfoDB::_unlockID(quint32 nId)
+{
+    if(g_mapIds.contains(nId))
+    {
+        QMutex *pMutex=g_mapIds.value(nId);
+
+        pMutex->unlock();
+    }
+}
+
+void XInfoDB::_waitID(quint32 nId)
+{
+    if(g_mapIds.contains(nId))
+    {
+        QMutex *pMutex=g_mapIds.value(nId);
+
+        pMutex->lock();
+        qDebug("TEST");
+        pMutex->unlock();
+    }
 }
 
 QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize)

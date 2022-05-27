@@ -22,6 +22,7 @@
 #define XINFODB_H
 
 #include <QObject>
+#include <QMutex>
 #include "xformats.h"
 #ifdef USE_XPROCESS
 #include "xprocess.h"
@@ -369,6 +370,9 @@ public:
     bool stepInto(XProcess::HANDLEID handleThread);
     bool resumeThread(XProcess::HANDLEID handleThread);
 #endif
+    void _lockId(quint32 nId);
+    void _unlockID(quint32 nId);
+    void _waitID(quint32 nId);
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
     XBinary::XVARIANT getCurrentReg(XREG reg);
     bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
@@ -496,6 +500,7 @@ private:
     XADDR g_nMainModuleAddress;
     quint64 g_nMainModuleSize;
     QString g_sMainModuleName;
+    QMap<quint32,QMutex *> g_mapIds;
 };
 
 #endif // XINFODB_H
