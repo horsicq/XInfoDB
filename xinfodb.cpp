@@ -730,11 +730,7 @@ void XInfoDB::updateMemoryRegionsList()
 
     g_statusCurrent.listMemoryRegions.clear();
 
-    XProcess::HANDLEID hidProcess={};
-    hidProcess.hHandle=g_processInfo.hProcessMemoryQuery;
-    hidProcess.nID=g_processInfo.nProcessID;
-
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(hidProcess,0,0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
 }
 #endif
 #ifdef USE_XPROCESS
