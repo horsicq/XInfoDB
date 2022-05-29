@@ -42,7 +42,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode=MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo={};
-    g_hidThread={};
 #endif
     g_pDevice=nullptr;
     g_fileType=XBinary::FT_UNKNOWN;
@@ -399,51 +398,51 @@ quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
     return 0;
 }
 #endif
-#ifdef USE_XPROCESS
-bool XInfoDB::setStep(XProcess::HANDLEID handleThread)
-{
-    bool bResult=true;
-#if defined(Q_OS_LINUX)
-    if(ptrace(PTRACE_SINGLESTEP,handleThread.nID,0,0))
-    {
-        bResult=true;
-//        int wait_status;
-//        waitpid(g_hidThread.nID,&wait_status,0);
-    }
-#endif
+//#ifdef USE_XPROCESS
+//bool XInfoDB::setStep(XProcess::HANDLEID handleThread)
+//{
+//    bool bResult=true;
+//#if defined(Q_OS_LINUX)
+//    if(ptrace(PTRACE_SINGLESTEP,handleThread.nID,0,0))
+//    {
+//        bResult=true;
+////        int wait_status;
+////        waitpid(g_hidThread.nID,&wait_status,0);
+//    }
+//#endif
 
-    return bResult;
-}
-#endif
-#ifdef USE_XPROCESS
-bool XInfoDB::stepInto(XProcess::HANDLEID handleThread)
-{
-    XInfoDB::BREAKPOINT breakPoint={};
-    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+//    return bResult;
+//}
+//#endif
+//#ifdef USE_XPROCESS
+//bool XInfoDB::stepInto(XProcess::HANDLEID handleThread)
+//{
+//    XInfoDB::BREAKPOINT breakPoint={};
+//    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+//    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
 
-    g_mapThreadBreakpoints.insert(handleThread.nID,breakPoint);
+//    g_mapThreadBreakpoints.insert(handleThread.nID,breakPoint);
 
-    return setStep(handleThread);
-}
-#endif
-#ifdef USE_XPROCESS
-bool XInfoDB::resumeThread(XProcess::HANDLEID handleThread)
-{
-    bool bResult=false;
+//    return setStep(handleThread);
+//}
+//#endif
+//#ifdef USE_XPROCESS
+//bool XInfoDB::resumeThread(XProcess::HANDLEID handleThread)
+//{
+//    bool bResult=false;
 
-#if defined(Q_OS_LINUX)
-    if(ptrace(PTRACE_CONT,handleThread.nID,0,0))
-    {
-        bResult=true;
-//        int wait_status;
-//        waitpid(handleThread.nID,&wait_status,0);
-    }
-#endif
+//#if defined(Q_OS_LINUX)
+//    if(ptrace(PTRACE_CONT,handleThread.nID,0,0))
+//    {
+//        bResult=true;
+////        int wait_status;
+////        waitpid(handleThread.nID,&wait_status,0);
+//    }
+//#endif
 
-    return bResult;
-}
-#endif
+//    return bResult;
+//}
+//#endif
 #ifdef USE_XPROCESS
 void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
@@ -457,20 +456,13 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::setCurrentThread(XProcess::HANDLEID hidThread)
-{
-    g_hidThread=hidThread;
-    g_mode=MODE_PROCESS;
-}
-#endif
-#ifdef USE_XPROCESS
 XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
 {
     return &g_processInfo;
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegs(XREG_OPTIONS regOptions)
+void XInfoDB::updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
@@ -670,7 +662,7 @@ void XInfoDB::updateRegs(XREG_OPTIONS regOptions)
 //    user_regs_struct regs;
     errno=0;
 
-    if(ptrace(PTRACE_GETREGS,g_hidThread.nID,nullptr,&regs)!=-1)
+    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
     {
         if(regOptions.bGeneral)
         {

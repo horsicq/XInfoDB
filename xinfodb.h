@@ -277,10 +277,17 @@ public:
         XInfoDB::BPI bpInfo;
         QString sInfo;
         qint64 nProcessID;
+    #ifdef Q_OS_WIN
+        void *pHProcess;
+    #endif
+    #ifdef Q_OS_LINUX
         void *pHProcessMemoryIO;
         void *pHProcessMemoryQuery;
+    #endif
         qint64 nThreadID;
+    #ifdef Q_OS_WIN
         void *pHThread;
+    #endif
     };
 
     struct PROCESSENTRY_INFO
@@ -330,9 +337,8 @@ public:
     QString read_utf8String(quint64 nAddress,quint64 nMaxSize=256);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
-    void setCurrentThread(XProcess::HANDLEID hidThread);
     PROCESS_INFO *getProcessInfo();
-    void updateRegs(XREG_OPTIONS regOptions);
+    void updateRegs(X_ID nThreadId, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
@@ -366,9 +372,9 @@ public:
     THREAD_INFO findThreadInfoByID(qint64 nThreadID);
 
     quint64 getFunctionAddress(QString sFunctionName);
-    bool setStep(XProcess::HANDLEID handleThread);
-    bool stepInto(XProcess::HANDLEID handleThread);
-    bool resumeThread(XProcess::HANDLEID handleThread);
+//    bool setStep(XProcess::HANDLEID handleThread);
+//    bool stepInto(XProcess::HANDLEID handleThread);
+//    bool resumeThread(XProcess::HANDLEID handleThread);
 #endif
     void _lockId(quint32 nId);
     void _unlockID(quint32 nId);
@@ -481,7 +487,6 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
-    XProcess::HANDLEID g_hidThread;
     QList<BREAKPOINT> g_listBreakpoints;
     QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
     QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
