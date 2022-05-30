@@ -237,16 +237,21 @@ public:
     struct PROCESS_INFO
     {
         qint64 nProcessID;
-        qint64 nThreadID;
+        qint64 nMainThreadID; // TODO Check mb Remove
         QString sFileName;
         QString sBaseFileName;
         XADDR nImageBase;
         quint64 nImageSize;
         XADDR nStartAddress;
         XADDR nThreadLocalBase;
+    #ifdef Q_OS_LINUX
         void *hProcessMemoryIO;
         void *hProcessMemoryQuery;
-        void *hMainThread;
+    #endif
+    #ifdef Q_OS_WIN
+        X_HANDLE hMainThread;
+        X_HANDLE hProcess;
+    #endif
     };
 
     struct EXITPROCESS_INFO
@@ -278,7 +283,7 @@ public:
         QString sInfo;
         qint64 nProcessID;
     #ifdef Q_OS_WIN
-        void *pHProcess;
+        void *hProcess;
     #endif
     #ifdef Q_OS_LINUX
         void *pHProcessMemoryIO;
@@ -286,7 +291,7 @@ public:
     #endif
         qint64 nThreadID;
     #ifdef Q_OS_WIN
-        void *pHThread;
+        void *hThread;
     #endif
     };
 
@@ -339,6 +344,7 @@ public:
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
     void updateRegs(X_ID nThreadId, XREG_OPTIONS regOptions);
+    void updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
@@ -375,6 +381,12 @@ public:
 //    bool setStep(XProcess::HANDLEID handleThread);
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
+    bool _setStep(X_HANDLE hThread);
+    bool suspendThread(X_HANDLE hThread);
+    bool resumeThread(X_HANDLE hThread);
+    bool suspendOtherThreads(X_HANDLE hThread);
+    bool resumeOtherThreads(X_HANDLE hThread);
+    FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
 #endif
     void _lockId(quint32 nId);
     void _unlockID(quint32 nId);
@@ -384,8 +396,11 @@ public:
     bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
-    XADDR getCurrentStackPointer();
-    XADDR getCurrentInstructionPointer();
+    XADDR getCurrentStackPointerCache();
+    XADDR getCurrentInstructionPointerCache();
+
+    XADDR getCurrentInstructionPointer(X_HANDLE hThread);
+    bool setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue);
 
     static QString regIdToString(XREG reg);
 

@@ -90,7 +90,12 @@ quint32 XInfoDB::read_uint32(quint64 nAddress,bool bIsBigEndian)
 {
     quint32 nResult=0;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    nResult=XProcess::read_uint32(g_processInfo.hProcess,nAddress,bIsBigEndian);
+#endif
+#ifdef Q_OS_LINUX
     nResult=XProcess::read_uint32(g_processInfo.hProcessMemoryIO,nAddress,bIsBigEndian);
+#endif
 #endif
     // TODO XBinary
     return nResult;
@@ -100,7 +105,12 @@ quint64 XInfoDB::read_uint64(quint64 nAddress,bool bIsBigEndian)
 {
     quint64 nResult=0;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    nResult=XProcess::read_uint64(g_processInfo.hProcess,nAddress,bIsBigEndian);
+#endif
+#ifdef Q_OS_LINUX
     nResult=XProcess::read_uint64(g_processInfo.hProcessMemoryIO,nAddress,bIsBigEndian);
+#endif
 #endif
     return nResult;
 }
@@ -109,7 +119,12 @@ qint64 XInfoDB::read_array(quint64 nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    nResult=XProcess::read_array(g_processInfo.hProcess,nAddress,pData,nSize);
+#endif
+#ifdef Q_OS_LINUX
     nResult=XProcess::read_array(g_processInfo.hProcessMemoryIO,nAddress,pData,nSize);
+#endif
 #endif
     return nResult;
 }
@@ -118,7 +133,12 @@ qint64 XInfoDB::write_array(quint64 nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    nResult=XProcess::write_array(g_processInfo.hProcess,nAddress,pData,nSize);
+#endif
+#ifdef Q_OS_LINUX
     nResult=XProcess::write_array(g_processInfo.hProcessMemoryIO,nAddress,pData,nSize);
+#endif
 #endif
     return nResult;
 }
@@ -127,7 +147,12 @@ QByteArray XInfoDB::read_array(quint64 nAddress, quint64 nSize)
 {
     QByteArray baResult;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    baResult=XProcess::read_array(g_processInfo.hProcess,nAddress,nSize);
+#endif
+#ifdef Q_OS_LINUX
     baResult=XProcess::read_array(g_processInfo.hProcessMemoryIO,nAddress,nSize);
+#endif
 #endif
     return baResult;
 }
@@ -136,7 +161,12 @@ QString XInfoDB::read_ansiString(quint64 nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    sResult=XProcess::read_ansiString(g_processInfo.hProcess,nAddress,nMaxSize);
+#endif
+#ifdef Q_OS_LINUX
     sResult=XProcess::read_ansiString(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
 #endif
     return sResult;
 }
@@ -145,7 +175,12 @@ QString XInfoDB::read_unicodeString(quint64 nAddress,quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    sResult=XProcess::read_unicodeString(g_processInfo.hProcess,nAddress,nMaxSize);
+#endif
+#ifdef Q_OS_LINUX
     sResult=XProcess::read_unicodeString(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
 #endif
     return sResult;
 }
@@ -154,7 +189,12 @@ QString XInfoDB::read_utf8String(quint64 nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    sResult=XProcess::read_utf8String(g_processInfo.hProcess,nAddress,nMaxSize);
+#endif
+#ifdef Q_OS_LINUX
     sResult=XProcess::read_utf8String(g_processInfo.hProcessMemoryIO,nAddress,nMaxSize);
+#endif
 #endif
     return sResult;
 }
@@ -398,6 +438,148 @@ quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
     return 0;
 }
 #endif
+#ifdef USE_XPROCESS
+bool XInfoDB::_setStep(X_HANDLE hThread)
+{
+    bool bResult=false;
+
+    if(hThread)
+    {
+        CONTEXT context={0};
+        context.ContextFlags=CONTEXT_CONTROL; // EFLAGS
+
+        if(GetThreadContext(hThread,&context))
+        {
+            if(!(context.EFlags&0x100))
+            {
+                context.EFlags|=0x100;
+            }
+
+            if(SetThreadContext(hThread,&context))
+            {
+                bResult=true;
+            }
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::suspendThread(X_HANDLE hThread)
+{
+    bool bResult=false;
+#ifdef Q_OS_WIN
+    bResult=(SuspendThread(hThread)!=((DWORD)-1));
+#endif
+//#ifdef Q_OS_LINUX
+//    if(syscall(SYS_tgkill,g_processInfo.nProcessID,handleID.nID,SIGSTOP)!=-1)
+//    {
+//        bResult=true;
+//    }
+//    else
+//    {
+//        qDebug("Cannot stop thread");
+//    }
+//#endif
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::resumeThread(X_HANDLE hThread)
+{
+    bool bResult=false;
+#ifdef Q_OS_WIN
+    bResult=(ResumeThread(hThread)!=((DWORD)-1));
+#endif
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::suspendOtherThreads(X_HANDLE hThread)
+{
+    bool bResult=false;
+
+    QList<XInfoDB::THREAD_INFO> *pListThreads=getThreadInfos();
+
+    qint32 nCount=pListThreads->count();
+
+    // Suspend all other threads
+    for(qint32 i=0;i<nCount;i++)
+    {
+        if(hThread!=pListThreads->at(i).hThread)
+        {
+            suspendThread(pListThreads->at(i).hThread);
+
+            bResult=true;
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::resumeOtherThreads(X_HANDLE hThread)
+{
+    bool bResult=false;
+
+    QList<XInfoDB::THREAD_INFO> *pListThreads=getThreadInfos();
+
+    qint32 nCount=pListThreads->count();
+
+    // Resume all other threads
+    for(qint32 i=0;i<nCount;i++)
+    {
+        if(hThread!=pListThreads->at(i).hThread)
+        {
+            resumeThread(pListThreads->at(i).hThread);
+
+            bResult=true;
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
+{
+    FUNCTION_INFO result={};
+
+#ifdef Q_OS_WIN
+    CONTEXT context={0};
+    context.ContextFlags=CONTEXT_FULL; // Full
+
+    if(GetThreadContext(hThread,&context))
+    {
+    #ifndef Q_OS_WIN64
+        quint64 nSP=(quint32)(context.Esp);
+        quint64 nIP=(quint32)(context.Eip);
+    #else
+        quint64 nSP=(quint64)(context.Rsp);
+        quint64 nIP=(quint64)(context.Rip);
+    #endif
+
+        // TODO 64!
+        result.nAddress=nIP;
+        result.nRetAddress=read_uint32((quint32)nSP);
+        result.nParameter0=read_uint32((quint32)(nSP+4+0*4));
+        result.nParameter1=read_uint32((quint32)(nSP+4+1*4));
+        result.nParameter2=read_uint32((quint32)(nSP+4+2*4));
+        result.nParameter3=read_uint32((quint32)(nSP+4+3*4));
+        result.nParameter4=read_uint32((quint32)(nSP+4+4*4));
+        result.nParameter5=read_uint32((quint32)(nSP+4+5*4));
+        result.nParameter6=read_uint32((quint32)(nSP+4+6*4));
+        result.nParameter7=read_uint32((quint32)(nSP+4+7*4));
+        result.nParameter8=read_uint32((quint32)(nSP+4+8*4));
+        result.nParameter9=read_uint32((quint32)(nSP+4+9*4));
+        result.sName=sName;
+    }
+#endif
+
+    return result;
+}
+#endif
 //#ifdef USE_XPROCESS
 //bool XInfoDB::setStep(XProcess::HANDLEID handleThread)
 //{
@@ -468,11 +650,77 @@ void XInfoDB::updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions)
 
     g_statusCurrent.mapRegs.clear();
 
+
+#ifdef Q_OS_LINUX
+    user_regs_struct regs={};
+//    user_regs_struct regs;
+    errno=0;
+
+    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
+    {
+        if(regOptions.bGeneral)
+        {
+            g_statusCurrent.mapRegs.insert(XREG_RAX,XBinary::getXVariant((quint64)(regs.rax)));
+            g_statusCurrent.mapRegs.insert(XREG_RBX,XBinary::getXVariant((quint64)(regs.rbx)));
+            g_statusCurrent.mapRegs.insert(XREG_RCX,XBinary::getXVariant((quint64)(regs.rcx)));
+            g_statusCurrent.mapRegs.insert(XREG_RDX,XBinary::getXVariant((quint64)(regs.rdx)));
+            g_statusCurrent.mapRegs.insert(XREG_RBP,XBinary::getXVariant((quint64)(regs.rbp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSP,XBinary::getXVariant((quint64)(regs.rsp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSI,XBinary::getXVariant((quint64)(regs.rsi)));
+            g_statusCurrent.mapRegs.insert(XREG_RDI,XBinary::getXVariant((quint64)(regs.rdi)));
+            g_statusCurrent.mapRegs.insert(XREG_R8,XBinary::getXVariant((quint64)(regs.r8)));
+            g_statusCurrent.mapRegs.insert(XREG_R9,XBinary::getXVariant((quint64)(regs.r9)));
+            g_statusCurrent.mapRegs.insert(XREG_R10,XBinary::getXVariant((quint64)(regs.r10)));
+            g_statusCurrent.mapRegs.insert(XREG_R11,XBinary::getXVariant((quint64)(regs.r11)));
+            g_statusCurrent.mapRegs.insert(XREG_R12,XBinary::getXVariant((quint64)(regs.r12)));
+            g_statusCurrent.mapRegs.insert(XREG_R13,XBinary::getXVariant((quint64)(regs.r13)));
+            g_statusCurrent.mapRegs.insert(XREG_R14,XBinary::getXVariant((quint64)(regs.r14)));
+            g_statusCurrent.mapRegs.insert(XREG_R15,XBinary::getXVariant((quint64)(regs.r15)));
+        }
+
+        if(regOptions.bIP)
+        {
+            g_statusCurrent.mapRegs.insert(XREG_RIP,XBinary::getXVariant((quint64)(regs.rip)));
+        }
+
+        if(regOptions.bFlags)
+        {
+            g_statusCurrent.mapRegs.insert(XREG_EFLAGS,XBinary::getXVariant((quint32)(regs.eflags)));
+        }
+
+        if(regOptions.bSegments)
+        {
+            g_statusCurrent.mapRegs.insert(XREG_GS,XBinary::getXVariant((quint16)(regs.gs)));
+            g_statusCurrent.mapRegs.insert(XREG_FS,XBinary::getXVariant((quint16)(regs.fs)));
+            g_statusCurrent.mapRegs.insert(XREG_ES,XBinary::getXVariant((quint16)(regs.es)));
+            g_statusCurrent.mapRegs.insert(XREG_DS,XBinary::getXVariant((quint16)(regs.ds)));
+            g_statusCurrent.mapRegs.insert(XREG_CS,XBinary::getXVariant((quint16)(regs.cs)));
+            g_statusCurrent.mapRegs.insert(XREG_SS,XBinary::getXVariant((quint16)(regs.ss)));
+        }
+    }
+    else
+    {
+        qDebug("errno: %s",strerror(errno));
+    }
+
+//    __extension__ unsigned long long int orig_rax;
+//    __extension__ unsigned long long int fs_base;
+//    __extension__ unsigned long long int gs_base;
+#endif
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions)
+{
+    g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
+
+    g_statusCurrent.mapRegs.clear();
+
 #ifdef Q_OS_WIN
     CONTEXT context={0};
     context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions | CONTEXT_FLOATING_POINT | CONTEXT_EXTENDED_REGISTERS;
 
-    if(GetThreadContext(g_hidThread.hHandle,&context))
+    if(GetThreadContext(hThread,&context))
     {
         if(regOptions.bGeneral)
         {
@@ -657,62 +905,6 @@ void XInfoDB::updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions)
     #endif
     }
 #endif
-#ifdef Q_OS_LINUX
-    user_regs_struct regs={};
-//    user_regs_struct regs;
-    errno=0;
-
-    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
-    {
-        if(regOptions.bGeneral)
-        {
-            g_statusCurrent.mapRegs.insert(XREG_RAX,XBinary::getXVariant((quint64)(regs.rax)));
-            g_statusCurrent.mapRegs.insert(XREG_RBX,XBinary::getXVariant((quint64)(regs.rbx)));
-            g_statusCurrent.mapRegs.insert(XREG_RCX,XBinary::getXVariant((quint64)(regs.rcx)));
-            g_statusCurrent.mapRegs.insert(XREG_RDX,XBinary::getXVariant((quint64)(regs.rdx)));
-            g_statusCurrent.mapRegs.insert(XREG_RBP,XBinary::getXVariant((quint64)(regs.rbp)));
-            g_statusCurrent.mapRegs.insert(XREG_RSP,XBinary::getXVariant((quint64)(regs.rsp)));
-            g_statusCurrent.mapRegs.insert(XREG_RSI,XBinary::getXVariant((quint64)(regs.rsi)));
-            g_statusCurrent.mapRegs.insert(XREG_RDI,XBinary::getXVariant((quint64)(regs.rdi)));
-            g_statusCurrent.mapRegs.insert(XREG_R8,XBinary::getXVariant((quint64)(regs.r8)));
-            g_statusCurrent.mapRegs.insert(XREG_R9,XBinary::getXVariant((quint64)(regs.r9)));
-            g_statusCurrent.mapRegs.insert(XREG_R10,XBinary::getXVariant((quint64)(regs.r10)));
-            g_statusCurrent.mapRegs.insert(XREG_R11,XBinary::getXVariant((quint64)(regs.r11)));
-            g_statusCurrent.mapRegs.insert(XREG_R12,XBinary::getXVariant((quint64)(regs.r12)));
-            g_statusCurrent.mapRegs.insert(XREG_R13,XBinary::getXVariant((quint64)(regs.r13)));
-            g_statusCurrent.mapRegs.insert(XREG_R14,XBinary::getXVariant((quint64)(regs.r14)));
-            g_statusCurrent.mapRegs.insert(XREG_R15,XBinary::getXVariant((quint64)(regs.r15)));
-        }
-
-        if(regOptions.bIP)
-        {
-            g_statusCurrent.mapRegs.insert(XREG_RIP,XBinary::getXVariant((quint64)(regs.rip)));
-        }
-
-        if(regOptions.bFlags)
-        {
-            g_statusCurrent.mapRegs.insert(XREG_EFLAGS,XBinary::getXVariant((quint32)(regs.eflags)));
-        }
-
-        if(regOptions.bSegments)
-        {
-            g_statusCurrent.mapRegs.insert(XREG_GS,XBinary::getXVariant((quint16)(regs.gs)));
-            g_statusCurrent.mapRegs.insert(XREG_FS,XBinary::getXVariant((quint16)(regs.fs)));
-            g_statusCurrent.mapRegs.insert(XREG_ES,XBinary::getXVariant((quint16)(regs.es)));
-            g_statusCurrent.mapRegs.insert(XREG_DS,XBinary::getXVariant((quint16)(regs.ds)));
-            g_statusCurrent.mapRegs.insert(XREG_CS,XBinary::getXVariant((quint16)(regs.cs)));
-            g_statusCurrent.mapRegs.insert(XREG_SS,XBinary::getXVariant((quint16)(regs.ss)));
-        }
-    }
-    else
-    {
-        qDebug("errno: %s",strerror(errno));
-    }
-
-//    __extension__ unsigned long long int orig_rax;
-//    __extension__ unsigned long long int fs_base;
-//    __extension__ unsigned long long int gs_base;
-#endif
 }
 #endif
 #ifdef USE_XPROCESS
@@ -721,8 +913,12 @@ void XInfoDB::updateMemoryRegionsList()
     g_statusPrev.listMemoryRegions=g_statusCurrent.listMemoryRegions;
 
     g_statusCurrent.listMemoryRegions.clear();
-
+#ifdef Q_OS_WIN
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
+#endif
+#ifdef Q_OS_LINUX
     g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
+#endif
 }
 #endif
 #ifdef USE_XPROCESS
@@ -868,7 +1064,7 @@ bool XInfoDB::isRegChanged(XREG reg)
     return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
 }
 
-XADDR XInfoDB::getCurrentStackPointer()
+XADDR XInfoDB::getCurrentStackPointerCache()
 {
     XADDR nResult=0;
 
@@ -882,7 +1078,7 @@ XADDR XInfoDB::getCurrentStackPointer()
     return nResult;
 }
 
-XADDR XInfoDB::getCurrentInstructionPointer()
+XADDR XInfoDB::getCurrentInstructionPointerCache()
 {
     XADDR nResult=0;
 
@@ -894,6 +1090,63 @@ XADDR XInfoDB::getCurrentInstructionPointer()
 #endif
 
     return nResult;
+}
+
+XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
+{
+    XADDR nResult=0;
+#ifdef Q_OS_WIN
+    CONTEXT context={0};
+    context.ContextFlags=CONTEXT_CONTROL; // EIP
+
+    if(GetThreadContext(hThread,&context))
+    {
+#ifndef Q_OS_WIN64
+        nResult=context.Eip;
+#else
+        nResult=context.Rip;
+#endif
+    }
+#endif
+#ifdef Q_OS_LINUX
+    // TODO 32
+    user_regs_struct regs={};
+
+    errno=0;
+
+    if(ptrace(PTRACE_GETREGS,handleID.nID,nullptr,&regs)!=-1)
+    {
+    #if defined(Q_PROCESSOR_X86_64)
+        nResult=regs.rip;
+    #elif defined(Q_PROCESSOR_X86_32)
+        nResult=regs.eip;
+    #endif
+    }
+#endif
+    return nResult;
+}
+
+bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread, XADDR nValue)
+{
+    bool bResult=false;
+#ifdef Q_OS_WIN
+    CONTEXT context={0};
+    context.ContextFlags=CONTEXT_CONTROL; // EIP
+
+    if(GetThreadContext(hThread,&context))
+    {
+#ifndef Q_OS_WIN64
+        context.Eip=nValue;
+#else
+        context.Rip=nValue;
+#endif
+        if(SetThreadContext(hThread,&context))
+        {
+            bResult=true;
+        }
+    }
+#endif
+    return bResult;
 }
 
 void XInfoDB::_lockId(quint32 nId)
