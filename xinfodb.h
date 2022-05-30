@@ -400,6 +400,7 @@ public:
     XADDR getCurrentInstructionPointerCache();
 
     XADDR getCurrentInstructionPointer(X_HANDLE hThread);
+    XADDR getCurrentInstructionPointer(X_ID nThreadId);
     bool setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue);
 
     static QString regIdToString(XREG reg);

@@ -445,6 +445,7 @@ bool XInfoDB::_setStep(X_HANDLE hThread)
 
     if(hThread)
     {
+    #ifdef Q_OS_WIN
         CONTEXT context={0};
         context.ContextFlags=CONTEXT_CONTROL; // EFLAGS
 
@@ -460,6 +461,7 @@ bool XInfoDB::_setStep(X_HANDLE hThread)
                 bResult=true;
             }
         }
+    #endif
     }
 
     return bResult;
@@ -1108,13 +1110,18 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
 #endif
     }
 #endif
+    return nResult;
+}
+
+XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
+{
+    XADDR nResult=0;
 #ifdef Q_OS_LINUX
-    // TODO 32
     user_regs_struct regs={};
 
     errno=0;
 
-    if(ptrace(PTRACE_GETREGS,handleID.nID,nullptr,&regs)!=-1)
+    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
     {
     #if defined(Q_PROCESSOR_X86_64)
         nResult=regs.rip;
