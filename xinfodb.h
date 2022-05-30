@@ -225,7 +225,9 @@ public:
         qint64 nThreadID;
         qint64 nThreadLocalBase;
         quint64 nStartAddress;
-        void *hThread;
+    #ifdef Q_OS_WIN
+        X_HANDLE hThread;
+    #endif
     };
 
     struct EXITTHREAD_INFO
