@@ -222,7 +222,7 @@ public:
 
     struct THREAD_INFO
     {
-        qint64 nThreadID;
+        X_ID nThreadID;
         qint64 nThreadLocalBase;
         quint64 nStartAddress;
     #ifdef Q_OS_WIN
@@ -358,7 +358,7 @@ public:
     BREAKPOINT findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
 
     QList<BREAKPOINT> *getBreakpoints();
-    QMap<qint64,BREAKPOINT> *getThreadBreakpoints();
+    QMap<X_ID,BREAKPOINT> *getThreadBreakpoints();
     bool breakpointToggle(quint64 nAddress);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
@@ -377,17 +377,20 @@ public:
     SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
     SHAREDOBJECT_INFO findSharedInfoByAddress(XADDR nAddress);
 
-    THREAD_INFO findThreadInfoByID(qint64 nThreadID);
-
+    THREAD_INFO findThreadInfoByID(X_ID nThreadID);
+#ifdef Q_OS_WIN
+    THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
+#endif
     quint64 getFunctionAddress(QString sFunctionName);
-//    bool setStep(XProcess::HANDLEID handleThread);
+    bool setSingleStep(X_HANDLE hThread,QString sInfo="");
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
+    bool stepInto(X_HANDLE hThread);
     bool _setStep(X_HANDLE hThread);
     bool suspendThread(X_HANDLE hThread);
     bool resumeThread(X_HANDLE hThread);
-    bool suspendOtherThreads(X_HANDLE hThread);
-    bool resumeOtherThreads(X_HANDLE hThread);
+    bool suspendOtherThreads(X_ID nThreadId);
+    bool resumeOtherThreads(X_ID nThreadId);
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
 #endif
     void _lockId(quint32 nId);
@@ -404,6 +407,10 @@ public:
     XADDR getCurrentInstructionPointer(X_HANDLE hThread);
     XADDR getCurrentInstructionPointer(X_ID nThreadId);
     bool setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue);
+
+    XADDR getCurrentStackPointer(X_HANDLE hThread);
+    XADDR getCurrentStackPointer(X_ID nThreadId);
+    bool setCurrentStackPointer(X_HANDLE hThread,XADDR nValue);
 
     static QString regIdToString(XREG reg);
 
@@ -506,7 +513,8 @@ private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     QList<BREAKPOINT> g_listBreakpoints;
-    QMap<qint64,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+//    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
     QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
     QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList

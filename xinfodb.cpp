@@ -411,7 +411,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress)
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(qint64 nThreadID)
+XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
 {
     XInfoDB::THREAD_INFO result={};
 
@@ -431,11 +431,62 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(qint64 nThreadID)
 }
 #endif
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
+{
+    XInfoDB::THREAD_INFO result={};
+
+    qint32 nNumberOfRecords=g_listThreadInfos.count();
+
+    for(qint32 i=0;i<nNumberOfRecords;i++)
+    {
+        if(g_listThreadInfos.at(i).hThread==hThread)
+        {
+            result=g_listThreadInfos.at(i);
+
+            break;
+        }
+    }
+
+    return result;
+}
+#endif
+#endif
+#ifdef USE_XPROCESS
 quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
 {
     Q_UNUSED(sFunctionName)
     // TODO
     return 0;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo)
+{
+    X_ID nThreadId=findThreadInfoByHandle(hThread).nThreadID;
+
+    XInfoDB::BREAKPOINT breakPoint={};
+    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+    breakPoint.bpInfo=XInfoDB::BPI_STEP;
+    breakPoint.sInfo=sInfo;
+
+    getThreadBreakpoints()->insert(nThreadId,breakPoint);
+
+    return _setStep(hThread);
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepInto(X_HANDLE hThread)
+{
+    X_ID nThreadId=findThreadInfoByHandle(hThread).nThreadID;
+
+    XInfoDB::BREAKPOINT breakPoint={};
+    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+
+    getThreadBreakpoints()->insert(nThreadId,breakPoint);
+
+    return _setStep(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -484,6 +535,9 @@ bool XInfoDB::suspendThread(X_HANDLE hThread)
 //        qDebug("Cannot stop thread");
 //    }
 //#endif
+
+    qDebug("bool XInfoDB::suspendThread(X_HANDLE hThread) %d", hThread);
+
     return bResult;
 }
 #endif
@@ -494,11 +548,14 @@ bool XInfoDB::resumeThread(X_HANDLE hThread)
 #ifdef Q_OS_WIN
     bResult=(ResumeThread(hThread)!=((DWORD)-1));
 #endif
+
+    qDebug("bool XInfoDB::resumeThread(X_HANDLE hThread) %d", hThread);
+
     return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendOtherThreads(X_HANDLE hThread)
+bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
 {
     bool bResult=false;
 
@@ -509,7 +566,7 @@ bool XInfoDB::suspendOtherThreads(X_HANDLE hThread)
     // Suspend all other threads
     for(qint32 i=0;i<nCount;i++)
     {
-        if(hThread!=pListThreads->at(i).hThread)
+        if(nThreadId!=pListThreads->at(i).nThreadID)
         {
             suspendThread(pListThreads->at(i).hThread);
 
@@ -521,7 +578,7 @@ bool XInfoDB::suspendOtherThreads(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeOtherThreads(X_HANDLE hThread)
+bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
 {
     bool bResult=false;
 
@@ -532,7 +589,7 @@ bool XInfoDB::resumeOtherThreads(X_HANDLE hThread)
     // Resume all other threads
     for(qint32 i=0;i<nCount;i++)
     {
-        if(hThread!=pListThreads->at(i).hThread)
+        if(nThreadId!=pListThreads->at(i).nThreadID)
         {
             resumeThread(pListThreads->at(i).hThread);
 
@@ -1056,7 +1113,7 @@ QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 {
     return &g_mapThreadBreakpoints;
 }
@@ -1153,6 +1210,44 @@ bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread, XADDR nValue)
         }
     }
 #endif
+    return bResult;
+}
+
+XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
+{
+    XADDR nResult=0;
+#ifdef Q_OS_WIN
+    CONTEXT context={0};
+    context.ContextFlags=CONTEXT_CONTROL;
+
+    if(GetThreadContext(hThread,&context))
+    {
+    #ifndef Q_OS_WIN64
+        nResult=(quint32)(context.Esp);
+    #else
+        nResult=(quint64)(context.Rsp);
+    #endif
+    }
+#endif
+
+    return nResult;
+}
+
+XADDR XInfoDB::getCurrentStackPointer(X_ID nThreadId)
+{
+    XADDR nResult=0;
+
+    // TODO
+
+    return nResult;
+}
+
+bool XInfoDB::setCurrentStackPointer(X_HANDLE hThread, XADDR nValue)
+{
+    bool bResult=false;
+
+    // TODO
+
     return bResult;
 }
 
