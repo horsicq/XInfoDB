@@ -463,29 +463,25 @@ quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
 #ifdef USE_XPROCESS
 bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo)
 {
-    X_ID nThreadId=findThreadInfoByHandle(hThread).nThreadID;
-
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
     breakPoint.bpInfo=XInfoDB::BPI_STEP;
     breakPoint.sInfo=sInfo;
-
-    getThreadBreakpoints()->insert(nThreadId,breakPoint);
-
+#ifdef Q_OS_WIN
+    getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
+#endif
     return _setStep(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
 bool XInfoDB::stepInto(X_HANDLE hThread)
 {
-    X_ID nThreadId=findThreadInfoByHandle(hThread).nThreadID;
-
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
     breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
-
-    getThreadBreakpoints()->insert(nThreadId,breakPoint);
-
+#ifdef Q_OS_WIN
+    getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
+#endif
     return _setStep(hThread);
 }
 #endif
@@ -568,8 +564,9 @@ bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
     {
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
+        #ifdef Q_OS_WIN
             suspendThread(pListThreads->at(i).hThread);
-
+        #endif
             bResult=true;
         }
     }
@@ -591,8 +588,9 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
     {
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
+        #ifdef Q_OS_WIN
             resumeThread(pListThreads->at(i).hThread);
-
+        #endif
             bResult=true;
         }
     }
