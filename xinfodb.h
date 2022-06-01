@@ -41,7 +41,7 @@ public:
         MODE_PROCESS
     #endif
     };
-
+#ifdef USE_XPROCESS
     struct XREG_OPTIONS
     {
         bool bGeneral;
@@ -324,6 +324,7 @@ public:
         quint64 nParameter8;
         quint64 nParameter9;
     };
+#endif
 
     explicit XInfoDB(QObject *pParent=nullptr);
     ~XInfoDB();
@@ -392,11 +393,10 @@ public:
     bool suspendOtherThreads(X_ID nThreadId);
     bool resumeOtherThreads(X_ID nThreadId);
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
-#endif
+
     void _lockId(quint32 nId);
     void _unlockID(quint32 nId);
     void _waitID(quint32 nId);
-    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
     XBinary::XVARIANT getCurrentReg(XREG reg);
     bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
@@ -418,7 +418,7 @@ public:
     static XREG getSubReg16(XREG reg);
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
-
+#endif
     struct XSTRING
     {
         QString sAnsiString;
@@ -454,6 +454,8 @@ public:
 
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
+
+    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
 
     enum SS
     {
@@ -499,7 +501,7 @@ signals:
     void dataChanged(bool bDataReload);
 
 private:
-
+#ifdef USE_XPROCESS
     struct STATUS
     {
         QMap<XREG,XBinary::XVARIANT> mapRegs;
@@ -509,6 +511,7 @@ private:
     #endif
     };
     XBinary::XVARIANT _getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
+#endif
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
@@ -520,8 +523,10 @@ private:
     QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList
 #endif
     MODE g_mode;
+#ifdef USE_XPROCESS
     STATUS g_statusCurrent;
     STATUS g_statusPrev;
+#endif
     QList<SYMBOL> g_listSymbols;
     QMap<quint32,QString> g_mapSymbolModules;
     QMap<quint64,RECORD_INFO> g_mapSRecordInfoCache;

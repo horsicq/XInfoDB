@@ -531,8 +531,9 @@ bool XInfoDB::suspendThread(X_HANDLE hThread)
 //        qDebug("Cannot stop thread");
 //    }
 //#endif
-
-    qDebug("bool XInfoDB::suspendThread(X_HANDLE hThread) %d", hThread);
+#ifdef QT_DEBUG
+    qDebug("XInfoDB::suspendThread %X",hThread);
+#endif
 
     return bResult;
 }
@@ -544,8 +545,9 @@ bool XInfoDB::resumeThread(X_HANDLE hThread)
 #ifdef Q_OS_WIN
     bResult=(ResumeThread(hThread)!=((DWORD)-1));
 #endif
-
-    qDebug("bool XInfoDB::resumeThread(X_HANDLE hThread) %d", hThread);
+#ifdef QT_DEBUG
+    qDebug("XInfoDB::resumeThread %X",hThread);
+#endif
 
     return bResult;
 }
@@ -988,11 +990,13 @@ void XInfoDB::updateModulesList()
     g_statusCurrent.listModules=XProcess::getModulesList(g_processInfo.nProcessID);
 }
 #endif
+#ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::getCurrentReg(XREG reg)
 {
     return _getReg(&(g_statusCurrent.mapRegs),reg);
 }
-
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
 {
     bool bResult=false;
@@ -1001,6 +1005,7 @@ bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
 
     return bResult;
 }
+#endif
 #ifdef USE_XPROCESS
 QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
 {
@@ -1116,11 +1121,13 @@ QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
     return &g_mapThreadBreakpoints;
 }
 #endif
+#ifdef USE_XPROCESS
 bool XInfoDB::isRegChanged(XREG reg)
 {
     return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointerCache()
 {
     XADDR nResult=0;
@@ -1134,7 +1141,8 @@ XADDR XInfoDB::getCurrentStackPointerCache()
 
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentInstructionPointerCache()
 {
     XADDR nResult=0;
@@ -1148,7 +1156,8 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
 
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
 {
     XADDR nResult=0;
@@ -1167,7 +1176,8 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
 #endif
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
 {
     XADDR nResult=0;
@@ -1187,7 +1197,8 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
 #endif
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread, XADDR nValue)
 {
     bool bResult=false;
@@ -1210,7 +1221,8 @@ bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread, XADDR nValue)
 #endif
     return bResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
 {
     XADDR nResult=0;
@@ -1230,7 +1242,8 @@ XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
 
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointer(X_ID nThreadId)
 {
     XADDR nResult=0;
@@ -1239,7 +1252,8 @@ XADDR XInfoDB::getCurrentStackPointer(X_ID nThreadId)
 
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::setCurrentStackPointer(X_HANDLE hThread, XADDR nValue)
 {
     bool bResult=false;
@@ -1248,7 +1262,8 @@ bool XInfoDB::setCurrentStackPointer(X_HANDLE hThread, XADDR nValue)
 
     return bResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::_lockId(quint32 nId)
 {
     QMutex *pMutex=nullptr;
@@ -1268,7 +1283,8 @@ void XInfoDB::_lockId(quint32 nId)
         pMutex->lock();
     }
 }
-
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::_unlockID(quint32 nId)
 {
     if(g_mapIds.contains(nId))
@@ -1278,7 +1294,8 @@ void XInfoDB::_unlockID(quint32 nId)
         pMutex->unlock();
     }
 }
-
+#endif
+#ifdef USE_XPROCESS
 void XInfoDB::_waitID(quint32 nId)
 {
     if(g_mapIds.contains(nId))
@@ -1290,6 +1307,7 @@ void XInfoDB::_waitID(quint32 nId)
         pMutex->unlock();
     }
 }
+#endif
 
 QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize)
 {
@@ -1317,7 +1335,7 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 #endif
     return listResult;
 }
-
+#ifdef USE_XPROCESS
 QString XInfoDB::regIdToString(XREG reg)
 {
     QString sResult="Unknown";
@@ -1450,7 +1468,8 @@ QString XInfoDB::regIdToString(XREG reg)
 #endif
     return sResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
 {
     XREG result=XREG_NONE;
@@ -1478,7 +1497,8 @@ XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
 #endif
     return result;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
 {
     XREG result=XREG_NONE;
@@ -1519,7 +1539,8 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
 
     return result;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
 {
     XREG result=XREG_NONE;
@@ -1540,7 +1561,8 @@ XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
 
     return result;
 }
-
+#endif
+#ifdef USE_XPROCESS
 XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
 {
     XREG result=XREG_NONE;
@@ -1573,7 +1595,7 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
 
     return result;
 }
-
+#endif
 XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
 {
     RECORD_INFO result={};
@@ -1613,7 +1635,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue,RI_TYPE riType)
     {
         if(result.bValid)
         {
-            result.baData=read_array(result.nAddress,32);
+            result.baData=read_array(result.nAddress,64); // TODO const
         }
     }
 
@@ -1649,12 +1671,15 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType)
             QString sAnsiString;
             QString sUnicodeString;
 
-            if(XBinary::_read_uint8(recordInfo.baData.data())<128)
+            quint8 nAnsiSymbol=XBinary::_read_uint8(recordInfo.baData.data());
+            quint16 nUnicodeSymbol=XBinary::_read_uint16(recordInfo.baData.data());
+
+            if((nAnsiSymbol>=8)&&(nAnsiSymbol<128))
             {
                 sAnsiString=QString::fromLatin1(recordInfo.baData);
             }
 
-            if(XBinary::_read_uint16(recordInfo.baData.data())<128)
+            if((nUnicodeSymbol>=8)&&(nUnicodeSymbol<128))
             {
                 sUnicodeString=QString::fromUtf16((quint16 *)(recordInfo.baData.data()),recordInfo.baData.size()/2);
             }
@@ -1838,7 +1863,7 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
 
     return sResult;
 }
-
+#ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)
 {
     // TODO AX AL AH
@@ -1879,3 +1904,4 @@ XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG r
 
     return result;
 }
+#endif
