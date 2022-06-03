@@ -585,7 +585,6 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
 
     qint32 nCount=pListThreads->count();
 
-    // Resume all other threads
     for(qint32 i=0;i<nCount;i++)
     {
         if(nThreadId!=pListThreads->at(i).nThreadID)
@@ -595,6 +594,48 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
         #endif
             bResult=true;
         }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::suspendAllThreads()
+{
+    bool bResult=false;
+
+    QList<XInfoDB::THREAD_INFO> *pListThreads=getThreadInfos();
+
+    qint32 nCount=pListThreads->count();
+
+    // TODO Check if already suspended
+    for(qint32 i=0;i<nCount;i++)
+    {
+    #ifdef Q_OS_WIN
+        suspendThread(pListThreads->at(i).hThread);
+    #endif
+        bResult=true;
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::resumeAllThreads()
+{
+    bool bResult=false;
+
+    QList<XInfoDB::THREAD_INFO> *pListThreads=getThreadInfos();
+
+    qint32 nCount=pListThreads->count();
+
+    // Resume all other threads
+    for(qint32 i=0;i<nCount;i++)
+    {
+    #ifdef Q_OS_WIN
+        resumeThread(pListThreads->at(i).hThread);
+    #endif
+        bResult=true;
     }
 
     return bResult;
@@ -777,7 +818,7 @@ void XInfoDB::updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions)
 
 #ifdef Q_OS_WIN
     CONTEXT context={0};
-    context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions | CONTEXT_FLOATING_POINT | CONTEXT_EXTENDED_REGISTERS;
+    context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
     if(GetThreadContext(hThread,&context))
     {
@@ -825,7 +866,12 @@ void XInfoDB::updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions)
 
         if(regOptions.bFlags)
         {
+        #ifdef Q_PROCESSOR_X86_32
             g_statusCurrent.mapRegs.insert(XREG_EFLAGS,XBinary::getXVariant((quint32)(context.EFlags)));
+        #endif
+        #ifdef Q_PROCESSOR_X86_64
+            g_statusCurrent.mapRegs.insert(XREG_RFLAGS,XBinary::getXVariant((quint64)(context.EFlags))); // TODO !!!
+        #endif
         }
 
         if(regOptions.bSegments)

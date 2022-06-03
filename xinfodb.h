@@ -392,6 +392,8 @@ public:
     bool resumeThread(X_HANDLE hThread);
     bool suspendOtherThreads(X_ID nThreadId);
     bool resumeOtherThreads(X_ID nThreadId);
+    bool suspendAllThreads();
+    bool resumeAllThreads();
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
 
     void _lockId(quint32 nId);
