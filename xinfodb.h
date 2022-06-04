@@ -346,8 +346,8 @@ public:
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
-    void updateRegs(X_ID nThreadId, XREG_OPTIONS regOptions);
-    void updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions);
+    void updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions);
+    void updateRegs(X_HANDLE hThread,XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
