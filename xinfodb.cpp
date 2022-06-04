@@ -221,7 +221,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nExceptionAddress, BPT bpType)
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType)
 {
     BREAKPOINT result={};
     result.nAddress=-1;
