@@ -1245,7 +1245,7 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread, XADDR nValue)
+bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
