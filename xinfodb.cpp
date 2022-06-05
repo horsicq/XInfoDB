@@ -1817,7 +1817,7 @@ QMap<quint32, QString> *XInfoDB::getSymbolModules()
     return &g_mapSymbolModules;
 }
 
-void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+void XInfoDB::addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource)
 {
     qint32 nInsertIndex=0;
     qint32 nIndex=_getSymbolIndex(nAddress,nSize,nModule,&nInsertIndex);
