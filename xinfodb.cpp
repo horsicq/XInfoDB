@@ -652,10 +652,11 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
 
     if(GetThreadContext(hThread,&context))
     {
-    #ifndef Q_OS_WIN64
+    #ifdef Q_PROCESSOR_X86_32
         quint64 nSP=(quint32)(context.Esp);
         quint64 nIP=(quint32)(context.Eip);
-    #else
+    #endif
+    #ifdef Q_PROCESSOR_X86_64
         quint64 nSP=(quint64)(context.Rsp);
         quint64 nIP=(quint64)(context.Rip);
     #endif
@@ -1037,18 +1038,29 @@ void XInfoDB::updateModulesList()
 }
 #endif
 #ifdef USE_XPROCESS
-XBinary::XVARIANT XInfoDB::getCurrentReg(XREG reg)
+XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg)
 {
-    return _getReg(&(g_statusCurrent.mapRegs),reg);
+    return _getRegCache(&(g_statusCurrent.mapRegs),reg);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentReg(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant)
 {
     bool bResult=false;
 
-    // TODO
+#ifdef Q_OS_WIN
+    CONTEXT context={0};
+    context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
+    if(GetThreadContext(hThread,&context))
+    {
+
+        if(SetThreadContext(hThread,&context))
+        {
+            bResult=true;
+        }
+    }
+#endif
     return bResult;
 }
 #endif
@@ -1170,7 +1182,7 @@ QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 #ifdef USE_XPROCESS
 bool XInfoDB::isRegChanged(XREG reg)
 {
-    return !(XBinary::isXVariantEqual(_getReg(&(g_statusCurrent.mapRegs),reg),_getReg(&(g_statusPrev.mapRegs),reg)));
+    return !(XBinary::isXVariantEqual(_getRegCache(&(g_statusCurrent.mapRegs),reg),_getRegCache(&(g_statusPrev.mapRegs),reg)));
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1182,7 +1194,7 @@ XADDR XInfoDB::getCurrentStackPointerCache()
     nResult=getCurrentReg(XInfoDB::XREG_ESP).var.v_uint32;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    nResult=getCurrentReg(XInfoDB::XREG_RSP).var.v_uint64;
+    nResult=getCurrentRegCache(XInfoDB::XREG_RSP).var.v_uint64;
 #endif
 
     return nResult;
@@ -1197,7 +1209,7 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
     nResult=getCurrentReg(XInfoDB::XREG_EIP).var.v_uint32;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    nResult=getCurrentReg(XInfoDB::XREG_RIP).var.v_uint64;
+    nResult=getCurrentRegCache(XInfoDB::XREG_RIP).var.v_uint64;
 #endif
 
     return nResult;
@@ -1213,9 +1225,10 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
 
     if(GetThreadContext(hThread,&context))
     {
-#ifndef Q_OS_WIN64
+#ifdef Q_PROCESSOR_X86_32
         nResult=context.Eip;
-#else
+#endif
+#ifdef Q_PROCESSOR_X86_64
         nResult=context.Rip;
 #endif
     }
@@ -1254,9 +1267,10 @@ bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue)
 
     if(GetThreadContext(hThread,&context))
     {
-#ifndef Q_OS_WIN64
+#ifdef Q_PROCESSOR_X86_32
         context.Eip=nValue;
-#else
+#endif
+#ifdef Q_PROCESSOR_X86_64
         context.Rip=nValue;
 #endif
         if(SetThreadContext(hThread,&context))
@@ -1278,9 +1292,10 @@ XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
 
     if(GetThreadContext(hThread,&context))
     {
-    #ifndef Q_OS_WIN64
+    #ifdef Q_PROCESSOR_X86_32
         nResult=(quint32)(context.Esp);
-    #else
+    #endif
+    #ifdef Q_PROCESSOR_X86_64
         nResult=(quint64)(context.Rsp);
     #endif
     }
@@ -1910,7 +1925,7 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
     return sResult;
 }
 #ifdef USE_XPROCESS
-XBinary::XVARIANT XInfoDB::_getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)
+XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)
 {
     // TODO AX AL AH
     XBinary::XVARIANT result={};

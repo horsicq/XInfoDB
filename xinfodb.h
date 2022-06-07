@@ -188,7 +188,8 @@ public:
     {
         BPT_UNKNOWN=0,
         BPT_CODE_SOFTWARE,    // for X86 0xCC Check for ARM
-        BPT_CODE_HARDWARE
+        BPT_CODE_HARDWARE,
+        BPT_CODE_MEMORY
     };
 
     enum BPI
@@ -399,8 +400,8 @@ public:
     void _lockId(quint32 nId);
     void _unlockID(quint32 nId);
     void _waitID(quint32 nId);
-    XBinary::XVARIANT getCurrentReg(XREG reg);
-    bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
+    XBinary::XVARIANT getCurrentRegCache(XREG reg);
+    bool setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
     XADDR getCurrentStackPointerCache();
@@ -512,7 +513,7 @@ private:
         QList<XProcess::MODULE> listModules;
     #endif
     };
-    XBinary::XVARIANT _getReg(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
+    XBinary::XVARIANT _getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
 #endif
 private:
 #ifdef USE_XPROCESS
