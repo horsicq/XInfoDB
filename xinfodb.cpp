@@ -745,7 +745,7 @@ XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions)
+void XInfoDB::updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
@@ -811,7 +811,7 @@ void XInfoDB::updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions)
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegs(X_HANDLE hThread, XREG_OPTIONS regOptions)
+void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
@@ -1020,10 +1020,10 @@ void XInfoDB::updateMemoryRegionsList()
 
     g_statusCurrent.listMemoryRegions.clear();
 #ifdef Q_OS_WIN
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsListByHandle(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsListByHandle(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
 #endif
 }
 #endif
@@ -1191,7 +1191,7 @@ XADDR XInfoDB::getCurrentStackPointerCache()
     XADDR nResult=0;
 
 #ifdef Q_PROCESSOR_X86_32
-    nResult=getCurrentReg(XInfoDB::XREG_ESP).var.v_uint32;
+    nResult=getCurrentRegCache(XInfoDB::XREG_ESP).var.v_uint32;
 #endif
 #ifdef Q_PROCESSOR_X86_64
     nResult=getCurrentRegCache(XInfoDB::XREG_RSP).var.v_uint64;
@@ -1206,7 +1206,7 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
     XADDR nResult=0;
 
 #ifdef Q_PROCESSOR_X86_32
-    nResult=getCurrentReg(XInfoDB::XREG_EIP).var.v_uint32;
+    nResult=getCurrentRegCache(XInfoDB::XREG_EIP).var.v_uint32;
 #endif
 #ifdef Q_PROCESSOR_X86_64
     nResult=getCurrentRegCache(XInfoDB::XREG_RIP).var.v_uint64;
@@ -1216,7 +1216,7 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
+XADDR XInfoDB::getCurrentInstructionPointerByHandle(X_HANDLE hThread)
 {
     XADDR nResult=0;
 #ifdef Q_OS_WIN
@@ -1237,7 +1237,7 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
+XADDR XInfoDB::getCurrentInstructionPointerById(X_ID nThreadId)
 {
     XADDR nResult=0;
 #ifdef Q_OS_LINUX
@@ -1258,7 +1258,7 @@ XADDR XInfoDB::getCurrentInstructionPointer(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue)
+bool XInfoDB::setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -1283,7 +1283,7 @@ bool XInfoDB::setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
+XADDR XInfoDB::getCurrentStackPointerByHandle(X_HANDLE hThread)
 {
     XADDR nResult=0;
 #ifdef Q_OS_WIN
@@ -1305,7 +1305,7 @@ XADDR XInfoDB::getCurrentStackPointer(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointer(X_ID nThreadId)
+XADDR XInfoDB::getCurrentStackPointerById(X_ID nThreadId)
 {
     XADDR nResult=0;
 
@@ -1315,7 +1315,7 @@ XADDR XInfoDB::getCurrentStackPointer(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentStackPointer(X_HANDLE hThread, XADDR nValue)
+bool XInfoDB::setCurrentStackPointerByHandle(X_HANDLE hThread, XADDR nValue)
 {
     bool bResult=false;
 

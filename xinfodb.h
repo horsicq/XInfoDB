@@ -347,8 +347,8 @@ public:
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
-    void updateRegs(X_ID nThreadId,XREG_OPTIONS regOptions);
-    void updateRegs(X_HANDLE hThread,XREG_OPTIONS regOptions);
+    void updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions);
+    void updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
@@ -407,13 +407,13 @@ public:
     XADDR getCurrentStackPointerCache();
     XADDR getCurrentInstructionPointerCache();
 
-    XADDR getCurrentInstructionPointer(X_HANDLE hThread);
-    XADDR getCurrentInstructionPointer(X_ID nThreadId);
-    bool setCurrentIntructionPointer(X_HANDLE hThread,XADDR nValue);
+    XADDR getCurrentInstructionPointerByHandle(X_HANDLE hThread);
+    XADDR getCurrentInstructionPointerById(X_ID nThreadId);
+    bool setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue);
 
-    XADDR getCurrentStackPointer(X_HANDLE hThread);
-    XADDR getCurrentStackPointer(X_ID nThreadId);
-    bool setCurrentStackPointer(X_HANDLE hThread,XADDR nValue);
+    XADDR getCurrentStackPointerByHandle(X_HANDLE hThread);
+    XADDR getCurrentStackPointerById(X_ID nThreadId);
+    bool setCurrentStackPointerByHandle(X_HANDLE hThread,XADDR nValue);
 
     static QString regIdToString(XREG reg);
 
