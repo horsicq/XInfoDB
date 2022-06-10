@@ -192,11 +192,22 @@ bool XInfoDBTransfer::process()
                                 }
                             }
                         }
+                    }
+                }
+                else if(XBinary::checkFileType(XBinary::FT_ELF,fileType))
+                {
+                    XPE pe(pDevice);
 
-                        g_pXInfoDB->_sortSymbols();
+                    if(pe.isValid())
+                    {
+                        XBinary::_MEMORY_MAP memoryMap=pe.getMemoryMap();
+
+                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
                     }
                 }
             }
+
+            g_pXInfoDB->_sortSymbols();
 
             if(bFile&&pDevice)
             {
