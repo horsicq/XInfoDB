@@ -642,7 +642,7 @@ bool XInfoDB::resumeAllThreads()
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
+XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread,QString sName)
 {
     FUNCTION_INFO result={};
 
