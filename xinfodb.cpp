@@ -1856,7 +1856,7 @@ void XInfoDB::addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSym
     }
 }
 
-void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+void XInfoDB::_addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource)
 {
     SYMBOL symbol={};
     symbol.nAddress=nAddress;
