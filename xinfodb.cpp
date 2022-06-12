@@ -470,11 +470,11 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo)
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
 #endif
-    return _setStep(hThread);
+    return _setStepByHandle(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepInto(X_HANDLE hThread)
+bool XInfoDB::stepIntoByHandle(X_HANDLE hThread)
 {
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
@@ -482,11 +482,23 @@ bool XInfoDB::stepInto(X_HANDLE hThread)
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
 #endif
-    return _setStep(hThread);
+    return _setStepByHandle(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::_setStep(X_HANDLE hThread)
+bool XInfoDB::stepIntoById(X_ID nThreadId)
+{
+    XInfoDB::BREAKPOINT breakPoint={};
+    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+
+    getThreadBreakpoints()->insert(nThreadId,breakPoint);
+
+    return _setStepById(nThreadId);
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::_setStepByHandle(X_HANDLE hThread)
 {
     bool bResult=false;
 
@@ -511,6 +523,16 @@ bool XInfoDB::_setStep(X_HANDLE hThread)
     #endif
     }
 
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::_setStepById(X_ID nThreadId)
+{
+    bool bResult=false;
+#ifdef Q_OS_LINUX
+    ptrace(PT_STEP,nThreadId,0,0);
+#endif
     return bResult;
 }
 #endif
@@ -612,7 +634,22 @@ bool XInfoDB::suspendAllThreads()
     for(qint32 i=0;i<nCount;i++)
     {
     #ifdef Q_OS_WIN
-        suspendThread(pListThreads->at(i).hThread);
+        suspendThread(pListThreads->at(i).hThread); // TODO Handle errors
+    #endif
+    #ifdef Q_OS_LINUX
+        if(syscall(SYS_tgkill,g_processInfo.nProcessID,pListThreads->at(i).nThreadID,SIGSTOP)!=-1)
+        {
+//            int thread_status=0;
+
+//            if(waitpid(pListThreads->at(i).nThreadID,&thread_status,__WALL)!=-1)
+//            {
+//                // TODO
+//            }
+        }
+        else
+        {
+            qDebug("Cannot stop thread");
+        }
     #endif
         bResult=true;
     }
@@ -635,6 +672,11 @@ bool XInfoDB::resumeAllThreads()
     #ifdef Q_OS_WIN
         resumeThread(pListThreads->at(i).hThread);
     #endif
+    #ifdef Q_OS_LINUX
+        // TODO
+        ptrace(PT_CONTINUE,pListThreads->at(i).nThreadID,0,0);
+    #endif
+
         bResult=true;
     }
 
@@ -1315,7 +1357,7 @@ XADDR XInfoDB::getCurrentStackPointerById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentStackPointerByHandle(X_HANDLE hThread, XADDR nValue)
+bool XInfoDB::setCurrentStackPointerByHandle(X_HANDLE hThread,XADDR nValue)
 {
     bool bResult=false;
 

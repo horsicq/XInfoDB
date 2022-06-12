@@ -387,8 +387,10 @@ public:
     bool setSingleStep(X_HANDLE hThread,QString sInfo="");
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
-    bool stepInto(X_HANDLE hThread);
-    bool _setStep(X_HANDLE hThread);
+    bool stepIntoByHandle(X_HANDLE hThread);
+    bool stepIntoById(X_ID nThreadId);
+    bool _setStepByHandle(X_HANDLE hThread);
+    bool _setStepById(X_ID nThreadId);
     bool suspendThread(X_HANDLE hThread);
     bool resumeThread(X_HANDLE hThread);
     bool suspendOtherThreads(X_ID nThreadId);
