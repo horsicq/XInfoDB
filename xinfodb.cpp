@@ -363,7 +363,7 @@ QList<XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
+QMap<QString,XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
 {
     return &g_mapFunctionHookInfos;
 }
