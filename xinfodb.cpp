@@ -1932,7 +1932,7 @@ void XInfoDB::_sortSymbols()
     std::sort(g_listSymbols.begin(),g_listSymbols.end(),_symbolSort);
 }
 
-qint32 XInfoDB::_getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule, qint32 *pnInsertIndex)
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule,qint32 *pnInsertIndex)
 {
     // For sorted g_listSymbols!
     qint32 nResult=-1;
