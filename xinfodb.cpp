@@ -86,7 +86,7 @@ void XInfoDB::reload(bool bDataReload)
     emit dataChanged(bDataReload);
 }
 
-quint32 XInfoDB::read_uint32(quint64 nAddress,bool bIsBigEndian)
+quint32 XInfoDB::read_uint32(XADDR nAddress,bool bIsBigEndian)
 {
     quint32 nResult=0;
 #ifdef USE_XPROCESS
@@ -101,7 +101,7 @@ quint32 XInfoDB::read_uint32(quint64 nAddress,bool bIsBigEndian)
     return nResult;
 }
 
-quint64 XInfoDB::read_uint64(quint64 nAddress,bool bIsBigEndian)
+quint64 XInfoDB::read_uint64(XADDR nAddress,bool bIsBigEndian)
 {
     quint64 nResult=0;
 #ifdef USE_XPROCESS
@@ -115,7 +115,7 @@ quint64 XInfoDB::read_uint64(quint64 nAddress,bool bIsBigEndian)
     return nResult;
 }
 
-qint64 XInfoDB::read_array(quint64 nAddress,char *pData,quint64 nSize)
+qint64 XInfoDB::read_array(XADDR nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
@@ -129,7 +129,7 @@ qint64 XInfoDB::read_array(quint64 nAddress,char *pData,quint64 nSize)
     return nResult;
 }
 
-qint64 XInfoDB::write_array(quint64 nAddress,char *pData,quint64 nSize)
+qint64 XInfoDB::write_array(XADDR nAddress,char *pData,quint64 nSize)
 {
     qint64 nResult=0;
 #ifdef USE_XPROCESS
@@ -143,7 +143,7 @@ qint64 XInfoDB::write_array(quint64 nAddress,char *pData,quint64 nSize)
     return nResult;
 }
 
-QByteArray XInfoDB::read_array(quint64 nAddress,quint64 nSize)
+QByteArray XInfoDB::read_array(XADDR nAddress,quint64 nSize)
 {
     QByteArray baResult;
 #ifdef USE_XPROCESS
@@ -157,7 +157,7 @@ QByteArray XInfoDB::read_array(quint64 nAddress,quint64 nSize)
     return baResult;
 }
 
-QString XInfoDB::read_ansiString(quint64 nAddress, quint64 nMaxSize)
+QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
@@ -171,7 +171,7 @@ QString XInfoDB::read_ansiString(quint64 nAddress, quint64 nMaxSize)
     return sResult;
 }
 
-QString XInfoDB::read_unicodeString(quint64 nAddress,quint64 nMaxSize)
+QString XInfoDB::read_unicodeString(XADDR nAddress,quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
@@ -185,7 +185,7 @@ QString XInfoDB::read_unicodeString(quint64 nAddress,quint64 nMaxSize)
     return sResult;
 }
 
-QString XInfoDB::read_utf8String(quint64 nAddress, quint64 nMaxSize)
+QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
@@ -200,7 +200,7 @@ QString XInfoDB::read_utf8String(quint64 nAddress, quint64 nMaxSize)
 }
 
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType)
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress,BPT bpType)
 {
     BREAKPOINT result={};
     result.nAddress=-1;
@@ -221,7 +221,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(quint64 nAddress,BPT bpType
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType)
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress,BPT bpType)
 {
     BREAKPOINT result={};
     result.nAddress=-1;
@@ -244,7 +244,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(quint64 nException
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::breakpointToggle(quint64 nAddress)
+bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult=false;
 
@@ -285,7 +285,7 @@ void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::removeThreadInfo(qint64 nThreadID)
+void XInfoDB::removeThreadInfo(X_ID nThreadID)
 {
     qint32 nNumberOfThread=g_listThreadInfos.count();
 
@@ -351,7 +351,7 @@ bool XInfoDB::removeFunctionHook(QString sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<qint64, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
+QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
 {
     return &g_mapSharedObjectInfos;
 }
@@ -373,7 +373,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName)
 {
     XInfoDB::SHAREDOBJECT_INFO result={};
 
-    for(QMap<qint64,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
+    for(QMap<XADDR,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
     {
         if(it.value().sName==sName)
         {
@@ -393,7 +393,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress)
 {
     XInfoDB::SHAREDOBJECT_INFO result={};
 
-    for(QMap<qint64,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
+    for(QMap<XADDR,XInfoDB::SHAREDOBJECT_INFO>::iterator it=g_mapSharedObjectInfos.begin();it!=g_mapSharedObjectInfos.end();)
     {
         XInfoDB::SHAREDOBJECT_INFO record=it.value();
 
@@ -531,7 +531,23 @@ bool XInfoDB::_setStepById(X_ID nThreadId)
 {
     bool bResult=false;
 #ifdef Q_OS_LINUX
-    ptrace(PT_STEP,nThreadId,0,0);
+    errno=0;
+
+    qDebug("ptrace failed: %s",strerror(errno));
+
+    long int nRet=ptrace(PTRACE_SINGLESTEP,nThreadId,0,0);
+
+    qDebug("ptrace failed: %s",strerror(errno));
+
+//    if(nRet!=0)
+//    {
+//        int thread_status=0;
+
+//        if(waitpid(nThreadId,&thread_status,0)!=-1)
+//        {
+//            // TODO
+//        }
+//    }
 #endif
     return bResult;
 }
@@ -1916,7 +1932,7 @@ void XInfoDB::_sortSymbols()
     std::sort(g_listSymbols.begin(),g_listSymbols.end(),_symbolSort);
 }
 
-qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule, qint32 *pnInsertIndex)
 {
     // For sorted g_listSymbols!
     qint32 nResult=-1;

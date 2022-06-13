@@ -210,7 +210,7 @@ public:
     struct BREAKPOINT
     {
         // TODO bValid
-        quint64 nAddress;
+        XADDR nAddress;
         qint64 nSize;
         qint32 nCount;
         BPT bpType;
@@ -225,7 +225,7 @@ public:
     {
         X_ID nThreadID;
         qint64 nThreadLocalBase;
-        quint64 nStartAddress;
+        XADDR nStartAddress;
     #ifdef Q_OS_WIN
         X_HANDLE hThread;
     #endif
@@ -255,6 +255,9 @@ public:
         X_HANDLE hMainThread;
         X_HANDLE hProcess;
     #endif
+    #ifdef Q_OS_MACOS
+        X_HANDLE hProcess;
+    #endif
     };
 
     struct EXITPROCESS_INFO
@@ -268,7 +271,7 @@ public:
     {
         QString sName;
         QString sFileName;
-        quint64 nImageBase;
+        XADDR nImageBase;
         quint64 nImageSize;
     };
 
@@ -280,40 +283,43 @@ public:
 
     struct BREAKPOINT_INFO
     {
-        quint64 nAddress;
+        XADDR nAddress;
         XInfoDB::BPT bpType;
         XInfoDB::BPI bpInfo;
         QString sInfo;
-        qint64 nProcessID;
+        X_ID nProcessID;
     #ifdef Q_OS_WIN
-        void *hProcess;
+        X_HANDLE hProcess;
     #endif
     #ifdef Q_OS_LINUX
-        void *pHProcessMemoryIO;
-        void *pHProcessMemoryQuery;
+        X_HANDLE_IO pHProcessMemoryIO;      // TODO rename
+        X_HANDLE_MQ pHProcessMemoryQuery;   // TODO rename
     #endif
-        qint64 nThreadID;
+    #ifdef Q_OS_MACOS
+        X_HANDLE hProcess;
+    #endif
+        X_ID nThreadID;
     #ifdef Q_OS_WIN
-        void *hThread;
+        X_HANDLE hThread;
     #endif
     };
 
     struct PROCESSENTRY_INFO
     {
-        quint64 nAddress;
+        XADDR nAddress;
     };
 
     struct FUNCTIONHOOK_INFO
     {
         QString sName;
-        quint64 nAddress;
+        XADDR nAddress;
     };
 
     struct FUNCTION_INFO
     {
         QString sName;
-        quint64 nAddress;
-        qint64 nRetAddress;
+        XADDR nAddress;
+        XADDR nRetAddress;
         quint64 nParameter0;
         quint64 nParameter1;
         quint64 nParameter2;
@@ -336,14 +342,14 @@ public:
 
     void reload(bool bDataReload);
 
-    quint32 read_uint32(quint64 nAddress,bool bIsBigEndian=false);
-    quint64 read_uint64(quint64 nAddress,bool bIsBigEndian=false);
-    qint64 read_array(quint64 nAddress,char *pData,quint64 nSize);
-    qint64 write_array(quint64 nAddress,char *pData,quint64 nSize);
-    QByteArray read_array(quint64 nAddress,quint64 nSize);
-    QString read_ansiString(quint64 nAddress,quint64 nMaxSize=256);
-    QString read_unicodeString(quint64 nAddress,quint64 nMaxSize=256); // TODO endian ??
-    QString read_utf8String(quint64 nAddress,quint64 nMaxSize=256);
+    quint32 read_uint32(XADDR nAddress,bool bIsBigEndian=false);
+    quint64 read_uint64(XADDR nAddress,bool bIsBigEndian=false);
+    qint64 read_array(XADDR nAddress,char *pData,quint64 nSize);
+    qint64 write_array(XADDR nAddress,char *pData,quint64 nSize);
+    QByteArray read_array(XADDR nAddress,quint64 nSize);
+    QString read_ansiString(XADDR nAddress,quint64 nMaxSize=256);
+    QString read_unicodeString(XADDR nAddress,quint64 nMaxSize=256); // TODO endian ??
+    QString read_utf8String(XADDR nAddress,quint64 nMaxSize=256);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
@@ -353,26 +359,26 @@ public:
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
-    bool addBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
-    bool removeBreakPoint(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    bool isBreakPointPresent(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByAddress(quint64 nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByExceptionAddress(quint64 nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    bool addBreakPoint(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
+    bool removeBreakPoint(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    bool isBreakPointPresent(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
 
     QList<BREAKPOINT> *getBreakpoints();
     QMap<X_ID,BREAKPOINT> *getThreadBreakpoints();
-    bool breakpointToggle(quint64 nAddress);
+    bool breakpointToggle(XADDR nAddress);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
 
     void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
-    void removeThreadInfo(qint64 nThreadID);
+    void removeThreadInfo(X_ID nThreadID);
 
     bool setFunctionHook(QString sFunctionName);
     bool removeFunctionHook(QString sFunctionName);
 
-    QMap<qint64,SHAREDOBJECT_INFO> *getSharedObjectInfos();
+    QMap<XADDR,SHAREDOBJECT_INFO> *getSharedObjectInfos();
     QList<THREAD_INFO> *getThreadInfos();
     QMap<QString,FUNCTIONHOOK_INFO> *getFunctionHookInfos();
 
@@ -434,7 +440,7 @@ public:
     struct RECORD_INFO
     {
         bool bValid;
-        quint64 nAddress;
+        XADDR nAddress;
         QString sModule;
         QByteArray baData;
         QString sSymbol;
@@ -523,7 +529,7 @@ private:
     QList<BREAKPOINT> g_listBreakpoints;
     QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
 //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
-    QMap<qint64,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
+    QMap<XADDR,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
     QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList
 #endif
