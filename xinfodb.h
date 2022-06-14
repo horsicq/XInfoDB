@@ -46,11 +46,13 @@ public:
     {
         bool bGeneral;
         bool bIP;
+    #ifdef Q_PROCESSOR_X86
         bool bFlags;
         bool bSegments;
         bool bDebug;
         bool bFloat;
         bool bXMM;
+    #endif
     };
 
     enum XREG

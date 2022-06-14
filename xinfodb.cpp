@@ -1428,7 +1428,7 @@ void XInfoDB::_waitID(quint32 nId)
 }
 #endif
 
-QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize)
+QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase,quint64 nSize)
 {
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
