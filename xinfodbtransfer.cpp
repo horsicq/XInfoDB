@@ -194,7 +194,7 @@ bool XInfoDBTransfer::process()
                         }
                     }
                 }
-                else if(XBinary::checkFileType(XBinary::FT_ELF,fileType))
+                else if(XBinary::checkFileType(XBinary::FT_PE,fileType))
                 {
                     XPE pe(pDevice);
 
@@ -203,6 +203,9 @@ bool XInfoDBTransfer::process()
                         XBinary::_MEMORY_MAP memoryMap=pe.getMemoryMap();
 
                         g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+
+                        // TODO Export
+                        // TODO Import
                     }
                 }
             }
