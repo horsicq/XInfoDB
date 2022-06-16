@@ -1174,7 +1174,7 @@ bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeBreakPoint(quint64 nAddress, BPT bpType)
+bool XInfoDB::removeBreakPoint(quint64 nAddress,BPT bpType)
 {
     bool bResult=false;
 
