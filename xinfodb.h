@@ -411,7 +411,9 @@ public:
     void _unlockID(quint32 nId);
     void _waitID(quint32 nId);
     XBinary::XVARIANT getCurrentRegCache(XREG reg);
+    void setCurrentRegCache(XREG reg,XBinary::XVARIANT variant);
     bool setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);
+    bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
     XADDR getCurrentStackPointerCache();
@@ -519,11 +521,14 @@ private:
     {
         QMap<XREG,XBinary::XVARIANT> mapRegs;
     #ifdef USE_XPROCESS
+        X_ID nThreadId;
+        X_HANDLE hThread;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
         QList<XProcess::MODULE> listModules;
     #endif
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
+    void _setRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg,XBinary::XVARIANT variant);
 #endif
 private:
 #ifdef USE_XPROCESS

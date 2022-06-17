@@ -808,7 +808,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions)
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
     g_statusCurrent.mapRegs.clear();
-
+    g_statusCurrent.nThreadId=nThreadId;
 
 #ifdef Q_OS_LINUX
     user_regs_struct regs={};
@@ -874,6 +874,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 
     g_statusCurrent.mapRegs.clear();
+    g_statusCurrent.hThread=hThread;
 
 #ifdef Q_OS_WIN
     CONTEXT context={0};
@@ -1102,6 +1103,12 @@ XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg)
 }
 #endif
 #ifdef USE_XPROCESS
+void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant)
+{
+    _setRegCache(&(g_statusCurrent.mapRegs),reg,variant);
+}
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::setCurrentReg(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant)
 {
     bool bResult=false;
@@ -1112,6 +1119,25 @@ bool XInfoDB::setCurrentReg(X_HANDLE hThread, XREG reg, XBinary::XVARIANT varian
 
     if(GetThreadContext(hThread,&context))
     {
+    #ifdef Q_PROCESSOR_X86_64
+        if      (reg==XREG_RAX)         context.Rax=variant.var.v_uint64;
+        else if (reg==XREG_RBX)         context.Rbx=variant.var.v_uint64;
+        else if (reg==XREG_RCX)         context.Rcx=variant.var.v_uint64;
+        else if (reg==XREG_RDX)         context.Rdx=variant.var.v_uint64;
+        else if (reg==XREG_RBP)         context.Rbp=variant.var.v_uint64;
+        else if (reg==XREG_RSP)         context.Rsp=variant.var.v_uint64;
+        else if (reg==XREG_RSI)         context.Rsi=variant.var.v_uint64;
+        else if (reg==XREG_RDI)         context.Rdi=variant.var.v_uint64;
+        else if (reg==XREG_R8)          context.R8=variant.var.v_uint64;
+        else if (reg==XREG_R9)          context.R9=variant.var.v_uint64;
+        else if (reg==XREG_R10)         context.R10=variant.var.v_uint64;
+        else if (reg==XREG_R11)         context.R11=variant.var.v_uint64;
+        else if (reg==XREG_R12)         context.R12=variant.var.v_uint64;
+        else if (reg==XREG_R13)         context.R13=variant.var.v_uint64;
+        else if (reg==XREG_R14)         context.R14=variant.var.v_uint64;
+        else if (reg==XREG_R15)         context.R15=variant.var.v_uint64;
+    #endif
+        // TODO
 
         if(SetThreadContext(hThread,&context))
         {
@@ -1119,6 +1145,17 @@ bool XInfoDB::setCurrentReg(X_HANDLE hThread, XREG reg, XBinary::XVARIANT varian
         }
     }
 #endif
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
+{
+    bool bResult=false;
+#ifdef Q_OS_WIN
+    bResult=setCurrentReg(g_statusCurrent.hThread,reg,variant);
+#endif
+
     return bResult;
 }
 #endif
@@ -2022,5 +2059,11 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,X
     }
 
     return result;
+}
+#ifdef USE_XPROCESS
+#endif
+void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant)
+{
+    pMapRegs->insert(reg,variant);
 }
 #endif
