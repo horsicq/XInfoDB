@@ -2062,7 +2062,7 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,X
 }
 #ifdef USE_XPROCESS
 #endif
-void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant)
+void XInfoDB::_setRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg,XBinary::XVARIANT variant)
 {
     pMapRegs->insert(reg,variant);
 }
