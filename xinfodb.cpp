@@ -1109,7 +1109,7 @@ void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
 
