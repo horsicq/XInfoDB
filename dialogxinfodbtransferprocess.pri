@@ -15,5 +15,10 @@ SOURCES += \
     include($$PWD/xinfodbtransfer.pri)
 }
 
+!contains(XCONFIG, xdialogprocess) {
+    XCONFIG += xdialogprocess
+    include($$PWD/../FormatDialogs/xdialogprocess.pri)
+}
+
 DISTFILES += \
     $$PWD/dialogxinfodbtransferprocess.cmake
