@@ -407,9 +407,9 @@ public:
     bool resumeAllThreads();
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
 
-    void _lockId(quint32 nId);
-    void _unlockID(quint32 nId);
-    void _waitID(quint32 nId);
+//    void _lockId(quint32 nId);
+//    void _unlockID(quint32 nId);
+//    void _waitID(quint32 nId);
     XBinary::XVARIANT getCurrentRegCache(XREG reg);
     void setCurrentRegCache(XREG reg,XBinary::XVARIANT variant);
     bool setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);

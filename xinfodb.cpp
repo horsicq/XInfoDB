@@ -1419,51 +1419,51 @@ bool XInfoDB::setCurrentStackPointerByHandle(X_HANDLE hThread,XADDR nValue)
     return bResult;
 }
 #endif
-#ifdef USE_XPROCESS
-void XInfoDB::_lockId(quint32 nId)
-{
-    QMutex *pMutex=nullptr;
+//#ifdef USE_XPROCESS
+//void XInfoDB::_lockId(quint32 nId)
+//{
+//    QMutex *pMutex=nullptr;
 
-    if(g_mapIds.contains(nId))
-    {
-        pMutex=g_mapIds.value(nId);
-    }
-    else
-    {
-        pMutex=new QMutex;
-        g_mapIds.insert(nId,pMutex);
-    }
+//    if(g_mapIds.contains(nId))
+//    {
+//        pMutex=g_mapIds.value(nId);
+//    }
+//    else
+//    {
+//        pMutex=new QMutex;
+//        g_mapIds.insert(nId,pMutex);
+//    }
 
-    if(pMutex)
-    {
-        pMutex->lock();
-    }
-}
-#endif
-#ifdef USE_XPROCESS
-void XInfoDB::_unlockID(quint32 nId)
-{
-    if(g_mapIds.contains(nId))
-    {
-        QMutex *pMutex=g_mapIds.value(nId);
+//    if(pMutex)
+//    {
+//        pMutex->lock();
+//    }
+//}
+//#endif
+//#ifdef USE_XPROCESS
+//void XInfoDB::_unlockID(quint32 nId)
+//{
+//    if(g_mapIds.contains(nId))
+//    {
+//        QMutex *pMutex=g_mapIds.value(nId);
 
-        pMutex->unlock();
-    }
-}
-#endif
-#ifdef USE_XPROCESS
-void XInfoDB::_waitID(quint32 nId)
-{
-    if(g_mapIds.contains(nId))
-    {
-        QMutex *pMutex=g_mapIds.value(nId);
+//        pMutex->unlock();
+//    }
+//}
+//#endif
+//#ifdef USE_XPROCESS
+//void XInfoDB::_waitID(quint32 nId)
+//{
+//    if(g_mapIds.contains(nId))
+//    {
+//        QMutex *pMutex=g_mapIds.value(nId);
 
-        pMutex->lock();
-        qDebug("TEST");
-        pMutex->unlock();
-    }
-}
-#endif
+//        pMutex->lock();
+//        qDebug("TEST");
+//        pMutex->unlock();
+//    }
+//}
+//#endif
 
 QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase,quint64 nSize)
 {
