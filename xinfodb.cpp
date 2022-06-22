@@ -869,7 +869,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions)
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
+void XInfoDB::updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions)
 {
     g_statusPrev.mapRegs=g_statusCurrent.mapRegs; // TODO save nThreadID
 

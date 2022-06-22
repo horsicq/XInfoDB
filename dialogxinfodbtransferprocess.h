@@ -29,7 +29,7 @@ namespace Ui {
 class DialogXInfoDBTransferProcess;
 }
 
-class DialogXInfoDBTransferProcess : public QDialog
+class DialogXInfoDBTransferProcess : public QDialog // TODO XDialogProcess
 {
     Q_OBJECT
 
