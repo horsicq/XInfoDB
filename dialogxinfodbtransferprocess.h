@@ -24,12 +24,13 @@
 #include <QDialog>
 #include <QThread>
 #include "xinfodbtransfer.h"
+#include "xdialogprocess.h"
 
 namespace Ui {
 class DialogXInfoDBTransferProcess;
 }
 
-class DialogXInfoDBTransferProcess : public QDialog // TODO XDialogProcess
+class DialogXInfoDBTransferProcess : public XDialogProcess
 {
     Q_OBJECT
 

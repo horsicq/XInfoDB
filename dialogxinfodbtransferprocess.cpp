@@ -22,7 +22,7 @@
 #include "ui_dialogxinfodbtransferprocess.h"
 
 DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) :
-    QDialog(pParent),
+    XDialogProcess(pParent),
     ui(new Ui::DialogXInfoDBTransferProcess)
 {
     ui->setupUi(this);
