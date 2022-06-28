@@ -19,16 +19,10 @@
  * SOFTWARE.
  */
 #include "dialogxinfodbtransferprocess.h"
-#include "ui_dialogxinfodbtransferprocess.h"
 
 DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) :
-    XDialogProcess(pParent),
-    ui(new Ui::DialogXInfoDBTransferProcess)
+    XDialogProcess(pParent)
 {
-    ui->setupUi(this);
-
-    g_bIsStop=false;
-
     g_pTransfer=new XInfoDBTransfer;
     g_pThread=new QThread;
 
@@ -45,12 +39,8 @@ DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) :
 
 DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
 {
-//    g_pTransfer->stop();
-
     g_pThread->quit();
     g_pThread->wait();
-
-    delete ui;
 
     delete g_pThread;
     delete g_pTransfer;
@@ -60,7 +50,7 @@ void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QString sFileNam
 {
     setWindowTitle(tr("Import"));
 
-    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_IMPORT,sFileName,fileType);
+    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_IMPORT,sFileName,fileType,getPdStruct());
     g_pThread->start();
 }
 
@@ -68,7 +58,7 @@ void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB,QIODevice *pDevi
 {
     setWindowTitle(tr("Import"));
 
-    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_IMPORT,pDevice,fileType);
+    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_IMPORT,pDevice,fileType,getPdStruct());
     g_pThread->start();
 }
 
@@ -76,33 +66,6 @@ void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB,QString sFileNam
 {
     setWindowTitle(tr("Export"));
 
-    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_EXPORT,sFileName,XBinary::FT_UNKNOWN);
+    g_pTransfer->setData(pXInfoDB,XInfoDBTransfer::TT_EXPORT,sFileName,XBinary::FT_UNKNOWN,getPdStruct());
     g_pThread->start();
 }
-
-void DialogXInfoDBTransferProcess::on_pushButtonCancel_clicked()
-{
-    g_bIsStop=true;
-
-    g_pTransfer->stop();
-}
-
-void DialogXInfoDBTransferProcess::errorMessage(QString sText)
-{
-
-}
-
-void DialogXInfoDBTransferProcess::onCompleted(qint64 nElapsed)
-{
-    Q_UNUSED(nElapsed)
-
-    if(!g_bIsStop)
-    {
-        accept();
-    }
-    else
-    {
-        reject();
-    }
-}
-

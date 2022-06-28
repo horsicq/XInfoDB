@@ -27,32 +27,35 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
     g_transferType=TT_IMPORT;
     g_fileType=XBinary::FT_UNKNOWN;
     g_pDevice=nullptr;
-    g_bIsStop=false;
+    g_pPsStruct=nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPsStruct)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
     g_sFileName=sFileName;
     g_fileType=fileType;
+    g_pPsStruct=pPsStruct;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPsStruct)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
     g_pDevice=pDevice;
     g_fileType=fileType;
+    g_pPsStruct=pPsStruct;
 }
 
 bool XInfoDBTransfer::process()
 {
     bool bResult=false;
-    g_bIsStop=false;
 
     QElapsedTimer scanTimer;
     scanTimer.start();
+
+    g_pPsStruct->pdRecordOpt.bIsValid=true;
 
     if(g_pXInfoDB)
     {
@@ -127,7 +130,7 @@ bool XInfoDBTransfer::process()
                                 nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
                             }
 
-                            while(!g_bIsStop)
+                            while(!(g_pPsStruct->bIsStop))
                             {
                                 XELF_DEF::Elf_Sym record={};
 
@@ -227,12 +230,14 @@ bool XInfoDBTransfer::process()
         }
     }
 
+    if(!(g_pPsStruct->bIsStop))
+    {
+        g_pPsStruct->pdRecordOpt.bSuccess=true;
+    }
+
+    g_pPsStruct->pdRecordOpt.bFinished=true;
+
     emit completed(scanTimer.elapsed());
 
     return bResult;
-}
-
-void XInfoDBTransfer::stop()
-{
-    g_bIsStop=true;
 }

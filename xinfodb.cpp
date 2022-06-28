@@ -1149,7 +1149,7 @@ bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentReg(XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
