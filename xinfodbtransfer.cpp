@@ -27,25 +27,25 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
     g_transferType=TT_IMPORT;
     g_fileType=XBinary::FT_UNKNOWN;
     g_pDevice=nullptr;
-    g_pPsStruct=nullptr;
+    g_pPdStruct=nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPsStruct)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
     g_sFileName=sFileName;
     g_fileType=fileType;
-    g_pPsStruct=pPsStruct;
+    g_pPdStruct=pPdStruct;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType,XBinary::PDSTRUCT *pPsStruct)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct)
 {
     g_pXInfoDB=pXInfoDB;
     g_transferType=transferType;
     g_pDevice=pDevice;
     g_fileType=fileType;
-    g_pPsStruct=pPsStruct;
+    g_pPdStruct=pPdStruct;
 }
 
 bool XInfoDBTransfer::process()
@@ -55,7 +55,7 @@ bool XInfoDBTransfer::process()
     QElapsedTimer scanTimer;
     scanTimer.start();
 
-    g_pPsStruct->pdRecordOpt.bIsValid=true;
+    g_pPdStruct->pdRecordOpt.bIsValid=true;
 
     if(g_pXInfoDB)
     {
@@ -130,7 +130,7 @@ bool XInfoDBTransfer::process()
                                 nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
                             }
 
-                            while(!(g_pPsStruct->bIsStop))
+                            while(!(g_pPdStruct->bIsStop))
                             {
                                 XELF_DEF::Elf_Sym record={};
 
@@ -230,12 +230,12 @@ bool XInfoDBTransfer::process()
         }
     }
 
-    if(!(g_pPsStruct->bIsStop))
+    if(!(g_pPdStruct->bIsStop))
     {
-        g_pPsStruct->pdRecordOpt.bSuccess=true;
+        g_pPdStruct->pdRecordOpt.bSuccess=true;
     }
 
-    g_pPsStruct->pdRecordOpt.bFinished=true;
+    g_pPdStruct->pdRecordOpt.bFinished=true;
 
     emit completed(scanTimer.elapsed());
 
