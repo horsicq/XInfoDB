@@ -1922,7 +1922,7 @@ QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
     return &g_listSymbols;
 }
 
-QMap<quint32, QString> *XInfoDB::getSymbolModules()
+QMap<quint32,QString> *XInfoDB::getSymbolModules()
 {
     return &g_mapSymbolModules;
 }
