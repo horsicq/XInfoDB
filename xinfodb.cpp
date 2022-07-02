@@ -1269,7 +1269,7 @@ QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+QMap<X_ID,XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 {
     return &g_mapThreadBreakpoints;
 }
