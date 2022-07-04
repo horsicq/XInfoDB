@@ -351,7 +351,7 @@ bool XInfoDB::removeFunctionHook(QString sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
+QMap<XADDR,XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
 {
     return &g_mapSharedObjectInfos;
 }
