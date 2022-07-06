@@ -36,8 +36,8 @@ public:
         TT_EXPORT
     };
 
-    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct);
 //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:

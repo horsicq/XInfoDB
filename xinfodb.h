@@ -507,7 +507,7 @@ public:
     void addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolTyp,SS symbolSource);
     void _addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource);
     void _sortSymbols();
-    qint32 _getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule, qint32 *pnInsertIndex);
+    qint32 _getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule,qint32 *pnInsertIndex);
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
