@@ -1103,7 +1103,7 @@ XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg)
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant)
+void XInfoDB::setCurrentRegCache(XREG reg,XBinary::XVARIANT variant)
 {
     _setRegCache(&(g_statusCurrent.mapRegs),reg,variant);
 }
