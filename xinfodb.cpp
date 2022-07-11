@@ -157,7 +157,7 @@ QByteArray XInfoDB::read_array(XADDR nAddress,quint64 nSize)
     return baResult;
 }
 
-QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
+QString XInfoDB::read_ansiString(XADDR nAddress,quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
