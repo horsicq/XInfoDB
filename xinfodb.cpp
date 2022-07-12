@@ -2030,8 +2030,13 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,X
     if( (reg==XREG_CF)||(reg==XREG_PF)||(reg==XREG_AF)||
         (reg==XREG_ZF)||(reg==XREG_SF)||(reg==XREG_TF)||
         (reg==XREG_IF)||(reg==XREG_DF)||(reg==XREG_OF))
-    {
+    {   
+    #ifdef Q_PROCESSOR_X86_32
         _reg=XREG_EFLAGS;
+    #endif
+    #ifdef Q_PROCESSOR_X86_64
+        _reg=XREG_RFLAGS;
+    #endif
     }
 #endif
 #ifdef Q_PROCESSOR_X86_32
