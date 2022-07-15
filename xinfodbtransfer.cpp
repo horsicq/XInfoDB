@@ -207,8 +207,36 @@ bool XInfoDBTransfer::process()
 
                         g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
 
-                        // TODO Export
-                        // TODO Import
+                        {
+                            XPE::EXPORT_HEADER _export=pe.getExport(&memoryMap,false,g_pPdStruct);
+
+                            qint32 nNumberOfRecords=_export.listPositions.count();
+
+                            for(qint32 i=0;(i<nNumberOfRecords)&&(!(g_pPdStruct->bIsStop));i++)
+                            {
+                                QString sFunctionName=_export.listPositions.at(i).sFunctionName;
+
+                                if(sFunctionName=="")
+                                {
+                                    sFunctionName=QString::number(_export.listPositions.at(i).nOrdinal);
+                                }
+
+                                g_pXInfoDB->_addSymbol(_export.listPositions.at(i).nAddress,0,0,sFunctionName,XInfoDB::ST_EXPORT,XInfoDB::SS_FILE);
+                            }
+                        }
+                        {
+                            QList<XPE::IMPORT_RECORD> listImportRecords=pe.getImportRecords(&memoryMap,g_pPdStruct);
+
+                            qint32 nNumberOfRecords=listImportRecords.count();
+
+                            for(qint32 i=0;(i<nNumberOfRecords)&&(!(g_pPdStruct->bIsStop));i++)
+                            {
+                                QString sFunctionName=listImportRecords.at(i).sLibrary+"#"+listImportRecords.at(i).sFunction;
+
+                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap,listImportRecords.at(i).nRVA),0,0,sFunctionName,XInfoDB::ST_IMPORT,XInfoDB::SS_FILE);
+                            }
+                        }
+                        // TODO TLS
                     }
                 }
             }
