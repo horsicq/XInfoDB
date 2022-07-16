@@ -185,7 +185,7 @@ QString XInfoDB::read_unicodeString(XADDR nAddress,quint64 nMaxSize)
     return sResult;
 }
 
-QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
+QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
 {
     QString sResult;
 #ifdef USE_XPROCESS
