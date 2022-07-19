@@ -1109,7 +1109,7 @@ void XInfoDB::setCurrentRegCache(XREG reg,XBinary::XVARIANT variant)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -1171,11 +1171,27 @@ bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant)
 {
     bool bResult=false;
 #ifdef Q_OS_LINUX
     // TODO
+    user_regs_struct regs={};
+
+    errno=0;
+
+    long int nRet=ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs);
+
+    qDebug("ptrace failed: %s",strerror(errno));
+
+    if(nRet!=-1)
+    {
+        qDebug("TODO");
+    }
+    else
+    {
+        qDebug("PTRACE_GETREGS error");
+    }
 #endif
     return bResult;
 }
@@ -1185,10 +1201,10 @@ bool XInfoDB::setCurrentReg(XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
-    bResult=setCurrentReg(g_statusCurrent.hThread,reg,variant);
+    bResult=setCurrentRegByThread(g_statusCurrent.hThread,reg,variant);
 #endif
 #ifdef Q_OS_LINUX
-    bResult=setCurrentReg(g_statusCurrent.nThreadId,reg,variant);
+    bResult=setCurrentRegById(g_statusCurrent.nThreadId,reg,variant);
 #endif
     return bResult;
 }
@@ -2052,6 +2068,26 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
     else if (symbolType==ST_FUNCTION)       sResult=tr("Function");
 
     return sResult;
+}
+
+void XInfoDB::testFunction()
+{
+    user_regs_struct regs={};
+
+    errno=0;
+
+    long int nRet=ptrace(PTRACE_GETREGS,g_statusCurrent.nThreadId,nullptr,&regs);
+
+    qDebug("ptrace failed: %s",strerror(errno));
+
+    if(nRet!=-1)
+    {
+        qDebug("TODO");
+    }
+    else
+    {
+        qDebug("PTRACE_GETREGS error");
+    }
 }
 #ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)

@@ -412,8 +412,8 @@ public:
 //    void _waitID(quint32 nId);
     XBinary::XVARIANT getCurrentRegCache(XREG reg);
     void setCurrentRegCache(XREG reg,XBinary::XVARIANT variant);
-    bool setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);
-    bool setCurrentReg(X_ID nThreadId,XREG reg,XBinary::XVARIANT variant);
+    bool setCurrentRegByThread(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);
+    bool setCurrentRegById(X_ID nThreadId,XREG reg,XBinary::XVARIANT variant);
     bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
@@ -512,6 +512,8 @@ public:
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
+
+    void testFunction();
 
 signals:
     void dataChanged(bool bDataReload);
