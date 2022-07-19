@@ -1112,13 +1112,25 @@ void XInfoDB::setCurrentRegCache(XREG reg,XBinary::XVARIANT variant)
 bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
-
 #ifdef Q_OS_WIN
     CONTEXT context={0};
     context.ContextFlags=CONTEXT_ALL; // All registers TODO Check regOptions |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
     if(GetThreadContext(hThread,&context))
     {
+        bool bUnknownRegister=false;
+
+    #ifdef Q_PROCESSOR_X86_32
+        if      (reg==XREG_EAX)         context.Eax=variant.var.v_uint32;
+        else if (reg==XREG_EBX)         context.Ebx=variant.var.v_uint32;
+        else if (reg==XREG_ECX)         context.Ecx=variant.var.v_uint32;
+        else if (reg==XREG_EDX)         context.Edx=variant.var.v_uint32;
+        else if (reg==XREG_EBP)         context.Ebp=variant.var.v_uint32;
+        else if (reg==XREG_ESP)         context.Esp=variant.var.v_uint32;
+        else if (reg==XREG_ESI)         context.Esi=variant.var.v_uint32;
+        else if (reg==XREG_EDI)         context.Edi=variant.var.v_uint32;
+        else bUnknownRegister=true;
+    #endif
     #ifdef Q_PROCESSOR_X86_64
         if      (reg==XREG_RAX)         context.Rax=variant.var.v_uint64;
         else if (reg==XREG_RBX)         context.Rbx=variant.var.v_uint64;
@@ -1136,14 +1148,34 @@ bool XInfoDB::setCurrentReg(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant)
         else if (reg==XREG_R13)         context.R13=variant.var.v_uint64;
         else if (reg==XREG_R14)         context.R14=variant.var.v_uint64;
         else if (reg==XREG_R15)         context.R15=variant.var.v_uint64;
+        else bUnknownRegister=true;
     #endif
         // TODO
 
-        if(SetThreadContext(hThread,&context))
+        if(!bUnknownRegister)
         {
-            bResult=true;
+            if(SetThreadContext(hThread,&context))
+            {
+                bResult=true;
+            }
+        }
+        else
+        {
+        #ifdef QT_DEBUG
+            qDebug("Unknown register");
+        #endif
         }
     }
+#endif
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setCurrentReg(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant)
+{
+    bool bResult=false;
+#ifdef Q_OS_LINUX
+    // TODO
 #endif
     return bResult;
 }
@@ -1155,7 +1187,9 @@ bool XInfoDB::setCurrentReg(XREG reg,XBinary::XVARIANT variant)
 #ifdef Q_OS_WIN
     bResult=setCurrentReg(g_statusCurrent.hThread,reg,variant);
 #endif
-
+#ifdef Q_OS_LINUX
+    bResult=setCurrentReg(g_statusCurrent.nThreadId,reg,variant);
+#endif
     return bResult;
 }
 #endif
