@@ -2095,6 +2095,7 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
 
 void XInfoDB::testFunction()
 {
+#ifdef USE_XPROCESS
 #ifdef Q_OS_LINUX
     user_regs_struct regs={};
 
@@ -2112,6 +2113,7 @@ void XInfoDB::testFunction()
     {
         qDebug("PTRACE_GETREGS error");
     }
+#endif
 #endif
 }
 #ifdef USE_XPROCESS
