@@ -1180,17 +1180,40 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
 
     errno=0;
 
-    long int nRet=ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs);
-
-    qDebug("ptrace failed: %s",strerror(errno));
-
-    if(nRet!=-1)
+    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
     {
-        qDebug("TODO");
+        bool bUnknownRegister=false;
+    #ifdef Q_PROCESSOR_X86_64
+        if      (reg==XREG_RAX)         regs.rax=variant.var.v_uint64;
+        else if (reg==XREG_RBX)         regs.rbx=variant.var.v_uint64;
+        else if (reg==XREG_RCX)         regs.rcx=variant.var.v_uint64;
+        else if (reg==XREG_RDX)         regs.rdx=variant.var.v_uint64;
+        else if (reg==XREG_RBP)         regs.rbp=variant.var.v_uint64;
+        else if (reg==XREG_RSP)         regs.rsp=variant.var.v_uint64;
+        else if (reg==XREG_RSI)         regs.rsi=variant.var.v_uint64;
+        else if (reg==XREG_RDI)         regs.rdi=variant.var.v_uint64;
+        else if (reg==XREG_R8)          regs.r8=variant.var.v_uint64;
+        else if (reg==XREG_R9)          regs.r9=variant.var.v_uint64;
+        else if (reg==XREG_R10)         regs.r10=variant.var.v_uint64;
+        else if (reg==XREG_R11)         regs.r11=variant.var.v_uint64;
+        else if (reg==XREG_R12)         regs.r12=variant.var.v_uint64;
+        else if (reg==XREG_R13)         regs.r13=variant.var.v_uint64;
+        else if (reg==XREG_R14)         regs.r14=variant.var.v_uint64;
+        else if (reg==XREG_R15)         regs.r15=variant.var.v_uint64;
+        else bUnknownRegister=true;
+    #endif
+
+        if(!bUnknownRegister)
+        {
+            if(ptrace(PTRACE_SETREGS,nThreadId,nullptr,&regs)!=-1)
+            {
+                bResult=true;
+            }
+        }
     }
     else
     {
-        qDebug("PTRACE_GETREGS error");
+        qDebug("ptrace failed: %s",strerror(errno));
     }
 #endif
     return bResult;
@@ -2072,6 +2095,7 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
 
 void XInfoDB::testFunction()
 {
+#ifdef Q_OS_LINUX
     user_regs_struct regs={};
 
     errno=0;
@@ -2088,6 +2112,7 @@ void XInfoDB::testFunction()
     {
         qDebug("PTRACE_GETREGS error");
     }
+#endif
 }
 #ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg)
