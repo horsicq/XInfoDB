@@ -533,21 +533,19 @@ bool XInfoDB::_setStepById(X_ID nThreadId)
 #ifdef Q_OS_LINUX
     errno=0;
 
-    qDebug("ptrace failed: %s",strerror(errno));
-
     long int nRet=ptrace(PTRACE_SINGLESTEP,nThreadId,0,0);
 
-    qDebug("ptrace failed: %s",strerror(errno));
-
-//    if(nRet!=0)
-//    {
-//        int thread_status=0;
-
-//        if(waitpid(nThreadId,&thread_status,0)!=-1)
-//        {
-//            // TODO
-//        }
-//    }
+    if(nRet==0)
+    {
+        bResult=true;
+    }
+    else
+    {
+    #ifdef QT_DEBUG
+        qDebug("ptrace failed: %s",strerror(errno));
+        // TODO error signal
+    #endif
+    }
 #endif
     return bResult;
 }
@@ -844,7 +842,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions)
 
         if(regOptions.bFlags)
         {
-            g_statusCurrent.mapRegs.insert(XREG_EFLAGS,XBinary::getXVariant((quint32)(regs.eflags)));
+            g_statusCurrent.mapRegs.insert(XREG_RFLAGS,XBinary::getXVariant((quint32)(regs.eflags)));
         }
 
         if(regOptions.bSegments)
