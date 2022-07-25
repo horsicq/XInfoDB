@@ -223,6 +223,13 @@ public:
         QString sGUID;
     };
 
+    enum THREAD_STATUS
+    {
+        THREAD_STATUS_UNKNOWN=0,
+        THREAD_STATUS_PAUSED,
+        THREAD_STATUS_RUNNING
+    };
+
     struct THREAD_INFO
     {
         X_ID nThreadID;
@@ -231,6 +238,7 @@ public:
     #ifdef Q_OS_WIN
         X_HANDLE hThread;
     #endif
+        THREAD_STATUS threadStatus;
     };
 
     struct EXITTHREAD_INFO
@@ -399,8 +407,9 @@ public:
     bool stepIntoById(X_ID nThreadId);
     bool _setStepByHandle(X_HANDLE hThread);
     bool _setStepById(X_ID nThreadId);
-    bool suspendThread(X_HANDLE hThread);
-    bool resumeThread(X_HANDLE hThread);
+    bool suspendThreadById(X_ID nThreadId);
+    bool suspendThreadByHandle(X_HANDLE hThread);
+    bool resumeThreadByHandle(X_HANDLE hThread);
     bool suspendOtherThreads(X_ID nThreadId);
     bool resumeOtherThreads(X_ID nThreadId);
     bool suspendAllThreads();

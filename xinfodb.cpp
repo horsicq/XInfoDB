@@ -551,22 +551,32 @@ bool XInfoDB::_setStepById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendThread(X_HANDLE hThread)
+bool XInfoDB::suspendThreadById(X_ID nThreadId)
+{
+    bool bResult=false;
+
+#ifdef Q_OS_LINUX
+    if(syscall(SYS_tgkill,g_processInfo.nProcessID,nThreadId,SIGSTOP)!=-1)
+    {
+        // TODO Set thread status
+        bResult=true;
+    }
+    else
+    {
+        qDebug("Cannot stop thread");
+    }
+#endif
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::suspendThreadByHandle(X_HANDLE hThread)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
     bResult=(SuspendThread(hThread)!=((DWORD)-1));
 #endif
-//#ifdef Q_OS_LINUX
-//    if(syscall(SYS_tgkill,g_processInfo.nProcessID,handleID.nID,SIGSTOP)!=-1)
-//    {
-//        bResult=true;
-//    }
-//    else
-//    {
-//        qDebug("Cannot stop thread");
-//    }
-//#endif
 #ifdef QT_DEBUG
     qDebug("XInfoDB::suspendThread %X",hThread);
 #endif
@@ -575,7 +585,7 @@ bool XInfoDB::suspendThread(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeThread(X_HANDLE hThread)
+bool XInfoDB::resumeThreadByHandle(X_HANDLE hThread)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -603,7 +613,7 @@ bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
         #ifdef Q_OS_WIN
-            suspendThread(pListThreads->at(i).hThread);
+            suspendThreadByHandle(pListThreads->at(i).hThread);
         #endif
             bResult=true;
         }
@@ -626,7 +636,7 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
         #ifdef Q_OS_WIN
-            resumeThread(pListThreads->at(i).hThread);
+            resumeThreadByHandle(pListThreads->at(i).hThread);
         #endif
             bResult=true;
         }
@@ -648,7 +658,7 @@ bool XInfoDB::suspendAllThreads()
     for(qint32 i=0;i<nCount;i++)
     {
     #ifdef Q_OS_WIN
-        suspendThread(pListThreads->at(i).hThread); // TODO Handle errors
+        suspendThreadByHandle(pListThreads->at(i).hThread); // TODO Handle errors
     #endif
     #ifdef Q_OS_LINUX
         if(syscall(SYS_tgkill,g_processInfo.nProcessID,pListThreads->at(i).nThreadID,SIGSTOP)!=-1)
@@ -684,7 +694,7 @@ bool XInfoDB::resumeAllThreads()
     for(qint32 i=0;i<nCount;i++)
     {
     #ifdef Q_OS_WIN
-        resumeThread(pListThreads->at(i).hThread);
+        resumeThreadByHandle(pListThreads->at(i).hThread);
     #endif
     #ifdef Q_OS_LINUX
         // TODO
@@ -1169,7 +1179,7 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread,XREG reg,XBinary::XVARIANT 
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant)
+bool XInfoDB::setCurrentRegById(X_ID nThreadId,XREG reg,XBinary::XVARIANT variant)
 {
     bool bResult=false;
 #ifdef Q_OS_LINUX
