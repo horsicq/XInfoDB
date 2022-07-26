@@ -27,6 +27,7 @@
 #ifdef USE_XPROCESS
 #include "xprocess.h"
 #endif
+#include "xcapstone.h"
 
 class XInfoDB : public QObject
 {
@@ -432,6 +433,9 @@ public:
     XADDR getCurrentInstructionPointerByHandle(X_HANDLE hThread);
     XADDR getCurrentInstructionPointerById(X_ID nThreadId);
     bool setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue);
+
+    XCapstone::OPCODE_ID getCurrentOpcodeByHandle(X_HANDLE hThread);
+    XCapstone::OPCODE_ID getCurrentOpcodeById(X_ID nThreadId);
 
     XADDR getCurrentStackPointerByHandle(X_HANDLE hThread);
     XADDR getCurrentStackPointerById(X_ID nThreadId);

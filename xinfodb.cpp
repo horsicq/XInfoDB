@@ -64,6 +64,8 @@ void XInfoDB::setDevice(QIODevice *pDevice,XBinary::FT fileType)
         g_fileType=XBinary::getPrefFileType(pDevice);
     }
 
+    // TODO Capstone
+
     g_MainModuleMemoryMap=XFormats::getMemoryMap(g_fileType,pDevice);
 
     g_nMainModuleAddress=g_MainModuleMemoryMap.nModuleAddress;
@@ -1456,6 +1458,26 @@ bool XInfoDB::setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue)
     }
 #endif
     return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeByHandle(X_HANDLE hThread)
+{
+    XCapstone::OPCODE_ID result={};
+
+    // TODO
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeById(X_ID nThreadId)
+{
+    XCapstone::OPCODE_ID result={};
+
+    // TODO
+
+    return result;
 }
 #endif
 #ifdef USE_XPROCESS
