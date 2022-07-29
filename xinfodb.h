@@ -23,11 +23,11 @@
 
 #include <QObject>
 #include <QMutex>
+#include "xcapstone.h"
 #include "xformats.h"
 #ifdef USE_XPROCESS
 #include "xprocess.h"
 #endif
-#include "xcapstone.h"
 
 class XInfoDB : public QObject
 {
