@@ -480,7 +480,6 @@ public:
 
     RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
-
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
 
