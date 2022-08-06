@@ -21,8 +21,8 @@
 #ifndef XINFODB_H
 #define XINFODB_H
 
-#include <QObject>
 #include <QMutex>
+#include <QObject>
 #include "xcapstone.h"
 #include "xformats.h"
 #ifdef USE_XPROCESS
