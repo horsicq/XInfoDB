@@ -977,87 +977,37 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions)
         if(regOptions.bFloat)
         {
         #if defined(Q_PROCESSOR_X86_64)
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[0].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[0].High);
-//                mapResult.insert("ST0",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[1].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[1].High);
-//                mapResult.insert("ST1",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[2].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[2].High);
-//                mapResult.insert("ST2",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[3].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[3].High);
-//                mapResult.insert("ST3",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[4].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[4].High);
-//                mapResult.insert("ST4",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[5].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[5].High);
-//                mapResult.insert("ST5",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[6].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[6].High);
-//                mapResult.insert("ST6",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.FloatRegisters[7].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.FloatRegisters[7].High);
-//                mapResult.insert("ST7",xVariant);
+            g_statusCurrent.mapRegs.insert(XREG_ST0,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[0].Low),(quint64)(context.FltSave.FloatRegisters[0].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST1,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[1].Low),(quint64)(context.FltSave.FloatRegisters[1].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST2,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[2].Low),(quint64)(context.FltSave.FloatRegisters[2].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST3,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[3].Low),(quint64)(context.FltSave.FloatRegisters[3].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST4,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[4].Low),(quint64)(context.FltSave.FloatRegisters[4].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST5,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[5].Low),(quint64)(context.FltSave.FloatRegisters[5].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST6,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[6].Low),(quint64)(context.FltSave.FloatRegisters[6].High)));
+            g_statusCurrent.mapRegs.insert(XREG_ST7,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[7].Low),(quint64)(context.FltSave.FloatRegisters[7].High)));
         #endif
         }
 
         if(regOptions.bXMM)
         {
-//                xVariant={};
-//                xVariant.mode=XBinary::MODE_128;
-//            #if defined(Q_PROCESSOR_X86_64)
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[0].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[0].High);
-//                mapResult.insert("XMM0",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[1].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[1].High);
-//                mapResult.insert("XMM1",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[2].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[2].High);
-//                mapResult.insert("XMM2",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[3].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[3].High);
-//                mapResult.insert("XMM3",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[4].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[4].High);
-//                mapResult.insert("XMM4",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[5].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[5].High);
-//                mapResult.insert("XMM5",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[6].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[6].High);
-//                mapResult.insert("XMM6",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[7].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[7].High);
-//                mapResult.insert("XMM7",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[8].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[8].High);
-//                mapResult.insert("XMM8",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[9].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[9].High);
-//                mapResult.insert("XMM9",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[10].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[10].High);
-//                mapResult.insert("XMM10",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[11].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[11].High);
-//                mapResult.insert("XMM11",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[12].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[12].High);
-//                mapResult.insert("XMM12",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[13].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[13].High);
-//                mapResult.insert("XMM13",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[14].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[14].High);
-//                mapResult.insert("XMM14",xVariant);
-//                xVariant.var.v_uint128.low=(quint64)(context.FltSave.XmmRegisters[15].Low);
-//                xVariant.var.v_uint128.high=(quint64)(context.FltSave.XmmRegisters[15].High);
-//                mapResult.insert("XMM15",xVariant);
-//            #endif
+        #if defined(Q_PROCESSOR_X86_64)
+            g_statusCurrent.mapRegs.insert(XREG_XMM0,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[0].Low),(quint64)(context.FltSave.XmmRegisters[0].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM1,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[1].Low),(quint64)(context.FltSave.XmmRegisters[1].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM2,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[2].Low),(quint64)(context.FltSave.XmmRegisters[2].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM3,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[3].Low),(quint64)(context.FltSave.XmmRegisters[3].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM4,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[4].Low),(quint64)(context.FltSave.XmmRegisters[4].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM5,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[5].Low),(quint64)(context.FltSave.XmmRegisters[5].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM6,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[6].Low),(quint64)(context.FltSave.XmmRegisters[6].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM7,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[7].Low),(quint64)(context.FltSave.XmmRegisters[7].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM8,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[8].Low),(quint64)(context.FltSave.XmmRegisters[8].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM9,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[9].Low),(quint64)(context.FltSave.XmmRegisters[9].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM10,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[10].Low),(quint64)(context.FltSave.XmmRegisters[10].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM11,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[11].Low),(quint64)(context.FltSave.XmmRegisters[11].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM12,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[12].Low),(quint64)(context.FltSave.XmmRegisters[12].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM13,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[13].Low),(quint64)(context.FltSave.XmmRegisters[13].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM14,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[14].Low),(quint64)(context.FltSave.XmmRegisters[14].High)));
+            g_statusCurrent.mapRegs.insert(XREG_XMM15,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[15].Low),(quint64)(context.FltSave.XmmRegisters[15].High)));
+        #endif
 //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
         }
 
@@ -1076,6 +1026,12 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions)
         qDebug("P6Home %s",XBinary::valueToHex((quint64)(context.P6Home)).toLatin1().data());
         qDebug("ContextFlags %s",XBinary::valueToHex((quint32)(context.ContextFlags)).toLatin1().data());
         qDebug("MxCsr %s",XBinary::valueToHex((quint32)(context.MxCsr)).toLatin1().data());
+
+        qDebug("DebugControl %s",XBinary::valueToHex((quint64)(context.DebugControl)).toLatin1().data());
+        qDebug("LastBranchToRip %s",XBinary::valueToHex((quint64)(context.LastBranchToRip)).toLatin1().data());
+        qDebug("LastBranchFromRip %s",XBinary::valueToHex((quint64)(context.LastBranchFromRip)).toLatin1().data());
+        qDebug("LastExceptionToRip %s",XBinary::valueToHex((quint64)(context.LastExceptionToRip)).toLatin1().data());
+        qDebug("LastExceptionFromRip %s",XBinary::valueToHex((quint64)(context.LastExceptionFromRip)).toLatin1().data());
      #endif
     #endif
     }
