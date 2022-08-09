@@ -406,6 +406,8 @@ public:
 //    bool resumeThread(XProcess::HANDLEID handleThread);
     bool stepIntoByHandle(X_HANDLE hThread);
     bool stepIntoById(X_ID nThreadId);
+    bool stepOverByHandle(X_HANDLE hThread);
+    bool stepOverById(X_ID nThreadId);
     bool _setStepByHandle(X_HANDLE hThread);
     bool _setStepById(X_ID nThreadId);
     bool suspendThreadById(X_ID nThreadId);

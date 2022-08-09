@@ -200,7 +200,20 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
 #endif
     return sResult;
 }
-
+#ifdef USE_XPROCESS
+bool XInfoDB::stepOverByHandle(X_HANDLE hThread)
+{
+    // TODO
+    return false;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepOverById(X_ID nThreadId)
+{
+    // TODO
+    return false;
+}
+#endif
 #ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress,BPT bpType)
 {
