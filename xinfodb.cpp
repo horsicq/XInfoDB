@@ -990,36 +990,20 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions)
         if(regOptions.bFloat)
         {
         #if defined(Q_PROCESSOR_X86_64)
-            g_statusCurrent.mapRegs.insert(XREG_ST0,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[0].Low),(quint64)(context.FltSave.FloatRegisters[0].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST1,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[1].Low),(quint64)(context.FltSave.FloatRegisters[1].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST2,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[2].Low),(quint64)(context.FltSave.FloatRegisters[2].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST3,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[3].Low),(quint64)(context.FltSave.FloatRegisters[3].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST4,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[4].Low),(quint64)(context.FltSave.FloatRegisters[4].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST5,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[5].Low),(quint64)(context.FltSave.FloatRegisters[5].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST6,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[6].Low),(quint64)(context.FltSave.FloatRegisters[6].High)));
-            g_statusCurrent.mapRegs.insert(XREG_ST7,XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[7].Low),(quint64)(context.FltSave.FloatRegisters[7].High)));
+            for(qint32 i=0;i<8;i++)
+            {
+                g_statusCurrent.mapRegs.insert(XREG(XREG_ST0+i),XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low),(quint64)(context.FltSave.FloatRegisters[i].High)));
+            }
         #endif
         }
 
         if(regOptions.bXMM)
         {
         #if defined(Q_PROCESSOR_X86_64)
-            g_statusCurrent.mapRegs.insert(XREG_XMM0,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[0].Low),(quint64)(context.FltSave.XmmRegisters[0].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM1,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[1].Low),(quint64)(context.FltSave.XmmRegisters[1].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM2,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[2].Low),(quint64)(context.FltSave.XmmRegisters[2].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM3,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[3].Low),(quint64)(context.FltSave.XmmRegisters[3].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM4,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[4].Low),(quint64)(context.FltSave.XmmRegisters[4].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM5,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[5].Low),(quint64)(context.FltSave.XmmRegisters[5].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM6,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[6].Low),(quint64)(context.FltSave.XmmRegisters[6].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM7,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[7].Low),(quint64)(context.FltSave.XmmRegisters[7].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM8,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[8].Low),(quint64)(context.FltSave.XmmRegisters[8].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM9,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[9].Low),(quint64)(context.FltSave.XmmRegisters[9].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM10,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[10].Low),(quint64)(context.FltSave.XmmRegisters[10].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM11,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[11].Low),(quint64)(context.FltSave.XmmRegisters[11].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM12,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[12].Low),(quint64)(context.FltSave.XmmRegisters[12].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM13,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[13].Low),(quint64)(context.FltSave.XmmRegisters[13].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM14,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[14].Low),(quint64)(context.FltSave.XmmRegisters[14].High)));
-            g_statusCurrent.mapRegs.insert(XREG_XMM15,XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[15].Low),(quint64)(context.FltSave.XmmRegisters[15].High)));
+            for(qint32 i=0;i<16;i++)
+            {
+                g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0+i),XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low),(quint64)(context.FltSave.XmmRegisters[i].High)));
+            }
         #endif
 //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
         }
@@ -1129,7 +1113,7 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread,XREG reg,XBinary::XVARIANT 
         else if (reg==XREG_R15)         context.R15=variant.var.v_uint64;
         else bUnknownRegister=true;
     #endif
-        // TODO
+        // TODO more
 
         if(!bUnknownRegister)
         {
