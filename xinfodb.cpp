@@ -42,15 +42,31 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode=MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo={};
+    g_handle=0;
 #endif
     g_pDevice=nullptr;
     g_fileType=XBinary::FT_UNKNOWN;
     g_nMainModuleAddress=0;
     g_nMainModuleSize=0;
+
+    XBinary::DM disasmMode=XBinary::DM_UNKNOWN;
+
+#ifdef USE_XPROCESS
+#ifdef Q_PROCESSOR_X86_32
+    disasmMode=XBinary::DM_X86_32;
+#endif
+#ifdef Q_PROCESSOR_X86_64
+    disasmMode=XBinary::DM_X86_64;
+#endif
+    XCapstone::openHandle(disasmMode,&g_handle,true);
+#endif
 }
 
 XInfoDB::~XInfoDB()
 {
+#ifdef USE_XPROCESS
+    XCapstone::closeHandle(&g_handle);
+#endif
 }
 
 void XInfoDB::setDevice(QIODevice *pDevice,XBinary::FT fileType)
@@ -63,8 +79,6 @@ void XInfoDB::setDevice(QIODevice *pDevice,XBinary::FT fileType)
     {
         g_fileType=XBinary::getPrefFileType(pDevice);
     }
-
-    // TODO Capstone
 
     g_MainModuleMemoryMap=XFormats::getMemoryMap(g_fileType,pDevice);
 
@@ -203,8 +217,31 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
 #ifdef USE_XPROCESS
 bool XInfoDB::stepOverByHandle(X_HANDLE hThread)
 {
-    // TODO
-    return false;
+    bool bResult=false;
+
+    quint64 nAddress=getCurrentInstructionPointerByHandle(hThread);
+    QByteArray baData=read_array(nAddress,15);
+
+    XCapstone::OPCODE_ID opcodeID=XCapstone::getOpcodeID(g_handle,nAddress,baData.data(),baData.size());
+
+    if(XCapstone::isCallOpcode(opcodeID.nOpcodeID))
+    {
+        bResult=addBreakPoint(nAddress+opcodeID.nSize,XInfoDB::BPT_CODE_SOFTWARE,XInfoDB::BPI_STEPOVER,1);
+    }
+    else
+    {
+        XInfoDB::BREAKPOINT breakPoint={};
+        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+        breakPoint.bpInfo=XInfoDB::BPI_STEPOVER;
+
+    #ifdef Q_OS_WIN
+        getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
+    #endif
+
+        bResult=_setStepByHandle(hThread);
+    }
+
+    return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -593,7 +630,7 @@ bool XInfoDB::suspendThreadByHandle(X_HANDLE hThread)
     bResult=(SuspendThread(hThread)!=((DWORD)-1));
 #endif
 #ifdef QT_DEBUG
-    qDebug("XInfoDB::suspendThread %X",hThread);
+//    qDebug("XInfoDB::suspendThread %X",hThread);
 #endif
 
     return bResult;

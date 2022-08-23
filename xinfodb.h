@@ -550,6 +550,7 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
+    csh g_handle;
     QList<BREAKPOINT> g_listBreakpoints;
     QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
 //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
