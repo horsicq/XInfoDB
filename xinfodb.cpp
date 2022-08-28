@@ -247,8 +247,29 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 bool XInfoDB::stepOverById(X_ID nThreadId)
 {
-    // TODO
-    return false;
+    bool bResult=false;
+
+    quint64 nAddress=getCurrentInstructionPointerById(nThreadId);
+    QByteArray baData=read_array(nAddress,15);
+
+    XCapstone::OPCODE_ID opcodeID=XCapstone::getOpcodeID(g_handle,nAddress,baData.data(),baData.size());
+
+    if(XCapstone::isCallOpcode(opcodeID.nOpcodeID))
+    {
+        bResult=addBreakPoint(nAddress+opcodeID.nSize,XInfoDB::BPT_CODE_SOFTWARE,XInfoDB::BPI_STEPOVER,1);
+    }
+    else
+    {
+        XInfoDB::BREAKPOINT breakPoint={};
+        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+        breakPoint.bpInfo=XInfoDB::BPI_STEPOVER;
+
+        getThreadBreakpoints()->insert(nThreadId,breakPoint);
+
+        bResult=_setStepById(nThreadId);
+    }
+
+    return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
