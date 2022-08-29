@@ -215,24 +215,22 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
     return sResult;
 }
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverByHandle(X_HANDLE hThread)
+bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo)
 {
     bool bResult=false;
 
-    quint64 nAddress=getCurrentInstructionPointerByHandle(hThread);
-    QByteArray baData=read_array(nAddress,15);
+    XADDR nAddress=getCurrentInstructionPointerByHandle(hThread);
+    XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
-    XCapstone::OPCODE_ID opcodeID=XCapstone::getOpcodeID(g_handle,nAddress,baData.data(),baData.size());
-
-    if(XCapstone::isCallOpcode(opcodeID.nOpcodeID))
+    if(nNextAddress!=-1)
     {
-        bResult=addBreakPoint(nAddress+opcodeID.nSize,XInfoDB::BPT_CODE_SOFTWARE,XInfoDB::BPI_STEPOVER,1);
+        bResult=addBreakPoint(nNextAddress,XInfoDB::BPT_CODE_SOFTWARE,bpInfo,1);
     }
     else
     {
         XInfoDB::BREAKPOINT breakPoint={};
         breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-        breakPoint.bpInfo=XInfoDB::BPI_STEPOVER;
+        breakPoint.bpInfo=bpInfo;
 
     #ifdef Q_OS_WIN
         getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
@@ -245,24 +243,22 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverById(X_ID nThreadId)
+bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo)
 {
     bool bResult=false;
 
-    quint64 nAddress=getCurrentInstructionPointerById(nThreadId);
-    QByteArray baData=read_array(nAddress,15);
+    XADDR nAddress=getCurrentInstructionPointerById(nThreadId);
+    XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
-    XCapstone::OPCODE_ID opcodeID=XCapstone::getOpcodeID(g_handle,nAddress,baData.data(),baData.size());
-
-    if(XCapstone::isCallOpcode(opcodeID.nOpcodeID))
+    if(nNextAddress!=-1)
     {
-        bResult=addBreakPoint(nAddress+opcodeID.nSize,XInfoDB::BPT_CODE_SOFTWARE,XInfoDB::BPI_STEPOVER,1);
+        bResult=addBreakPoint(nNextAddress,XInfoDB::BPT_CODE_SOFTWARE,bpInfo,1);
     }
     else
     {
         XInfoDB::BREAKPOINT breakPoint={};
         breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-        breakPoint.bpInfo=XInfoDB::BPI_STEPOVER;
+        breakPoint.bpInfo=bpInfo;
 
         getThreadBreakpoints()->insert(nThreadId,breakPoint);
 
@@ -538,7 +534,7 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread,QString sInfo)
 {
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=XInfoDB::BPI_STEP;
+    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
     breakPoint.sInfo=sInfo;
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
@@ -547,11 +543,28 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread,QString sInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoByHandle(X_HANDLE hThread)
+XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
+{
+    XADDR nResult=-1;
+
+    QByteArray baData=read_array(nAddress,15);
+
+    XCapstone::OPCODE_ID opcodeID=XCapstone::getOpcodeID(g_handle,nAddress,baData.data(),baData.size());
+
+    if(XCapstone::isCallOpcode(opcodeID.nOpcodeID))
+    {
+        nResult=nAddress+opcodeID.nSize;
+    }
+
+    return nResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo)
 {
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+    breakPoint.bpInfo=bpInfo;
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
 #endif
@@ -559,11 +572,11 @@ bool XInfoDB::stepIntoByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoById(X_ID nThreadId)
+bool XInfoDB::stepIntoById(X_ID nThreadId,BPI bpInfo)
 {
     XInfoDB::BREAKPOINT breakPoint={};
     breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
+    breakPoint.bpInfo=bpInfo;
 
     getThreadBreakpoints()->insert(nThreadId,breakPoint);
 

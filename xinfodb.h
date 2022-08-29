@@ -205,9 +205,10 @@ public:
         BPI_TLSFUNCTION, // TODO
         BPI_FUNCTIONENTER,
         BPI_FUNCTIONLEAVE,
-        BPI_STEP,
         BPI_STEPINTO,
-        BPI_STEPOVER
+        BPI_STEPOVER,
+        BPI_TRACEINTO,
+        BPI_TRACEOVER
     };
 
     struct BREAKPOINT
@@ -401,13 +402,14 @@ public:
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
 #endif
     quint64 getFunctionAddress(QString sFunctionName);
-    bool setSingleStep(X_HANDLE hThread,QString sInfo="");
+    bool setSingleStep(X_HANDLE hThread,QString sInfo=""); // TODO mb remove
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
-    bool stepIntoByHandle(X_HANDLE hThread);
-    bool stepIntoById(X_ID nThreadId);
-    bool stepOverByHandle(X_HANDLE hThread);
-    bool stepOverById(X_ID nThreadId);
+    XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
+    bool stepIntoByHandle(X_HANDLE hThread,BPI bpInfo=XInfoDB::BPI_STEPINTO);
+    bool stepIntoById(X_ID nThreadId,BPI bpInfo=XInfoDB::BPI_STEPINTO);
+    bool stepOverByHandle(X_HANDLE hThread,BPI bpInfo=XInfoDB::BPI_STEPOVER);
+    bool stepOverById(X_ID nThreadId,BPI bpInfo=XInfoDB::BPI_STEPOVER);
     bool _setStepByHandle(X_HANDLE hThread);
     bool _setStepById(X_ID nThreadId);
     bool suspendThreadById(X_ID nThreadId);
