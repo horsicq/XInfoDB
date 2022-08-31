@@ -378,7 +378,12 @@ public:
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
 
     QList<BREAKPOINT> *getBreakpoints();
+#ifdef Q_OS_WIN
+    QMap<X_HANDLE,BREAKPOINT> *getThreadBreakpoints();
+#endif
+#ifdef Q_OS_LINUX
     QMap<X_ID,BREAKPOINT> *getThreadBreakpoints();
+#endif
     bool breakpointToggle(XADDR nAddress);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
@@ -406,10 +411,10 @@ public:
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
-    bool stepIntoByHandle(X_HANDLE hThread,BPI bpInfo=XInfoDB::BPI_STEPINTO);
-    bool stepIntoById(X_ID nThreadId,BPI bpInfo=XInfoDB::BPI_STEPINTO);
-    bool stepOverByHandle(X_HANDLE hThread,BPI bpInfo=XInfoDB::BPI_STEPOVER);
-    bool stepOverById(X_ID nThreadId,BPI bpInfo=XInfoDB::BPI_STEPOVER);
+    bool stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
+    bool stepIntoById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
+    bool stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
+    bool stepOverById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
     bool _setStepByHandle(X_HANDLE hThread);
     bool _setStepById(X_ID nThreadId);
     bool suspendThreadById(X_ID nThreadId);
@@ -554,7 +559,12 @@ private:
     XInfoDB::PROCESS_INFO g_processInfo;
     csh g_handle;
     QList<BREAKPOINT> g_listBreakpoints;
+#ifdef Q_OS_WIN
+    QMap<X_HANDLE,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+#endif
+#ifdef Q_OS_LINUX
     QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+#endif
 //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
     QMap<XADDR,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
     QList<THREAD_INFO> g_listThreadInfos;

@@ -215,7 +215,7 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
     return sResult;
 }
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo)
+bool XInfoDB::stepOverByHandle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 {
     bool bResult=false;
 
@@ -228,13 +228,16 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo)
     }
     else
     {
-        XInfoDB::BREAKPOINT breakPoint={};
-        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-        breakPoint.bpInfo=bpInfo;
+        if(bAddThreadBP)
+        {
+            XInfoDB::BREAKPOINT breakPoint={};
+            breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+            breakPoint.bpInfo=bpInfo;
 
-    #ifdef Q_OS_WIN
-        getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
-    #endif
+        #ifdef Q_OS_WIN
+            getThreadBreakpoints()->insert(hThread,breakPoint);
+        #endif
+        }
 
         bResult=_setStepByHandle(hThread);
     }
@@ -243,7 +246,7 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo)
+bool XInfoDB::stepOverById(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 {
     bool bResult=false;
 
@@ -256,11 +259,16 @@ bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo)
     }
     else
     {
-        XInfoDB::BREAKPOINT breakPoint={};
-        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-        breakPoint.bpInfo=bpInfo;
+        if(bAddThreadBP)
+        {
+            XInfoDB::BREAKPOINT breakPoint={};
+            breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+            breakPoint.bpInfo=bpInfo;
 
-        getThreadBreakpoints()->insert(nThreadId,breakPoint);
+        #ifdef Q_OS_LINUX
+            getThreadBreakpoints()->insert(nThreadId,breakPoint);
+        #endif
+        }
 
         bResult=_setStepById(nThreadId);
     }
@@ -537,7 +545,7 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread,QString sInfo)
     breakPoint.bpInfo=XInfoDB::BPI_STEPINTO;
     breakPoint.sInfo=sInfo;
 #ifdef Q_OS_WIN
-    getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
+    getThreadBreakpoints()->insert(hThread,breakPoint);
 #endif
     return _setStepByHandle(hThread);
 }
@@ -560,25 +568,33 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo)
+bool XInfoDB::stepIntoByHandle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 {
-    XInfoDB::BREAKPOINT breakPoint={};
-    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=bpInfo;
-#ifdef Q_OS_WIN
-    getThreadBreakpoints()->insert(findThreadInfoByHandle(hThread).nThreadID,breakPoint);
-#endif
+    if(bAddThreadBP)
+    {
+        XInfoDB::BREAKPOINT breakPoint={};
+        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+        breakPoint.bpInfo=bpInfo;
+    #ifdef Q_OS_WIN
+        getThreadBreakpoints()->insert(hThread,breakPoint);
+    #endif
+    }
+
     return _setStepByHandle(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoById(X_ID nThreadId,BPI bpInfo)
+bool XInfoDB::stepIntoById(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 {
-    XInfoDB::BREAKPOINT breakPoint={};
-    breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
-    breakPoint.bpInfo=bpInfo;
-
-    getThreadBreakpoints()->insert(nThreadId,breakPoint);
+    if(bAddThreadBP)
+    {
+        XInfoDB::BREAKPOINT breakPoint={};
+        breakPoint.bpType=XInfoDB::BPT_CODE_HARDWARE;
+        breakPoint.bpInfo=bpInfo;
+    #ifdef Q_OS_LINUX
+        getThreadBreakpoints()->insert(nThreadId,breakPoint);
+    #endif
+    }
 
     return _setStepById(nThreadId);
 }
@@ -1371,10 +1387,18 @@ QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 }
 #endif
 #ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+QMap<X_HANDLE,XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+{
+    return &g_mapThreadBreakpoints;
+}
+#endif
+#ifdef Q_OS_LINUX
 QMap<X_ID,XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 {
     return &g_mapThreadBreakpoints;
 }
+#endif
 #endif
 #ifdef USE_XPROCESS
 bool XInfoDB::isRegChanged(XREG reg)
