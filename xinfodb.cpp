@@ -568,7 +568,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoByHandle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 {
     if(bAddThreadBP)
     {
