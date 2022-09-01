@@ -498,7 +498,8 @@ public:
     {
         SS_UNKNOWN=0,
         SS_FILE,
-        SS_USER
+        SS_USER,
+        // TODO More
     };
 
     enum ST

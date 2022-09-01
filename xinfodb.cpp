@@ -215,7 +215,7 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
     return sResult;
 }
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverByHandle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 {
     bool bResult=false;
 
