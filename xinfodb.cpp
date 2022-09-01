@@ -222,7 +222,7 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     XADDR nAddress=getCurrentInstructionPointerByHandle(hThread);
     XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
-    if(nNextAddress!=-1)
+    if(nNextAddress!=(XADDR)-1)
     {
         bResult=addBreakPoint(nNextAddress,XInfoDB::BPT_CODE_SOFTWARE,bpInfo,1);
     }
@@ -253,7 +253,7 @@ bool XInfoDB::stepOverById(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nAddress=getCurrentInstructionPointerById(nThreadId);
     XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
-    if(nNextAddress!=-1)
+    if(nNextAddress!=(XADDR)-1)
     {
         bResult=addBreakPoint(nNextAddress,XInfoDB::BPT_CODE_SOFTWARE,bpInfo,1);
     }
@@ -800,7 +800,7 @@ bool XInfoDB::resumeAllThreads()
     #endif
     #ifdef Q_OS_LINUX
         // TODO
-        ptrace(PT_CONTINUE,pListThreads->at(i).nThreadID,0,0);
+        ptrace(PTRACE_CONT,pListThreads->at(i).nThreadID,0,0);
     #endif
 
         bResult=true;
