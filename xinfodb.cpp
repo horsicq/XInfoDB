@@ -246,7 +246,7 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverById(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
 {
     bool bResult=false;
 
