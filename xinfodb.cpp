@@ -584,7 +584,7 @@ bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoById(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepIntoById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
 {
     if(bAddThreadBP)
     {
