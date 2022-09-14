@@ -411,15 +411,15 @@ public:
 //    bool stepInto(XProcess::HANDLEID handleThread);
 //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
-    bool stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
-    bool stepIntoById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
-    bool stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
-    bool stepOverById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
-    bool _setStepByHandle(X_HANDLE hThread);
-    bool _setStepById(X_ID nThreadId);
-    bool suspendThreadById(X_ID nThreadId);
-    bool suspendThreadByHandle(X_HANDLE hThread);
-    bool resumeThreadByHandle(X_HANDLE hThread);
+    bool stepInto_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
+    bool stepInto_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
+    bool stepOver_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
+    bool stepOver_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
+    bool _setStep_Handle(X_HANDLE hThread);
+    bool _setStep_Id(X_ID nThreadId);
+    bool suspendThread_Id(X_ID nThreadId);
+    bool suspendThread_Handle(X_HANDLE hThread);
+    bool resumeThread_Handle(X_HANDLE hThread);
     bool suspendOtherThreads(X_ID nThreadId);
     bool resumeOtherThreads(X_ID nThreadId);
     bool suspendAllThreads();
@@ -439,16 +439,17 @@ public:
     XADDR getCurrentStackPointerCache();
     XADDR getCurrentInstructionPointerCache();
 
-    XADDR getCurrentInstructionPointerByHandle(X_HANDLE hThread);
-    XADDR getCurrentInstructionPointerById(X_ID nThreadId);
-    bool setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue);
+    XADDR getCurrentInstructionPointer_Handle(X_HANDLE hThread);
+    XADDR getCurrentInstructionPointer_Id(X_ID nThreadId);
+    bool setCurrentIntructionPointer_Handle(X_HANDLE hThread,XADDR nValue);
+    bool setCurrentIntructionPointer_Id(X_ID nThreadId,XADDR nValue);
 
-    XCapstone::OPCODE_ID getCurrentOpcodeByHandle(X_HANDLE hThread);
-    XCapstone::OPCODE_ID getCurrentOpcodeById(X_ID nThreadId);
+    XCapstone::OPCODE_ID getCurrentOpcode_Handle(X_HANDLE hThread);
+    XCapstone::OPCODE_ID getCurrentOpcode_Id(X_ID nThreadId);
 
-    XADDR getCurrentStackPointerByHandle(X_HANDLE hThread);
-    XADDR getCurrentStackPointerById(X_ID nThreadId);
-    bool setCurrentStackPointerByHandle(X_HANDLE hThread,XADDR nValue);
+    XADDR getCurrentStackPointer_Handle(X_HANDLE hThread);
+    XADDR getCurrentStackPointer_Id(X_ID nThreadId);
+    bool setCurrentStackPointer_Handle(X_HANDLE hThread,XADDR nValue);
 
     static QString regIdToString(XREG reg);
 

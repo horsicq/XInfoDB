@@ -215,11 +215,11 @@ QString XInfoDB::read_utf8String(XADDR nAddress,quint64 nMaxSize)
     return sResult;
 }
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
+bool XInfoDB::stepOver_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 {
     bool bResult=false;
 
-    XADDR nAddress=getCurrentInstructionPointerByHandle(hThread);
+    XADDR nAddress=getCurrentInstructionPointer_Handle(hThread);
     XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
     if(nNextAddress!=(XADDR)-1)
@@ -239,18 +239,18 @@ bool XInfoDB::stepOverByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
         #endif
         }
 
-        bResult=_setStepByHandle(hThread);
+        bResult=_setStep_Handle(hThread);
     }
 
     return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
+bool XInfoDB::stepOver_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
 {
     bool bResult=false;
 
-    XADDR nAddress=getCurrentInstructionPointerById(nThreadId);
+    XADDR nAddress=getCurrentInstructionPointer_Id(nThreadId);
     XADDR nNextAddress=getAddressNextInstructionAfterCall(nAddress);
 
     if(nNextAddress!=(XADDR)-1)
@@ -270,7 +270,7 @@ bool XInfoDB::stepOverById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
         #endif
         }
 
-        bResult=_setStepById(nThreadId);
+        bResult=_setStep_Id(nThreadId);
     }
 
     return bResult;
@@ -547,7 +547,7 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread,QString sInfo)
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(hThread,breakPoint);
 #endif
-    return _setStepByHandle(hThread);
+    return _setStep_Handle(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -568,7 +568,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
+bool XInfoDB::stepInto_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
 {
     if(bAddThreadBP)
     {
@@ -580,11 +580,11 @@ bool XInfoDB::stepIntoByHandle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP)
     #endif
     }
 
-    return _setStepByHandle(hThread);
+    return _setStep_Handle(hThread);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepIntoById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
+bool XInfoDB::stepInto_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
 {
     if(bAddThreadBP)
     {
@@ -596,11 +596,11 @@ bool XInfoDB::stepIntoById(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP)
     #endif
     }
 
-    return _setStepById(nThreadId);
+    return _setStep_Id(nThreadId);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::_setStepByHandle(X_HANDLE hThread)
+bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 {
     bool bResult=false;
 
@@ -629,7 +629,7 @@ bool XInfoDB::_setStepByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::_setStepById(X_ID nThreadId)
+bool XInfoDB::_setStep_Id(X_ID nThreadId)
 {
     bool bResult=false;
 #ifdef Q_OS_LINUX
@@ -653,7 +653,7 @@ bool XInfoDB::_setStepById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendThreadById(X_ID nThreadId)
+bool XInfoDB::suspendThread_Id(X_ID nThreadId)
 {
     bool bResult=false;
 
@@ -673,7 +673,7 @@ bool XInfoDB::suspendThreadById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendThreadByHandle(X_HANDLE hThread)
+bool XInfoDB::suspendThread_Handle(X_HANDLE hThread)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -687,7 +687,7 @@ bool XInfoDB::suspendThreadByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeThreadByHandle(X_HANDLE hThread)
+bool XInfoDB::resumeThread_Handle(X_HANDLE hThread)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -1127,7 +1127,7 @@ void XInfoDB::updateMemoryRegionsList()
     g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsListByHandle(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsListByHandle(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
 #endif
 }
 #endif
@@ -1437,7 +1437,7 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointerByHandle(X_HANDLE hThread)
+XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread)
 {
     XADDR nResult=0;
 #ifdef Q_OS_WIN
@@ -1458,13 +1458,11 @@ XADDR XInfoDB::getCurrentInstructionPointerByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointerById(X_ID nThreadId)
+XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId)
 {
     XADDR nResult=0;
 #ifdef Q_OS_LINUX
     user_regs_struct regs={};
-
-    errno=0;
 
     if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
     {
@@ -1479,7 +1477,7 @@ XADDR XInfoDB::getCurrentInstructionPointerById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue)
+bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread,XADDR nValue)
 {
     bool bResult=false;
 #ifdef Q_OS_WIN
@@ -1502,9 +1500,31 @@ bool XInfoDB::setCurrentIntructionPointerByHandle(X_HANDLE hThread,XADDR nValue)
 #endif
     return bResult;
 }
+
+bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId,XADDR nValue)
+{
+    bool bResult=false;
+#ifdef Q_OS_LINUX
+    user_regs_struct regs={};
+
+    if(ptrace(PTRACE_GETREGS,nThreadId,nullptr,&regs)!=-1)
+    {
+    #if defined(Q_PROCESSOR_X86_64)
+        regs.rip=nValue;
+    #elif defined(Q_PROCESSOR_X86_32)
+        regs.eip=nValue;
+    #endif
+        if(ptrace(PTRACE_SETREGS,nThreadId,nullptr,&regs)!=-1)
+        {
+            bResult=true;
+        }
+    }
+#endif
+    return bResult;
+}
 #endif
 #ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeByHandle(X_HANDLE hThread)
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
 {
     XCapstone::OPCODE_ID result={};
 
@@ -1514,7 +1534,7 @@ XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeById(X_ID nThreadId)
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId)
 {
     XCapstone::OPCODE_ID result={};
 
@@ -1524,7 +1544,7 @@ XCapstone::OPCODE_ID XInfoDB::getCurrentOpcodeById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointerByHandle(X_HANDLE hThread)
+XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
 {
     XADDR nResult=0;
 #ifdef Q_OS_WIN
@@ -1546,7 +1566,7 @@ XADDR XInfoDB::getCurrentStackPointerByHandle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointerById(X_ID nThreadId)
+XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
 {
     XADDR nResult=0;
 
@@ -1556,7 +1576,7 @@ XADDR XInfoDB::getCurrentStackPointerById(X_ID nThreadId)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentStackPointerByHandle(X_HANDLE hThread,XADDR nValue)
+bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread,XADDR nValue)
 {
     bool bResult=false;
 
