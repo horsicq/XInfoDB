@@ -14,4 +14,3 @@ SOURCES += \
 
 DISTFILES += \
     $$PWD/xinfodb.cmake
-

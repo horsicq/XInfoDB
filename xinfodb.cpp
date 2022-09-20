@@ -715,7 +715,7 @@ bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
         #ifdef Q_OS_WIN
-            suspendThreadByHandle(pListThreads->at(i).hThread);
+            suspendThread_Handle(pListThreads->at(i).hThread);
         #endif
             bResult=true;
         }
@@ -738,7 +738,7 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
         if(nThreadId!=pListThreads->at(i).nThreadID)
         {
         #ifdef Q_OS_WIN
-            resumeThreadByHandle(pListThreads->at(i).hThread);
+            resumeThread_Handle(pListThreads->at(i).hThread);
         #endif
             bResult=true;
         }
@@ -760,7 +760,7 @@ bool XInfoDB::suspendAllThreads()
     for(qint32 i=0;i<nCount;i++)
     {
     #ifdef Q_OS_WIN
-        suspendThreadByHandle(pListThreads->at(i).hThread); // TODO Handle errors
+        suspendThread_Handle(pListThreads->at(i).hThread); // TODO Handle errors
     #endif
     #ifdef Q_OS_LINUX
         if(syscall(SYS_tgkill,g_processInfo.nProcessID,pListThreads->at(i).nThreadID,SIGSTOP)!=-1)
@@ -796,7 +796,7 @@ bool XInfoDB::resumeAllThreads()
     for(qint32 i=0;i<nCount;i++)
     {
     #ifdef Q_OS_WIN
-        resumeThreadByHandle(pListThreads->at(i).hThread);
+        resumeThread_Handle(pListThreads->at(i).hThread);
     #endif
     #ifdef Q_OS_LINUX
         // TODO
@@ -1124,7 +1124,7 @@ void XInfoDB::updateMemoryRegionsList()
 
     g_statusCurrent.listMemoryRegions.clear();
 #ifdef Q_OS_WIN
-    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsListByHandle(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcess,0,0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
     g_statusCurrent.listMemoryRegions=XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery,0,0xFFFFFFFFFFFFFFFF);
