@@ -20,7 +20,6 @@
  */
 #include "xinfodb.h"
 
-
 bool _symbolSort(const XInfoDB::SYMBOL &v1,const XInfoDB::SYMBOL &v2)
 {
     bool bResult=false;
