@@ -1289,7 +1289,7 @@ QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount,QString sInfo,QString sGUID)
+bool XInfoDB::addBreakPoint(XADDR nAddress,BPT bpType,BPI bpInfo,qint32 nCount,QString sInfo,QString sGUID)
 {
     bool bResult=false;
 
@@ -1328,7 +1328,7 @@ bool XInfoDB::addBreakPoint(quint64 nAddress,BPT bpType,BPI bpInfo,qint32 nCount
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeBreakPoint(quint64 nAddress,BPT bpType)
+bool XInfoDB::removeBreakPoint(XADDR nAddress,BPT bpType)
 {
     bool bResult=false;
 
@@ -1368,7 +1368,7 @@ bool XInfoDB::removeBreakPoint(quint64 nAddress,BPT bpType)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::isBreakPointPresent(quint64 nAddress,BPT bpType)
+bool XInfoDB::isBreakPointPresent(XADDR nAddress,BPT bpType)
 {
     bool bResult=false;
 
