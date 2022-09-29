@@ -11,3 +11,7 @@ SOURCES += \
     XCONFIG += xinfodb
     include($$PWD/xinfodb.pri)
 }
+
+DISTFILES += \
+    $$PWD/LICENSE \
+    $$PWD/README.md
