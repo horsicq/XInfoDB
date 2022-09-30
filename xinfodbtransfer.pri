@@ -12,6 +12,8 @@ SOURCES += \
     include($$PWD/xinfodb.pri)
 }
 
+# mb TODO cmake
+
 DISTFILES += \
     $$PWD/LICENSE \
     $$PWD/README.md
