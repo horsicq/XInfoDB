@@ -55,7 +55,8 @@ bool XInfoDBTransfer::process()
     QElapsedTimer scanTimer;
     scanTimer.start();
 
-    g_pPdStruct->pdRecordOpt.bIsValid=true;
+    qint32 _nFreeIndex=XBinary::getFreeIndex(g_pPdStruct);
+    XBinary::setPdStructInit(g_pPdStruct,_nFreeIndex,0);
 
     if(g_pXInfoDB)
     {
@@ -259,12 +260,7 @@ bool XInfoDBTransfer::process()
         }
     }
 
-    if(!(g_pPdStruct->bIsStop))
-    {
-        g_pPdStruct->pdRecordOpt.bSuccess=true;
-    }
-
-    g_pPdStruct->pdRecordOpt.bFinished=true;
+    XBinary::setPdStructFinished(g_pPdStruct,_nFreeIndex);
 
     emit completed(scanTimer.elapsed());
 
