@@ -213,7 +213,7 @@ public:
 
     struct BREAKPOINT
     {
-        // TODO bValid
+        // TODO bIsValid
         XADDR nAddress;
         qint64 nSize;
         qint32 nCount;
@@ -332,16 +332,7 @@ public:
         QString sName;
         XADDR nAddress;
         XADDR nRetAddress;
-        quint64 nParameter0;
-        quint64 nParameter1;
-        quint64 nParameter2;
-        quint64 nParameter3;
-        quint64 nParameter4;
-        quint64 nParameter5;
-        quint64 nParameter6;
-        quint64 nParameter7;
-        quint64 nParameter8;
-        quint64 nParameter9;
+        quint64 nParameters[10]; // TODO const mb TODO number of parametrs
     };
 #endif
 

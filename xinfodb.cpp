@@ -831,16 +831,12 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread,QString sName)
         // TODO 64!
         result.nAddress=nIP;
         result.nRetAddress=read_uint32((quint32)nSP);
-        result.nParameter0=read_uint32((quint32)(nSP+4+0*4));
-        result.nParameter1=read_uint32((quint32)(nSP+4+1*4));
-        result.nParameter2=read_uint32((quint32)(nSP+4+2*4));
-        result.nParameter3=read_uint32((quint32)(nSP+4+3*4));
-        result.nParameter4=read_uint32((quint32)(nSP+4+4*4));
-        result.nParameter5=read_uint32((quint32)(nSP+4+5*4));
-        result.nParameter6=read_uint32((quint32)(nSP+4+6*4));
-        result.nParameter7=read_uint32((quint32)(nSP+4+7*4));
-        result.nParameter8=read_uint32((quint32)(nSP+4+8*4));
-        result.nParameter9=read_uint32((quint32)(nSP+4+9*4));
+
+        for(qint32 i=0;i<10;i++) // TODO consts
+        {
+            result.nParameters[i]=read_uint32((quint32)(nSP+4+i*4));
+        }
+
         result.sName=sName;
     }
 #endif
