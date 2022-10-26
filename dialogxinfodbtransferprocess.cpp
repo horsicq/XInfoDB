@@ -32,9 +32,6 @@ DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) :
     connect(g_pTransfer,SIGNAL(completed(qint64)),this,SLOT(onCompleted(qint64)));
     connect(g_pTransfer,SIGNAL(errorMessage(QString)),this,SLOT(errorMessage(QString)));
 //    connect(g_pTransfer,SIGNAL(progressValueChanged(qint32)),this,SLOT(onProgressValueChanged(qint32)));
-
-//    ui->progressBar->setMaximum(100);
-//    ui->progressBar->setMinimum(0);
 }
 
 DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
