@@ -510,7 +510,7 @@ public:
     {
         XADDR nAddress;
         qint64 nSize;
-        quint32 nModule; // ModuleIndex; 0 = main module
+        quint32 nModule; // ModuleIndex; 0 - main module
         QString sSymbol;
         ST symbolType;
         SS symbolSource;
