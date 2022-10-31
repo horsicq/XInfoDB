@@ -23,8 +23,8 @@
 
 #include <QDialog>
 #include <QThread>
-#include "xinfodbtransfer.h"
 #include "xdialogprocess.h"
+#include "xinfodbtransfer.h"
 
 class DialogXInfoDBTransferProcess : public XDialogProcess
 {
