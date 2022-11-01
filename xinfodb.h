@@ -193,6 +193,7 @@ public:
         BPT_CODE_SOFTWARE,    // for X86 0xCC Check for ARM Check invalid opcodes as BP
         BPT_CODE_HARDWARE,
         BPT_CODE_MEMORY
+        // TODO software invalid opcode
     };
 
     enum BPI
