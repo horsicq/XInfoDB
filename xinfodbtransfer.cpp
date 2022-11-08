@@ -206,7 +206,7 @@ bool XInfoDBTransfer::process()
                     {
                         XBinary::_MEMORY_MAP memoryMap=pe.getMemoryMap();
 
-                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE); // TD mb tr
 
                         {
                             XPE::EXPORT_HEADER _export=pe.getExport(&memoryMap,false,g_pPdStruct);
