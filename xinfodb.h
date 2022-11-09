@@ -484,7 +484,6 @@ public:
     static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
-
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
 
     enum SS
