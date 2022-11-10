@@ -7,8 +7,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,44 +23,40 @@
 
 #include <QMutex>
 #include <QObject>
+
 #include "xcapstone.h"
 #include "xformats.h"
 #ifdef USE_XPROCESS
 #include "xprocess.h"
 #endif
 
-class XInfoDB : public QObject
-{
+class XInfoDB : public QObject {
     Q_OBJECT
-public:
-
-    enum MODE
-    {
-        MODE_UNKNOWN=0,
+   public:
+    enum MODE {
+        MODE_UNKNOWN = 0,
         MODE_DEVICE,
-    #ifdef USE_XPROCESS
+#ifdef USE_XPROCESS
         MODE_PROCESS
-    #endif
+#endif
     };
 #ifdef USE_XPROCESS
-    struct XREG_OPTIONS
-    {
+    struct XREG_OPTIONS {
         bool bGeneral;
         bool bIP;
-    #ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86
         bool bFlags;
         bool bSegments;
         bool bDebug;
         bool bFloat;
         bool bXMM;
-    #endif
+#endif
     };
 
-    enum XREG
-    {
-        XREG_UNKNOWN=0,
+    enum XREG {
+        XREG_UNKNOWN = 0,
         XREG_NONE,
-    #ifdef Q_PROCESSOR_X86
+#ifdef Q_PROCESSOR_X86
         XREG_AX,
         XREG_CX,
         XREG_DX,
@@ -81,7 +77,7 @@ public:
         XREG_EDI,
         XREG_EIP,
         XREG_EFLAGS,
-    #ifdef Q_PROCESSOR_X86_64
+#ifdef Q_PROCESSOR_X86_64
         XREG_RAX,
         XREG_RCX,
         XREG_RDX,
@@ -100,7 +96,7 @@ public:
         XREG_R15,
         XREG_RIP,
         XREG_RFLAGS,
-    #endif
+#endif
         XREG_CS,
         XREG_DS,
         XREG_ES,
@@ -154,7 +150,7 @@ public:
         XREG_CL,
         XREG_DL,
         XREG_BL,
-    #ifdef Q_PROCESSOR_X86_64
+#ifdef Q_PROCESSOR_X86_64
         XREG_SPL,
         XREG_BPL,
         XREG_SIL,
@@ -183,27 +179,26 @@ public:
         XREG_R13B,
         XREG_R14B,
         XREG_R15B,
-    #endif
-    #endif
+#endif
+#endif
     };
 
-    enum BPT
-    {
-        BPT_UNKNOWN=0,
-        BPT_CODE_SOFTWARE,    // for X86 0xCC Check for ARM Check invalid opcodes as BP
+    enum BPT {
+        BPT_UNKNOWN = 0,
+        BPT_CODE_SOFTWARE,  // for X86 0xCC Check for ARM Check invalid opcodes
+                            // as BP
         BPT_CODE_HARDWARE,
         BPT_CODE_MEMORY
         // TODO software invalid opcode
     };
 
-    enum BPI
-    {
-        BPI_UNKNOWN=0,
+    enum BPI {
+        BPI_UNKNOWN = 0,
         BPI_SYSTEM,
         BPI_USER,
         BPI_PROCESSENTRYPOINT,
         BPI_PROGRAMENTRYPOINT,
-        BPI_TLSFUNCTION, // TODO
+        BPI_TLSFUNCTION,  // TODO
         BPI_FUNCTIONENTER,
         BPI_FUNCTIONLEAVE,
         BPI_STEPINTO,
@@ -212,8 +207,7 @@ public:
         BPI_TRACEOVER
     };
 
-    struct BREAKPOINT
-    {
+    struct BREAKPOINT {
         // TODO bIsValid
         XADDR nAddress;
         qint64 nSize;
@@ -222,65 +216,60 @@ public:
         BPI bpInfo;
         QString sInfo;
         qint32 nOrigDataSize;
-        char origData[4]; // TODO consts check
+        char origData[4];  // TODO consts check
         QString sGUID;
     };
 
-    enum THREAD_STATUS
-    {
-        THREAD_STATUS_UNKNOWN=0,
+    enum THREAD_STATUS {
+        THREAD_STATUS_UNKNOWN = 0,
         THREAD_STATUS_PAUSED,
         THREAD_STATUS_RUNNING
     };
 
-    struct THREAD_INFO
-    {
+    struct THREAD_INFO {
         X_ID nThreadID;
         qint64 nThreadLocalBase;
         XADDR nStartAddress;
-    #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         X_HANDLE hThread;
-    #endif
+#endif
         THREAD_STATUS threadStatus;
     };
 
-    struct EXITTHREAD_INFO
-    {
+    struct EXITTHREAD_INFO {
         qint64 nThreadID;
         qint64 nExitCode;
     };
 
-    struct PROCESS_INFO
-    {
+    struct PROCESS_INFO {
         qint64 nProcessID;
-        qint64 nMainThreadID; // TODO Check mb Remove
+        qint64 nMainThreadID;  // TODO Check mb Remove
         QString sFileName;
         QString sBaseFileName;
         XADDR nImageBase;
         quint64 nImageSize;
         XADDR nStartAddress;
         XADDR nThreadLocalBase;
-    #ifdef Q_OS_LINUX
+#ifdef Q_OS_LINUX
         void *hProcessMemoryIO;
         void *hProcessMemoryQuery;
-    #endif
-    #ifdef Q_OS_WIN
+#endif
+#ifdef Q_OS_WIN
         X_HANDLE hMainThread;
         X_HANDLE hProcess;
-    #endif
-    #ifdef Q_OS_MACOS
+#endif
+#ifdef Q_OS_MACOS
         X_HANDLE hProcess;
-    #endif
+#endif
     };
 
-    struct EXITPROCESS_INFO
-    {
+    struct EXITPROCESS_INFO {
         qint64 nProcessID;
         qint64 nThreadID;
         qint64 nExitCode;
     };
 
-    struct SHAREDOBJECT_INFO // DLL on Windows
+    struct SHAREDOBJECT_INFO  // DLL on Windows
     {
         QString sName;
         QString sFileName;
@@ -288,93 +277,94 @@ public:
         quint64 nImageSize;
     };
 
-    struct DEBUGSTRING_INFO
-    {
+    struct DEBUGSTRING_INFO {
         qint64 nThreadID;
         QString sDebugString;
     };
 
-    struct BREAKPOINT_INFO
-    {
+    struct BREAKPOINT_INFO {
         XADDR nAddress;
         XInfoDB::BPT bpType;
         XInfoDB::BPI bpInfo;
         QString sInfo;
         X_ID nProcessID;
-    #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         X_HANDLE hProcess;
-    #endif
-    #ifdef Q_OS_LINUX
-        X_HANDLE_IO pHProcessMemoryIO;      // TODO rename
-        X_HANDLE_MQ pHProcessMemoryQuery;   // TODO rename
-    #endif
-    #ifdef Q_OS_MACOS
+#endif
+#ifdef Q_OS_LINUX
+        X_HANDLE_IO pHProcessMemoryIO;     // TODO rename
+        X_HANDLE_MQ pHProcessMemoryQuery;  // TODO rename
+#endif
+#ifdef Q_OS_MACOS
         X_HANDLE hProcess;
-    #endif
+#endif
         X_ID nThreadID;
-    #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         X_HANDLE hThread;
-    #endif
+#endif
     };
 
-    struct PROCESSENTRY_INFO
-    {
+    struct PROCESSENTRY_INFO {
         XADDR nAddress;
     };
 
-    struct FUNCTIONHOOK_INFO
-    {
+    struct FUNCTIONHOOK_INFO {
         QString sName;
         XADDR nAddress;
     };
 
-    struct FUNCTION_INFO
-    {
+    struct FUNCTION_INFO {
         QString sName;
         XADDR nAddress;
         XADDR nRetAddress;
-        quint64 nParameters[10]; // TODO const mb TODO number of parametrs
+        quint64 nParameters[10];  // TODO const mb TODO number of parametrs
     };
 #endif
 
-    explicit XInfoDB(QObject *pParent=nullptr);
+    explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
 
-    void setDevice(QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
+    void setDevice(QIODevice *pDevice,
+                   XBinary::FT fileType = XBinary::FT_UNKNOWN);
     QIODevice *getDevice();
     XBinary::FT getFileType();
 
     void reload(bool bDataReload);
 
-    quint32 read_uint32(XADDR nAddress,bool bIsBigEndian=false);
-    quint64 read_uint64(XADDR nAddress,bool bIsBigEndian=false);
-    qint64 read_array(XADDR nAddress,char *pData,quint64 nSize);
-    qint64 write_array(XADDR nAddress,char *pData,quint64 nSize);
-    QByteArray read_array(XADDR nAddress,quint64 nSize);
-    QString read_ansiString(XADDR nAddress,quint64 nMaxSize=256);
-    QString read_unicodeString(XADDR nAddress,quint64 nMaxSize=256); // TODO endian ??
-    QString read_utf8String(XADDR nAddress,quint64 nMaxSize=256);
+    quint32 read_uint32(XADDR nAddress, bool bIsBigEndian = false);
+    quint64 read_uint64(XADDR nAddress, bool bIsBigEndian = false);
+    qint64 read_array(XADDR nAddress, char *pData, quint64 nSize);
+    qint64 write_array(XADDR nAddress, char *pData, quint64 nSize);
+    QByteArray read_array(XADDR nAddress, quint64 nSize);
+    QString read_ansiString(XADDR nAddress, quint64 nMaxSize = 256);
+    QString read_unicodeString(XADDR nAddress,
+                               quint64 nMaxSize = 256);  // TODO endian ??
+    QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
-    void updateRegsById(X_ID nThreadId,XREG_OPTIONS regOptions);
-    void updateRegsByHandle(X_HANDLE hThread,XREG_OPTIONS regOptions);
+    void updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions);
+    void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
-    bool addBreakPoint(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE,BPI bpInfo=BPI_UNKNOWN,qint32 nCount=-1,QString sInfo=QString(),QString sGUID=QString());
-    bool removeBreakPoint(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    bool isBreakPointPresent(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByAddress(XADDR nAddress,BPT bpType=BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress,BPT bpType=BPT_CODE_SOFTWARE);
+    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE,
+                       BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1,
+                       QString sInfo = QString(), QString sGUID = QString());
+    bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
+    bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress,
+                                       BPT bpType = BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress,
+                                                BPT bpType = BPT_CODE_SOFTWARE);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
-    QMap<X_HANDLE,BREAKPOINT> *getThreadBreakpoints();
+    QMap<X_HANDLE, BREAKPOINT> *getThreadBreakpoints();
 #endif
 #ifdef Q_OS_LINUX
-    QMap<X_ID,BREAKPOINT> *getThreadBreakpoints();
+    QMap<X_ID, BREAKPOINT> *getThreadBreakpoints();
 #endif
     bool breakpointToggle(XADDR nAddress);
 
@@ -387,9 +377,9 @@ public:
     bool setFunctionHook(QString sFunctionName);
     bool removeFunctionHook(QString sFunctionName);
 
-    QMap<XADDR,SHAREDOBJECT_INFO> *getSharedObjectInfos();
+    QMap<XADDR, SHAREDOBJECT_INFO> *getSharedObjectInfos();
     QList<THREAD_INFO> *getThreadInfos();
-    QMap<QString,FUNCTIONHOOK_INFO> *getFunctionHookInfos();
+    QMap<QString, FUNCTIONHOOK_INFO> *getFunctionHookInfos();
 
     SHAREDOBJECT_INFO findSharedInfoByName(QString sName);
     SHAREDOBJECT_INFO findSharedInfoByAddress(XADDR nAddress);
@@ -399,14 +389,14 @@ public:
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
 #endif
     quint64 getFunctionAddress(QString sFunctionName);
-    bool setSingleStep(X_HANDLE hThread,QString sInfo=""); // TODO mb remove
-//    bool stepInto(XProcess::HANDLEID handleThread);
-//    bool resumeThread(XProcess::HANDLEID handleThread);
+    bool setSingleStep(X_HANDLE hThread, QString sInfo = "");  // TODO mb remove
+    //    bool stepInto(XProcess::HANDLEID handleThread);
+    //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
-    bool stepInto_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
-    bool stepInto_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
-    bool stepOver_Handle(X_HANDLE hThread,BPI bpInfo,bool bAddThreadBP);
-    bool stepOver_Id(X_ID nThreadId,BPI bpInfo,bool bAddThreadBP);
+    bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP);
+    bool stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);
+    bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP);
+    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);
     bool _setStep_Handle(X_HANDLE hThread);
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
@@ -416,16 +406,17 @@ public:
     bool resumeOtherThreads(X_ID nThreadId);
     bool suspendAllThreads();
     bool resumeAllThreads();
-    FUNCTION_INFO getFunctionInfo(X_HANDLE hThread,QString sName);
+    FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, QString sName);
 
-//    void _lockId(quint32 nId);
-//    void _unlockID(quint32 nId);
-//    void _waitID(quint32 nId);
+    //    void _lockId(quint32 nId);
+    //    void _unlockID(quint32 nId);
+    //    void _waitID(quint32 nId);
     XBinary::XVARIANT getCurrentRegCache(XREG reg);
-    void setCurrentRegCache(XREG reg,XBinary::XVARIANT variant);
-    bool setCurrentRegByThread(X_HANDLE hThread,XREG reg,XBinary::XVARIANT variant);
-    bool setCurrentRegById(X_ID nThreadId,XREG reg,XBinary::XVARIANT variant);
-    bool setCurrentReg(XREG reg,XBinary::XVARIANT variant);
+    void setCurrentRegCache(XREG reg, XBinary::XVARIANT variant);
+    bool setCurrentRegByThread(X_HANDLE hThread, XREG reg,
+                               XBinary::XVARIANT variant);
+    bool setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant);
+    bool setCurrentReg(XREG reg, XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
 
     XADDR getCurrentStackPointerCache();
@@ -433,15 +424,15 @@ public:
 
     XADDR getCurrentInstructionPointer_Handle(X_HANDLE hThread);
     XADDR getCurrentInstructionPointer_Id(X_ID nThreadId);
-    bool setCurrentIntructionPointer_Handle(X_HANDLE hThread,XADDR nValue);
-    bool setCurrentIntructionPointer_Id(X_ID nThreadId,XADDR nValue);
+    bool setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue);
+    bool setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue);
 
     XCapstone::OPCODE_ID getCurrentOpcode_Handle(X_HANDLE hThread);
     XCapstone::OPCODE_ID getCurrentOpcode_Id(X_ID nThreadId);
 
     XADDR getCurrentStackPointer_Handle(X_HANDLE hThread);
     XADDR getCurrentStackPointer_Id(X_ID nThreadId);
-    bool setCurrentStackPointer_Handle(X_HANDLE hThread,XADDR nValue);
+    bool setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue);
 
     static QString regIdToString(XREG reg);
 
@@ -450,15 +441,13 @@ public:
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
 #endif
-    struct XSTRING
-    {
+    struct XSTRING {
         QString sAnsiString;
         QString sUnicodeString;
         QString sUTFString;
     };
 
-    struct RECORD_INFO
-    {
+    struct RECORD_INFO {
         bool bValid;
         XADDR nAddress;
         QString sModule;
@@ -467,9 +456,8 @@ public:
         QString sInfo;
     };
 
-    enum RI_TYPE
-    {
-        RI_TYPE_UNKNOWN=0,
+    enum RI_TYPE {
+        RI_TYPE_UNKNOWN = 0,
         RI_TYPE_GENERAL,
         RI_TYPE_ADDRESS,
         RI_TYPE_DATA,
@@ -480,23 +468,23 @@ public:
         RI_TYPE_SYMBOLADDRESS
     };
 
-    RECORD_INFO getRecordInfo(quint64 nValue,RI_TYPE riType=RI_TYPE_GENERAL);
-    static QString recordInfoToString(RECORD_INFO recordInfo,RI_TYPE riType=RI_TYPE_GENERAL);
+    RECORD_INFO getRecordInfo(quint64 nValue, RI_TYPE riType = RI_TYPE_GENERAL);
+    static QString recordInfoToString(RECORD_INFO recordInfo,
+                                      RI_TYPE riType = RI_TYPE_GENERAL);
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
-    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase=0,quint64 nSize=0xFFFFFFFFFFFFFFFF);
+    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(
+        quint64 nBase = 0, quint64 nSize = 0xFFFFFFFFFFFFFFFF);
 
-    enum SS
-    {
-        SS_UNKNOWN=0,
+    enum SS {
+        SS_UNKNOWN = 0,
         SS_FILE,
         SS_USER,
         // TODO More
     };
 
-    enum ST
-    {
-        ST_UNKNOWN=0,
+    enum ST {
+        ST_UNKNOWN = 0,
         ST_LABEL,
         ST_ENTRYPOINT,
         ST_EXPORT,
@@ -506,62 +494,68 @@ public:
         ST_FUNCTION
     };
 
-    struct SYMBOL
-    {
+    struct SYMBOL {
         XADDR nAddress;
         qint64 nSize;
-        quint32 nModule; // ModuleIndex; 0 - main module
+        quint32 nModule;  // ModuleIndex; 0 - main module
         QString sSymbol;
         ST symbolType;
         SS symbolSource;
     };
 
     QList<SYMBOL> *getSymbols();
-    QMap<quint32,QString> *getSymbolModules();
+    QMap<quint32, QString> *getSymbolModules();
 
-    void addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolTyp,SS symbolSource);
-    void _addSymbol(XADDR nAddress,qint64 nSize,quint32 nModule,QString sSymbol,ST symbolType,SS symbolSource);
+    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
+                   QString sSymbol, ST symbolTyp, SS symbolSource);
+    void _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
+                    QString sSymbol, ST symbolType, SS symbolSource);
     void _sortSymbols();
-    qint32 _getSymbolIndex(XADDR nAddress,qint64 nSize,quint32 nModule,qint32 *pnInsertIndex);
+    qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule,
+                           qint32 *pnInsertIndex);
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
 
     void testFunction();
 
-signals:
+   signals:
     void dataChanged(bool bDataReload);
 
-private:
+   private:
 #ifdef USE_XPROCESS
-    struct STATUS
-    {
-        QMap<XREG,XBinary::XVARIANT> mapRegs;
-    #ifdef USE_XPROCESS
+    struct STATUS {
+        QMap<XREG, XBinary::XVARIANT> mapRegs;
+#ifdef USE_XPROCESS
         X_ID nThreadId;
         X_HANDLE hThread;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
         QList<XProcess::MODULE> listModules;
-    #endif
-    };
-    XBinary::XVARIANT _getRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg);
-    void _setRegCache(QMap<XREG,XBinary::XVARIANT> *pMapRegs,XREG reg,XBinary::XVARIANT variant);
 #endif
-private:
+    };
+    XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
+                                   XREG reg);
+    void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg,
+                      XBinary::XVARIANT variant);
+#endif
+   private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     csh g_handle;
     QList<BREAKPOINT> g_listBreakpoints;
 #ifdef Q_OS_WIN
-    QMap<X_HANDLE,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+    QMap<X_HANDLE, BREAKPOINT>
+        g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
 #ifdef Q_OS_LINUX
-    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
+    QMap<X_ID, BREAKPOINT>
+        g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
-//    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS, ThreadID/BP TODO QList
-    QMap<XADDR,SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
+    //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS,
+    //    ThreadID/BP TODO QList
+    QMap<XADDR, SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
     QList<THREAD_INFO> g_listThreadInfos;
-    QMap<QString,FUNCTIONHOOK_INFO> g_mapFunctionHookInfos; // TODO QList
+    QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
 #endif
     MODE g_mode;
 #ifdef USE_XPROCESS
@@ -569,15 +563,15 @@ private:
     STATUS g_statusPrev;
 #endif
     QList<SYMBOL> g_listSymbols;
-    QMap<quint32,QString> g_mapSymbolModules;
-    QMap<quint64,RECORD_INFO> g_mapSRecordInfoCache;
+    QMap<quint32, QString> g_mapSymbolModules;
+    QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     QIODevice *g_pDevice;
     XBinary::FT g_fileType;
     XBinary::_MEMORY_MAP g_MainModuleMemoryMap;
     XADDR g_nMainModuleAddress;
     quint64 g_nMainModuleSize;
     QString g_sMainModuleName;
-    QMap<quint32,QMutex *> g_mapIds;
+    QMap<quint32, QMutex *> g_mapIds;
 };
 
-#endif // XINFODB_H
+#endif  // XINFODB_H

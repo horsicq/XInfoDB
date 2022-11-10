@@ -7,8 +7,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -20,176 +20,190 @@
  */
 #include "xinfodbtransfer.h"
 
-XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
-    : QObject(pParent)
-{
-    g_pXInfoDB=nullptr;
-    g_transferType=TT_IMPORT;
-    g_fileType=XBinary::FT_UNKNOWN;
-    g_pDevice=nullptr;
-    g_pPdStruct=nullptr;
+XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent) {
+    g_pXInfoDB = nullptr;
+    g_transferType = TT_IMPORT;
+    g_fileType = XBinary::FT_UNKNOWN;
+    g_pDevice = nullptr;
+    g_pPdStruct = nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct)
-{
-    g_pXInfoDB=pXInfoDB;
-    g_transferType=transferType;
-    g_sFileName=sFileName;
-    g_fileType=fileType;
-    g_pPdStruct=pPdStruct;
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType,
+                              QString sFileName, XBinary::FT fileType,
+                              XBinary::PDSTRUCT *pPdStruct) {
+    g_pXInfoDB = pXInfoDB;
+    g_transferType = transferType;
+    g_sFileName = sFileName;
+    g_fileType = fileType;
+    g_pPdStruct = pPdStruct;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct)
-{
-    g_pXInfoDB=pXInfoDB;
-    g_transferType=transferType;
-    g_pDevice=pDevice;
-    g_fileType=fileType;
-    g_pPdStruct=pPdStruct;
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType,
+                              QIODevice *pDevice, XBinary::FT fileType,
+                              XBinary::PDSTRUCT *pPdStruct) {
+    g_pXInfoDB = pXInfoDB;
+    g_transferType = transferType;
+    g_pDevice = pDevice;
+    g_fileType = fileType;
+    g_pPdStruct = pPdStruct;
 }
 
-bool XInfoDBTransfer::process()
-{
-    bool bResult=false;
+bool XInfoDBTransfer::process() {
+    bool bResult = false;
 
     QElapsedTimer scanTimer;
     scanTimer.start();
 
-    qint32 _nFreeIndex=XBinary::getFreeIndex(g_pPdStruct);
-    XBinary::setPdStructInit(g_pPdStruct,_nFreeIndex,0);
+    qint32 _nFreeIndex = XBinary::getFreeIndex(g_pPdStruct);
+    XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
-    if(g_pXInfoDB)
-    {
-        if(g_transferType==TT_IMPORT)
-        {
-            QIODevice *pDevice=g_pDevice;
+    if (g_pXInfoDB) {
+        if (g_transferType == TT_IMPORT) {
+            QIODevice *pDevice = g_pDevice;
 
-            bool bFile=false;
+            bool bFile = false;
 
-            if((!pDevice)&&(g_sFileName!=""))
-            {
-                bFile=true;
+            if ((!pDevice) && (g_sFileName != "")) {
+                bFile = true;
 
-                QFile *pFile=new QFile;
+                QFile *pFile = new QFile;
 
                 pFile->setFileName(g_sFileName);
 
-                if(pFile->open(QIODevice::ReadOnly))
-                {
-                    pDevice=pFile;
-                }
-                else
-                {
+                if (pFile->open(QIODevice::ReadOnly)) {
+                    pDevice = pFile;
+                } else {
                     delete pFile;
                 }
             }
 
-            if(pDevice)
-            {
-                XBinary::FT fileType=g_fileType;
+            if (pDevice) {
+                XBinary::FT fileType = g_fileType;
 
-                if(fileType==XBinary::FT_UNKNOWN)
-                {
-                    fileType=XBinary::getPrefFileType(pDevice);
+                if (fileType == XBinary::FT_UNKNOWN) {
+                    fileType = XBinary::getPrefFileType(pDevice);
                 }
 
-                if(XBinary::checkFileType(XBinary::FT_ELF,fileType))
-                {
+                if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
                     XELF elf(pDevice);
 
-                    if(elf.isValid())
-                    {
-                        XBinary::_MEMORY_MAP memoryMap=elf.getMemoryMap();
-                        QList<XELF_DEF::Elf_Phdr> listProgramHeaders=elf.getElf_PhdrList();
+                    if (elf.isValid()) {
+                        XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap();
+                        QList<XELF_DEF::Elf_Phdr> listProgramHeaders =
+                            elf.getElf_PhdrList();
 
-                        if(memoryMap.nEntryPointAddress)
-                        {
-                            g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE);
+                        if (memoryMap.nEntryPointAddress) {
+                            g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,
+                                                   0, 0, "EntryPoint",
+                                                   XInfoDB::ST_ENTRYPOINT,
+                                                   XInfoDB::SS_FILE);
                         }
 
-                        QList<XELF::TAG_STRUCT> listTagStructs=elf.getTagStructs(&listProgramHeaders,&memoryMap);
+                        QList<XELF::TAG_STRUCT> listTagStructs =
+                            elf.getTagStructs(&listProgramHeaders, &memoryMap);
 
-                        QList<XELF::TAG_STRUCT> listDynSym=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_SYMTAB);
-                        QList<XELF::TAG_STRUCT> listStrTab=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_STRTAB);
-                        QList<XELF::TAG_STRUCT> listStrSize=elf._getTagStructs(&listTagStructs,XELF_DEF::DT_STRSZ);
+                        QList<XELF::TAG_STRUCT> listDynSym = elf._getTagStructs(
+                            &listTagStructs, XELF_DEF::DT_SYMTAB);
+                        QList<XELF::TAG_STRUCT> listStrTab = elf._getTagStructs(
+                            &listTagStructs, XELF_DEF::DT_STRTAB);
+                        QList<XELF::TAG_STRUCT> listStrSize =
+                            elf._getTagStructs(&listTagStructs,
+                                               XELF_DEF::DT_STRSZ);
 
-                        if(listDynSym.count()&&listStrTab.count()&&listStrSize.count())
-                        {
-                            qint64 nSymTabOffset=XBinary::addressToOffset(&memoryMap,listDynSym.at(0).nValue);
-                            qint64 nStringTableOffset=XBinary::addressToOffset(&memoryMap,listStrTab.at(0).nValue);
-                            qint64 nStringTableSize=listStrSize.at(0).nValue;
+                        if (listDynSym.count() && listStrTab.count() &&
+                            listStrSize.count()) {
+                            qint64 nSymTabOffset = XBinary::addressToOffset(
+                                &memoryMap, listDynSym.at(0).nValue);
+                            qint64 nStringTableOffset =
+                                XBinary::addressToOffset(
+                                    &memoryMap, listStrTab.at(0).nValue);
+                            qint64 nStringTableSize = listStrSize.at(0).nValue;
 
-                            bool bIs64=elf.is64();
-                            bool bIsBigEndian=elf.isBigEndian();
+                            bool bIs64 = elf.is64();
+                            bool bIsBigEndian = elf.isBigEndian();
 
-                            if(bIs64)
-                            {
-                                nSymTabOffset+=sizeof(XELF_DEF::Elf64_Sym);
+                            if (bIs64) {
+                                nSymTabOffset += sizeof(XELF_DEF::Elf64_Sym);
+                            } else {
+                                nSymTabOffset += sizeof(XELF_DEF::Elf32_Sym);
                             }
-                            else
-                            {
-                                nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
-                            }
 
-                            while(!(g_pPdStruct->bIsStop))
-                            {
-                                XELF_DEF::Elf_Sym record={};
+                            while (!(g_pPdStruct->bIsStop)) {
+                                XELF_DEF::Elf_Sym record = {};
 
-                                if(bIs64)
-                                {
-                                    XELF_DEF::Elf64_Sym _record=elf._readElf64_Sym(nSymTabOffset,bIsBigEndian);
+                                if (bIs64) {
+                                    XELF_DEF::Elf64_Sym _record =
+                                        elf._readElf64_Sym(nSymTabOffset,
+                                                           bIsBigEndian);
 
-                                    record.st_name=_record.st_name;
-                                    record.st_info=_record.st_info;
-                                    record.st_other=_record.st_other;
-                                    record.st_shndx=_record.st_shndx;
-                                    record.st_value=_record.st_value;
-                                    record.st_size=_record.st_size;
+                                    record.st_name = _record.st_name;
+                                    record.st_info = _record.st_info;
+                                    record.st_other = _record.st_other;
+                                    record.st_shndx = _record.st_shndx;
+                                    record.st_value = _record.st_value;
+                                    record.st_size = _record.st_size;
 
-                                    nSymTabOffset+=sizeof(XELF_DEF::Elf64_Sym);
-                                }
-                                else
-                                {
-                                    XELF_DEF::Elf32_Sym _record=elf._readElf32_Sym(nSymTabOffset,bIsBigEndian);
+                                    nSymTabOffset +=
+                                        sizeof(XELF_DEF::Elf64_Sym);
+                                } else {
+                                    XELF_DEF::Elf32_Sym _record =
+                                        elf._readElf32_Sym(nSymTabOffset,
+                                                           bIsBigEndian);
 
-                                    record.st_name=_record.st_name;
-                                    record.st_info=_record.st_info;
-                                    record.st_other=_record.st_other;
-                                    record.st_shndx=_record.st_shndx;
-                                    record.st_value=_record.st_value;
-                                    record.st_size=_record.st_size;
+                                    record.st_name = _record.st_name;
+                                    record.st_info = _record.st_info;
+                                    record.st_other = _record.st_other;
+                                    record.st_shndx = _record.st_shndx;
+                                    record.st_value = _record.st_value;
+                                    record.st_size = _record.st_size;
 
-                                    nSymTabOffset+=sizeof(XELF_DEF::Elf32_Sym);
+                                    nSymTabOffset +=
+                                        sizeof(XELF_DEF::Elf32_Sym);
                                 }
 
-                                if((!record.st_info)||(record.st_other))
-                                {
+                                if ((!record.st_info) || (record.st_other)) {
                                     break;
                                 }
 
-                                XADDR nSymbolAddress=record.st_value;
-                                quint64 nSymbolSize=record.st_size;
+                                XADDR nSymbolAddress = record.st_value;
+                                quint64 nSymbolSize = record.st_size;
 
-                                qint32 nBind=S_ELF64_ST_BIND(record.st_info);
-                                qint32 nType=S_ELF64_ST_TYPE(record.st_info);
+                                qint32 nBind = S_ELF64_ST_BIND(record.st_info);
+                                qint32 nType = S_ELF64_ST_TYPE(record.st_info);
 
-                                if(nSymbolAddress)
-                                {
-                                    if((nBind==1)||(nBind==2)) // GLOBAL,WEAK TODO consts
+                                if (nSymbolAddress) {
+                                    if ((nBind == 1) ||
+                                        (nBind ==
+                                         2))  // GLOBAL,WEAK TODO consts
                                     {
-                                        if((nType==0)||(nType==1)||(nType==2)) // NOTYPE,OBJECT,FUNC TODO consts
+                                        if ((nType == 0) || (nType == 1) ||
+                                            (nType == 2))  // NOTYPE,OBJECT,FUNC
+                                                           // TODO consts
                                         {
-                                            XInfoDB::ST symbolType=XInfoDB::ST_LABEL;
+                                            XInfoDB::ST symbolType =
+                                                XInfoDB::ST_LABEL;
 
-                                            if      (nType==0)      symbolType=XInfoDB::ST_LABEL;
-                                            else if (nType==1)      symbolType=XInfoDB::ST_OBJECT;
-                                            else if (nType==2)      symbolType=XInfoDB::ST_FUNCTION;
+                                            if (nType == 0)
+                                                symbolType = XInfoDB::ST_LABEL;
+                                            else if (nType == 1)
+                                                symbolType = XInfoDB::ST_OBJECT;
+                                            else if (nType == 2)
+                                                symbolType =
+                                                    XInfoDB::ST_FUNCTION;
 
-                                            QString sSymbolName=elf.getStringFromIndex(nStringTableOffset,nStringTableSize,record.st_name);
+                                            QString sSymbolName =
+                                                elf.getStringFromIndex(
+                                                    nStringTableOffset,
+                                                    nStringTableSize,
+                                                    record.st_name);
 
-                                            if(XBinary::isAddressValid(&memoryMap,nSymbolAddress))
-                                            {
-                                                g_pXInfoDB->_addSymbol(nSymbolAddress,nSymbolSize,0,sSymbolName,symbolType,XInfoDB::SS_FILE);
+                                            if (XBinary::isAddressValid(
+                                                    &memoryMap,
+                                                    nSymbolAddress)) {
+                                                g_pXInfoDB->_addSymbol(
+                                                    nSymbolAddress, nSymbolSize,
+                                                    0, sSymbolName, symbolType,
+                                                    XInfoDB::SS_FILE);
                                             }
                                         }
                                     }
@@ -197,44 +211,60 @@ bool XInfoDBTransfer::process()
                             }
                         }
                     }
-                }
-                else if(XBinary::checkFileType(XBinary::FT_PE,fileType))
-                {
+                } else if (XBinary::checkFileType(XBinary::FT_PE, fileType)) {
                     XPE pe(pDevice);
 
-                    if(pe.isValid())
-                    {
-                        XBinary::_MEMORY_MAP memoryMap=pe.getMemoryMap();
+                    if (pe.isValid()) {
+                        XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
 
-                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress,0,0,"EntryPoint",XInfoDB::ST_ENTRYPOINT,XInfoDB::SS_FILE); // TD mb tr
+                        g_pXInfoDB->_addSymbol(memoryMap.nEntryPointAddress, 0,
+                                               0, "EntryPoint",
+                                               XInfoDB::ST_ENTRYPOINT,
+                                               XInfoDB::SS_FILE);  // TD mb tr
 
                         {
-                            XPE::EXPORT_HEADER _export=pe.getExport(&memoryMap,false,g_pPdStruct);
+                            XPE::EXPORT_HEADER _export =
+                                pe.getExport(&memoryMap, false, g_pPdStruct);
 
-                            qint32 nNumberOfRecords=_export.listPositions.count();
+                            qint32 nNumberOfRecords =
+                                _export.listPositions.count();
 
-                            for(qint32 i=0;(i<nNumberOfRecords)&&(!(g_pPdStruct->bIsStop));i++)
-                            {
-                                QString sFunctionName=_export.listPositions.at(i).sFunctionName;
+                            for (qint32 i = 0; (i < nNumberOfRecords) &&
+                                               (!(g_pPdStruct->bIsStop));
+                                 i++) {
+                                QString sFunctionName =
+                                    _export.listPositions.at(i).sFunctionName;
 
-                                if(sFunctionName=="")
-                                {
-                                    sFunctionName=QString::number(_export.listPositions.at(i).nOrdinal);
+                                if (sFunctionName == "") {
+                                    sFunctionName = QString::number(
+                                        _export.listPositions.at(i).nOrdinal);
                                 }
 
-                                g_pXInfoDB->_addSymbol(_export.listPositions.at(i).nAddress,0,0,sFunctionName,XInfoDB::ST_EXPORT,XInfoDB::SS_FILE);
+                                g_pXInfoDB->_addSymbol(
+                                    _export.listPositions.at(i).nAddress, 0, 0,
+                                    sFunctionName, XInfoDB::ST_EXPORT,
+                                    XInfoDB::SS_FILE);
                             }
                         }
                         {
-                            QList<XPE::IMPORT_RECORD> listImportRecords=pe.getImportRecords(&memoryMap,g_pPdStruct);
+                            QList<XPE::IMPORT_RECORD> listImportRecords =
+                                pe.getImportRecords(&memoryMap, g_pPdStruct);
 
-                            qint32 nNumberOfRecords=listImportRecords.count();
+                            qint32 nNumberOfRecords = listImportRecords.count();
 
-                            for(qint32 i=0;(i<nNumberOfRecords)&&(!(g_pPdStruct->bIsStop));i++)
-                            {
-                                QString sFunctionName=listImportRecords.at(i).sLibrary+"#"+listImportRecords.at(i).sFunction;
+                            for (qint32 i = 0; (i < nNumberOfRecords) &&
+                                               (!(g_pPdStruct->bIsStop));
+                                 i++) {
+                                QString sFunctionName =
+                                    listImportRecords.at(i).sLibrary + "#" +
+                                    listImportRecords.at(i).sFunction;
 
-                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap,listImportRecords.at(i).nRVA),0,0,sFunctionName,XInfoDB::ST_IMPORT,XInfoDB::SS_FILE);
+                                g_pXInfoDB->_addSymbol(
+                                    XBinary::relAddressToAddress(
+                                        &memoryMap,
+                                        listImportRecords.at(i).nRVA),
+                                    0, 0, sFunctionName, XInfoDB::ST_IMPORT,
+                                    XInfoDB::SS_FILE);
                             }
                         }
                         // TODO TLS
@@ -245,22 +275,19 @@ bool XInfoDBTransfer::process()
 
             g_pXInfoDB->_sortSymbols();
 
-            if(bFile&&pDevice)
-            {
-                QFile *pFile=static_cast<QFile *>(pDevice);
+            if (bFile && pDevice) {
+                QFile *pFile = static_cast<QFile *>(pDevice);
 
                 pFile->close();
 
                 delete pFile;
             }
-        }
-        else if(g_transferType==TT_EXPORT)
-        {
+        } else if (g_transferType == TT_EXPORT) {
             // TODO
         }
     }
 
-    XBinary::setPdStructFinished(g_pPdStruct,_nFreeIndex);
+    XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndex);
 
     emit completed(scanTimer.elapsed());
 

@@ -7,8 +7,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -21,33 +21,30 @@
 #ifndef XINFODBTRANSFER_H
 #define XINFODBTRANSFER_H
 
-#include "xinfodb.h"
 #include "xformats.h"
+#include "xinfodb.h"
 
-class XInfoDBTransfer : public QObject
-{
+class XInfoDBTransfer : public QObject {
     Q_OBJECT
-public:
-    explicit XInfoDBTransfer(QObject *pParent=nullptr);
+   public:
+    explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
-    enum TT
-    {
-        TT_IMPORT=0,
-        TT_EXPORT
-    };
+    enum TT { TT_IMPORT = 0, TT_EXPORT };
 
-    void setData(XInfoDB *pXInfoDB,TT transferType,QString sFileName,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB,TT transferType,QIODevice *pDevice,XBinary::FT fileType,XBinary::PDSTRUCT *pPdStruct);
-//    bool loadFromFile(QString sFileName,XBinary::FT fileType);
+    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName,
+                 XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice,
+                 XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
-public slots:
+   public slots:
     bool process();
 
-signals:
+   signals:
     void errorMessage(QString sText);
     void completed(qint64 nElapsed);
 
-private:
+   private:
     XInfoDB *g_pXInfoDB;
     TT g_transferType;
     QString g_sFileName;
@@ -56,4 +53,4 @@ private:
     XBinary::PDSTRUCT *g_pPdStruct;
 };
 
-#endif // XINFODBTRANSFER_H
+#endif  // XINFODBTRANSFER_H

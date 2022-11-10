@@ -7,8 +7,8 @@
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -23,24 +23,26 @@
 
 #include <QDialog>
 #include <QThread>
+
 #include "xdialogprocess.h"
 #include "xinfodbtransfer.h"
 
-class DialogXInfoDBTransferProcess : public XDialogProcess
-{
+class DialogXInfoDBTransferProcess : public XDialogProcess {
     Q_OBJECT
 
-public:
-    explicit DialogXInfoDBTransferProcess(QWidget *pParent=nullptr);
+   public:
+    explicit DialogXInfoDBTransferProcess(QWidget *pParent = nullptr);
     ~DialogXInfoDBTransferProcess();
 
-    void importData(XInfoDB *pXInfoDB,QString sFileName,XBinary::FT fileType=XBinary::FT_UNKNOWN);
-    void importData(XInfoDB *pXInfoDB,QIODevice *pDevice,XBinary::FT fileType=XBinary::FT_UNKNOWN);
-    void exportData(XInfoDB *pXInfoDB,QString sFileName);
+    void importData(XInfoDB *pXInfoDB, QString sFileName,
+                    XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void importData(XInfoDB *pXInfoDB, QIODevice *pDevice,
+                    XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void exportData(XInfoDB *pXInfoDB, QString sFileName);
 
-private:
+   private:
     XInfoDBTransfer *g_pTransfer;
     QThread *g_pThread;
 };
 
-#endif // DIALOGXINFODBTRANSFERPROCESS_H
+#endif  // DIALOGXINFODBTRANSFERPROCESS_H
