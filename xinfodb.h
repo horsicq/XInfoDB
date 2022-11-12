@@ -32,7 +32,7 @@
 
 class XInfoDB : public QObject {
     Q_OBJECT
-   public:
+public:
     enum MODE {
         MODE_UNKNOWN = 0,
         MODE_DEVICE,
@@ -324,8 +324,7 @@ class XInfoDB : public QObject {
     explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
 
-    void setDevice(QIODevice *pDevice,
-                   XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void setDevice(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     QIODevice *getDevice();
     XBinary::FT getFileType();
 
@@ -349,15 +348,12 @@ class XInfoDB : public QObject {
     void updateModulesList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
-    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE,
-                       BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1,
-                       QString sInfo = QString(), QString sGUID = QString());
+    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, QString sInfo = QString(),
+                       QString sGUID = QString());
     bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
     bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByAddress(XADDR nAddress,
-                                       BPT bpType = BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress,
-                                                BPT bpType = BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
@@ -413,8 +409,7 @@ class XInfoDB : public QObject {
     //    void _waitID(quint32 nId);
     XBinary::XVARIANT getCurrentRegCache(XREG reg);
     void setCurrentRegCache(XREG reg, XBinary::XVARIANT variant);
-    bool setCurrentRegByThread(X_HANDLE hThread, XREG reg,
-                               XBinary::XVARIANT variant);
+    bool setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant);
     bool setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant);
     bool setCurrentReg(XREG reg, XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
@@ -469,12 +464,10 @@ class XInfoDB : public QObject {
     };
 
     RECORD_INFO getRecordInfo(quint64 nValue, RI_TYPE riType = RI_TYPE_GENERAL);
-    static QString recordInfoToString(RECORD_INFO recordInfo,
-                                      RI_TYPE riType = RI_TYPE_GENERAL);
+    static QString recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType = RI_TYPE_GENERAL);
     void clearRecordInfoCache();
     RECORD_INFO getRecordInfoCache(quint64 nValue);
-    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(
-        quint64 nBase = 0, quint64 nSize = 0xFFFFFFFFFFFFFFFF);
+    QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase = 0, quint64 nSize = 0xFFFFFFFFFFFFFFFF);
 
     enum SS {
         SS_UNKNOWN = 0,
@@ -506,23 +499,20 @@ class XInfoDB : public QObject {
     QList<SYMBOL> *getSymbols();
     QMap<quint32, QString> *getSymbolModules();
 
-    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
-                   QString sSymbol, ST symbolTyp, SS symbolSource);
-    void _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
-                    QString sSymbol, ST symbolType, SS symbolSource);
+    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolTyp, SS symbolSource);
+    void _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     void _sortSymbols();
-    qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule,
-                           qint32 *pnInsertIndex);
+    qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
 
     void testFunction();
 
-   signals:
+signals:
     void dataChanged(bool bDataReload);
 
-   private:
+private:
 #ifdef USE_XPROCESS
     struct STATUS {
         QMap<XREG, XBinary::XVARIANT> mapRegs;
@@ -533,23 +523,19 @@ class XInfoDB : public QObject {
         QList<XProcess::MODULE> listModules;
 #endif
     };
-    XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
-                                   XREG reg);
-    void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg,
-                      XBinary::XVARIANT variant);
+    XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
+    void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
 #endif
-   private:
+private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
     csh g_handle;
     QList<BREAKPOINT> g_listBreakpoints;
 #ifdef Q_OS_WIN
-    QMap<X_HANDLE, BREAKPOINT>
-        g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
+    QMap<X_HANDLE, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
 #ifdef Q_OS_LINUX
-    QMap<X_ID, BREAKPOINT>
-        g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
+    QMap<X_ID, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
     //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS,
     //    ThreadID/BP TODO QList

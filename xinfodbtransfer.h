@@ -26,25 +26,26 @@
 
 class XInfoDBTransfer : public QObject {
     Q_OBJECT
-   public:
+public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
-    enum TT { TT_IMPORT = 0, TT_EXPORT };
+    enum TT {
+        TT_IMPORT = 0,
+        TT_EXPORT
+    };
 
-    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName,
-                 XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice,
-                 XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
-   public slots:
+public slots:
     bool process();
 
-   signals:
+signals:
     void errorMessage(QString sText);
     void completed(qint64 nElapsed);
 
-   private:
+private:
     XInfoDB *g_pXInfoDB;
     TT g_transferType;
     QString g_sFileName;

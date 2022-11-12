@@ -30,17 +30,15 @@
 class DialogXInfoDBTransferProcess : public XDialogProcess {
     Q_OBJECT
 
-   public:
+public:
     explicit DialogXInfoDBTransferProcess(QWidget *pParent = nullptr);
     ~DialogXInfoDBTransferProcess();
 
-    void importData(XInfoDB *pXInfoDB, QString sFileName,
-                    XBinary::FT fileType = XBinary::FT_UNKNOWN);
-    void importData(XInfoDB *pXInfoDB, QIODevice *pDevice,
-                    XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     void exportData(XInfoDB *pXInfoDB, QString sFileName);
 
-   private:
+private:
     XInfoDBTransfer *g_pTransfer;
     QThread *g_pThread;
 };

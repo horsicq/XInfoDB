@@ -78,22 +78,26 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType) {
     g_sMainModuleName = XBinary::getDeviceFileBaseName(pDevice);
 }
 
-QIODevice *XInfoDB::getDevice() { return g_pDevice; }
+QIODevice *XInfoDB::getDevice() {
+    return g_pDevice;
+}
 
-XBinary::FT XInfoDB::getFileType() { return g_fileType; }
+XBinary::FT XInfoDB::getFileType() {
+    return g_fileType;
+}
 
-void XInfoDB::reload(bool bDataReload) { emit dataChanged(bDataReload); }
+void XInfoDB::reload(bool bDataReload) {
+    emit dataChanged(bDataReload);
+}
 
 quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian) {
     quint32 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    nResult =
-        XProcess::read_uint32(g_processInfo.hProcess, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint32(g_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_uint32(g_processInfo.hProcessMemoryIO, nAddress,
-                                    bIsBigEndian);
+    nResult = XProcess::read_uint32(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
 #endif
     // TODO XBinary
@@ -104,12 +108,10 @@ quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian) {
     quint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    nResult =
-        XProcess::read_uint64(g_processInfo.hProcess, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint64(g_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_uint64(g_processInfo.hProcessMemoryIO, nAddress,
-                                    bIsBigEndian);
+    nResult = XProcess::read_uint64(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
 #endif
     return nResult;
@@ -119,12 +121,10 @@ qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize) {
     qint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    nResult =
-        XProcess::read_array(g_processInfo.hProcess, nAddress, pData, nSize);
+    nResult = XProcess::read_array(g_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress,
-                                   pData, nSize);
+    nResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
 #endif
     return nResult;
@@ -134,12 +134,10 @@ qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize) {
     qint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    nResult =
-        XProcess::write_array(g_processInfo.hProcess, nAddress, pData, nSize);
+    nResult = XProcess::write_array(g_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::write_array(g_processInfo.hProcessMemoryIO, nAddress,
-                                    pData, nSize);
+    nResult = XProcess::write_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
 #endif
     return nResult;
@@ -152,8 +150,7 @@ QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize) {
     baResult = XProcess::read_array(g_processInfo.hProcess, nAddress, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    baResult =
-        XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, nSize);
+    baResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, nSize);
 #endif
 #endif
     return baResult;
@@ -163,12 +160,10 @@ QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize) {
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    sResult =
-        XProcess::read_ansiString(g_processInfo.hProcess, nAddress, nMaxSize);
+    sResult = XProcess::read_ansiString(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_ansiString(g_processInfo.hProcessMemoryIO,
-                                        nAddress, nMaxSize);
+    sResult = XProcess::read_ansiString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
 #endif
     return sResult;
@@ -178,12 +173,10 @@ QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize) {
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    sResult = XProcess::read_unicodeString(g_processInfo.hProcess, nAddress,
-                                           nMaxSize);
+    sResult = XProcess::read_unicodeString(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_unicodeString(g_processInfo.hProcessMemoryIO,
-                                           nAddress, nMaxSize);
+    sResult = XProcess::read_unicodeString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
 #endif
     return sResult;
@@ -193,12 +186,10 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize) {
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    sResult =
-        XProcess::read_utf8String(g_processInfo.hProcess, nAddress, nMaxSize);
+    sResult = XProcess::read_utf8String(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_utf8String(g_processInfo.hProcessMemoryIO,
-                                        nAddress, nMaxSize);
+    sResult = XProcess::read_utf8String(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
 #endif
     return sResult;
@@ -211,8 +202,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP) {
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
 
     if (nNextAddress != (XADDR)-1) {
-        bResult =
-            addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
+        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
     } else {
         if (bAddThreadBP) {
             XInfoDB::BREAKPOINT breakPoint = {};
@@ -238,8 +228,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
 
     if (nNextAddress != (XADDR)-1) {
-        bResult =
-            addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
+        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
     } else {
         if (bAddThreadBP) {
             XInfoDB::BREAKPOINT breakPoint = {};
@@ -258,16 +247,14 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress,
-                                                     BPT bpType) {
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType) {
     BREAKPOINT result = {};
     result.nAddress = -1;
 
     qint32 nNumberOfRecords = g_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if ((g_listBreakpoints.at(i).nAddress == nAddress) &&
-            (g_listBreakpoints.at(i).bpType == bpType)) {
+        if ((g_listBreakpoints.at(i).nAddress == nAddress) && (g_listBreakpoints.at(i).bpType == bpType)) {
             result = g_listBreakpoints.at(i);
 
             break;
@@ -278,8 +265,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress,
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(
-    XADDR nExceptionAddress, BPT bpType) {
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType) {
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -288,8 +274,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
 
-        if (breakPoint.nAddress ==
-            (nExceptionAddress - breakPoint.nOrigDataSize)) {
+        if (breakPoint.nAddress == (nExceptionAddress - breakPoint.nOrigDataSize)) {
             result = breakPoint;
 
             break;
@@ -318,8 +303,7 @@ bool XInfoDB::breakpointToggle(XADDR nAddress) {
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::addSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo) {
-    g_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase,
-                                  *pSharedObjectInfo);
+    g_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase, *pSharedObjectInfo);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -352,8 +336,7 @@ bool XInfoDB::setFunctionHook(QString sFunctionName) {
     qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
 
     if (nFunctionAddress != -1) {
-        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE,
-                                XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
+        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
 
         XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
         functionhook_info.sName = sFunctionName;
@@ -409,9 +392,7 @@ QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos() {
 XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName) {
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
-    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it =
-             g_mapSharedObjectInfos.begin();
-         it != g_mapSharedObjectInfos.end();) {
+    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
         if (it.value().sName == sName) {
             result = it.value();
 
@@ -428,13 +409,10 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName) {
 XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress) {
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
-    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it =
-             g_mapSharedObjectInfos.begin();
-         it != g_mapSharedObjectInfos.end();) {
+    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
         XInfoDB::SHAREDOBJECT_INFO record = it.value();
 
-        if ((record.nImageBase <= nAddress) &&
-            (record.nImageBase + record.nImageSize > nAddress)) {
+        if ((record.nImageBase <= nAddress) && (record.nImageBase + record.nImageSize > nAddress)) {
             result = record;
 
             break;
@@ -507,8 +485,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress) {
 
     QByteArray baData = read_array(nAddress, 15);
 
-    XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(
-        g_handle, nAddress, baData.data(), baData.size());
+    XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(g_handle, nAddress, baData.data(), baData.size());
 
     if (XCapstone::isCallOpcode(opcodeID.nOpcodeID)) {
         nResult = nAddress + opcodeID.nSize;
@@ -594,8 +571,7 @@ bool XInfoDB::suspendThread_Id(X_ID nThreadId) {
     bool bResult = false;
 
 #ifdef Q_OS_LINUX
-    if (syscall(SYS_tgkill, g_processInfo.nProcessID, nThreadId, SIGSTOP) !=
-        -1) {
+    if (syscall(SYS_tgkill, g_processInfo.nProcessID, nThreadId, SIGSTOP) != -1) {
         // TODO Set thread status
         bResult = true;
     } else {
@@ -684,12 +660,10 @@ bool XInfoDB::suspendAllThreads() {
     // TODO Check if already suspended
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        suspendThread_Handle(
-            pListThreads->at(i).hThread);  // TODO Handle errors
+        suspendThread_Handle(pListThreads->at(i).hThread);  // TODO Handle errors
 #endif
 #ifdef Q_OS_LINUX
-        if (syscall(SYS_tgkill, g_processInfo.nProcessID,
-                    pListThreads->at(i).nThreadID, SIGSTOP) != -1) {
+        if (syscall(SYS_tgkill, g_processInfo.nProcessID, pListThreads->at(i).nThreadID, SIGSTOP) != -1) {
             //            int thread_status=0;
 
             //            if(waitpid(pListThreads->at(i).nThreadID,&thread_status,__WALL)!=-1)
@@ -731,8 +705,7 @@ bool XInfoDB::resumeAllThreads() {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread,
-                                                QString sName) {
+XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName) {
     FUNCTION_INFO result = {};
 
 #ifdef Q_OS_WIN
@@ -823,7 +796,9 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo() { return &g_processInfo; }
+XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo() {
+    return &g_processInfo;
+}
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions) {
@@ -839,63 +814,39 @@ void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions) {
 
     if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
         if (regOptions.bGeneral) {
-            g_statusCurrent.mapRegs.insert(
-                XREG_RAX, XBinary::getXVariant((quint64)(regs.rax)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RBX, XBinary::getXVariant((quint64)(regs.rbx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RCX, XBinary::getXVariant((quint64)(regs.rcx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RDX, XBinary::getXVariant((quint64)(regs.rdx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RBP, XBinary::getXVariant((quint64)(regs.rbp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RSP, XBinary::getXVariant((quint64)(regs.rsp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RSI, XBinary::getXVariant((quint64)(regs.rsi)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RDI, XBinary::getXVariant((quint64)(regs.rdi)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R8, XBinary::getXVariant((quint64)(regs.r8)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R9, XBinary::getXVariant((quint64)(regs.r9)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R10, XBinary::getXVariant((quint64)(regs.r10)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R11, XBinary::getXVariant((quint64)(regs.r11)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R12, XBinary::getXVariant((quint64)(regs.r12)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R13, XBinary::getXVariant((quint64)(regs.r13)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R14, XBinary::getXVariant((quint64)(regs.r14)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R15, XBinary::getXVariant((quint64)(regs.r15)));
+            g_statusCurrent.mapRegs.insert(XREG_RAX, XBinary::getXVariant((quint64)(regs.rax)));
+            g_statusCurrent.mapRegs.insert(XREG_RBX, XBinary::getXVariant((quint64)(regs.rbx)));
+            g_statusCurrent.mapRegs.insert(XREG_RCX, XBinary::getXVariant((quint64)(regs.rcx)));
+            g_statusCurrent.mapRegs.insert(XREG_RDX, XBinary::getXVariant((quint64)(regs.rdx)));
+            g_statusCurrent.mapRegs.insert(XREG_RBP, XBinary::getXVariant((quint64)(regs.rbp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSP, XBinary::getXVariant((quint64)(regs.rsp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSI, XBinary::getXVariant((quint64)(regs.rsi)));
+            g_statusCurrent.mapRegs.insert(XREG_RDI, XBinary::getXVariant((quint64)(regs.rdi)));
+            g_statusCurrent.mapRegs.insert(XREG_R8, XBinary::getXVariant((quint64)(regs.r8)));
+            g_statusCurrent.mapRegs.insert(XREG_R9, XBinary::getXVariant((quint64)(regs.r9)));
+            g_statusCurrent.mapRegs.insert(XREG_R10, XBinary::getXVariant((quint64)(regs.r10)));
+            g_statusCurrent.mapRegs.insert(XREG_R11, XBinary::getXVariant((quint64)(regs.r11)));
+            g_statusCurrent.mapRegs.insert(XREG_R12, XBinary::getXVariant((quint64)(regs.r12)));
+            g_statusCurrent.mapRegs.insert(XREG_R13, XBinary::getXVariant((quint64)(regs.r13)));
+            g_statusCurrent.mapRegs.insert(XREG_R14, XBinary::getXVariant((quint64)(regs.r14)));
+            g_statusCurrent.mapRegs.insert(XREG_R15, XBinary::getXVariant((quint64)(regs.r15)));
         }
 
         if (regOptions.bIP) {
-            g_statusCurrent.mapRegs.insert(
-                XREG_RIP, XBinary::getXVariant((quint64)(regs.rip)));
+            g_statusCurrent.mapRegs.insert(XREG_RIP, XBinary::getXVariant((quint64)(regs.rip)));
         }
 
         if (regOptions.bFlags) {
-            g_statusCurrent.mapRegs.insert(
-                XREG_RFLAGS, XBinary::getXVariant((quint32)(regs.eflags)));
+            g_statusCurrent.mapRegs.insert(XREG_RFLAGS, XBinary::getXVariant((quint32)(regs.eflags)));
         }
 
         if (regOptions.bSegments) {
-            g_statusCurrent.mapRegs.insert(
-                XREG_GS, XBinary::getXVariant((quint16)(regs.gs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_FS, XBinary::getXVariant((quint16)(regs.fs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_ES, XBinary::getXVariant((quint16)(regs.es)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DS, XBinary::getXVariant((quint16)(regs.ds)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_CS, XBinary::getXVariant((quint16)(regs.cs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_SS, XBinary::getXVariant((quint16)(regs.ss)));
+            g_statusCurrent.mapRegs.insert(XREG_GS, XBinary::getXVariant((quint16)(regs.gs)));
+            g_statusCurrent.mapRegs.insert(XREG_FS, XBinary::getXVariant((quint16)(regs.fs)));
+            g_statusCurrent.mapRegs.insert(XREG_ES, XBinary::getXVariant((quint16)(regs.es)));
+            g_statusCurrent.mapRegs.insert(XREG_DS, XBinary::getXVariant((quint16)(regs.ds)));
+            g_statusCurrent.mapRegs.insert(XREG_CS, XBinary::getXVariant((quint16)(regs.cs)));
+            g_statusCurrent.mapRegs.insert(XREG_SS, XBinary::getXVariant((quint16)(regs.ss)));
         }
     } else {
         qDebug("errno: %s", strerror(errno));
@@ -916,143 +867,93 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions) {
 
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
-    context.ContextFlags =
-        CONTEXT_ALL;  // All registers TODO Check regOptions
-                      // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
+    context.ContextFlags = CONTEXT_ALL;  // All registers TODO Check regOptions
+                                         // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
     if (GetThreadContext(hThread, &context)) {
         if (regOptions.bGeneral) {
 #ifdef Q_PROCESSOR_X86_32
-            g_statusCurrent.mapRegs.insert(
-                XREG_EAX, XBinary::getXVariant((quint32)(context.Eax)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_EBX, XBinary::getXVariant((quint32)(context.Ebx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_ECX, XBinary::getXVariant((quint32)(context.Ecx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_EDX, XBinary::getXVariant((quint32)(context.Edx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_EBP, XBinary::getXVariant((quint32)(context.Ebp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_ESP, XBinary::getXVariant((quint32)(context.Esp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_ESI, XBinary::getXVariant((quint32)(context.Esi)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_EDI, XBinary::getXVariant((quint32)(context.Edi)));
+            g_statusCurrent.mapRegs.insert(XREG_EAX, XBinary::getXVariant((quint32)(context.Eax)));
+            g_statusCurrent.mapRegs.insert(XREG_EBX, XBinary::getXVariant((quint32)(context.Ebx)));
+            g_statusCurrent.mapRegs.insert(XREG_ECX, XBinary::getXVariant((quint32)(context.Ecx)));
+            g_statusCurrent.mapRegs.insert(XREG_EDX, XBinary::getXVariant((quint32)(context.Edx)));
+            g_statusCurrent.mapRegs.insert(XREG_EBP, XBinary::getXVariant((quint32)(context.Ebp)));
+            g_statusCurrent.mapRegs.insert(XREG_ESP, XBinary::getXVariant((quint32)(context.Esp)));
+            g_statusCurrent.mapRegs.insert(XREG_ESI, XBinary::getXVariant((quint32)(context.Esi)));
+            g_statusCurrent.mapRegs.insert(XREG_EDI, XBinary::getXVariant((quint32)(context.Edi)));
 #endif
 #ifdef Q_PROCESSOR_X86_64
-            g_statusCurrent.mapRegs.insert(
-                XREG_RAX, XBinary::getXVariant((quint64)(context.Rax)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RBX, XBinary::getXVariant((quint64)(context.Rbx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RCX, XBinary::getXVariant((quint64)(context.Rcx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RDX, XBinary::getXVariant((quint64)(context.Rdx)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RBP, XBinary::getXVariant((quint64)(context.Rbp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RSP, XBinary::getXVariant((quint64)(context.Rsp)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RSI, XBinary::getXVariant((quint64)(context.Rsi)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_RDI, XBinary::getXVariant((quint64)(context.Rdi)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R8, XBinary::getXVariant((quint64)(context.R8)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R9, XBinary::getXVariant((quint64)(context.R9)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R10, XBinary::getXVariant((quint64)(context.R10)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R11, XBinary::getXVariant((quint64)(context.R11)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R12, XBinary::getXVariant((quint64)(context.R12)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R13, XBinary::getXVariant((quint64)(context.R13)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R14, XBinary::getXVariant((quint64)(context.R14)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_R15, XBinary::getXVariant((quint64)(context.R15)));
+            g_statusCurrent.mapRegs.insert(XREG_RAX, XBinary::getXVariant((quint64)(context.Rax)));
+            g_statusCurrent.mapRegs.insert(XREG_RBX, XBinary::getXVariant((quint64)(context.Rbx)));
+            g_statusCurrent.mapRegs.insert(XREG_RCX, XBinary::getXVariant((quint64)(context.Rcx)));
+            g_statusCurrent.mapRegs.insert(XREG_RDX, XBinary::getXVariant((quint64)(context.Rdx)));
+            g_statusCurrent.mapRegs.insert(XREG_RBP, XBinary::getXVariant((quint64)(context.Rbp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSP, XBinary::getXVariant((quint64)(context.Rsp)));
+            g_statusCurrent.mapRegs.insert(XREG_RSI, XBinary::getXVariant((quint64)(context.Rsi)));
+            g_statusCurrent.mapRegs.insert(XREG_RDI, XBinary::getXVariant((quint64)(context.Rdi)));
+            g_statusCurrent.mapRegs.insert(XREG_R8, XBinary::getXVariant((quint64)(context.R8)));
+            g_statusCurrent.mapRegs.insert(XREG_R9, XBinary::getXVariant((quint64)(context.R9)));
+            g_statusCurrent.mapRegs.insert(XREG_R10, XBinary::getXVariant((quint64)(context.R10)));
+            g_statusCurrent.mapRegs.insert(XREG_R11, XBinary::getXVariant((quint64)(context.R11)));
+            g_statusCurrent.mapRegs.insert(XREG_R12, XBinary::getXVariant((quint64)(context.R12)));
+            g_statusCurrent.mapRegs.insert(XREG_R13, XBinary::getXVariant((quint64)(context.R13)));
+            g_statusCurrent.mapRegs.insert(XREG_R14, XBinary::getXVariant((quint64)(context.R14)));
+            g_statusCurrent.mapRegs.insert(XREG_R15, XBinary::getXVariant((quint64)(context.R15)));
 #endif
         }
 
         if (regOptions.bIP) {
 #ifdef Q_PROCESSOR_X86_32
-            g_statusCurrent.mapRegs.insert(
-                XREG_EIP, XBinary::getXVariant((quint32)(context.Eip)));
+            g_statusCurrent.mapRegs.insert(XREG_EIP, XBinary::getXVariant((quint32)(context.Eip)));
 #endif
 #ifdef Q_PROCESSOR_X86_64
-            g_statusCurrent.mapRegs.insert(
-                XREG_RIP, XBinary::getXVariant((quint64)(context.Rip)));
+            g_statusCurrent.mapRegs.insert(XREG_RIP, XBinary::getXVariant((quint64)(context.Rip)));
 #endif
         }
 
         if (regOptions.bFlags) {
 #ifdef Q_PROCESSOR_X86_32
-            g_statusCurrent.mapRegs.insert(
-                XREG_EFLAGS, XBinary::getXVariant((quint32)(context.EFlags)));
+            g_statusCurrent.mapRegs.insert(XREG_EFLAGS, XBinary::getXVariant((quint32)(context.EFlags)));
 #endif
 #ifdef Q_PROCESSOR_X86_64
-            g_statusCurrent.mapRegs.insert(
-                XREG_RFLAGS,
-                XBinary::getXVariant((quint64)(context.EFlags)));  // TODO !!!
+            g_statusCurrent.mapRegs.insert(XREG_RFLAGS,
+                                           XBinary::getXVariant((quint64)(context.EFlags)));  // TODO !!!
 #endif
         }
 
         if (regOptions.bSegments) {
-            g_statusCurrent.mapRegs.insert(
-                XREG_CS, XBinary::getXVariant((quint16)(context.SegCs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_FS, XBinary::getXVariant((quint16)(context.SegFs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_ES, XBinary::getXVariant((quint16)(context.SegEs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DS, XBinary::getXVariant((quint16)(context.SegDs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_GS, XBinary::getXVariant((quint16)(context.SegGs)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_SS, XBinary::getXVariant((quint16)(context.SegSs)));
+            g_statusCurrent.mapRegs.insert(XREG_CS, XBinary::getXVariant((quint16)(context.SegCs)));
+            g_statusCurrent.mapRegs.insert(XREG_FS, XBinary::getXVariant((quint16)(context.SegFs)));
+            g_statusCurrent.mapRegs.insert(XREG_ES, XBinary::getXVariant((quint16)(context.SegEs)));
+            g_statusCurrent.mapRegs.insert(XREG_DS, XBinary::getXVariant((quint16)(context.SegDs)));
+            g_statusCurrent.mapRegs.insert(XREG_GS, XBinary::getXVariant((quint16)(context.SegGs)));
+            g_statusCurrent.mapRegs.insert(XREG_SS, XBinary::getXVariant((quint16)(context.SegSs)));
         }
 
         if (regOptions.bDebug) {
 #ifdef Q_PROCESSOR_X86_32
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR0, XBinary::getXVariant((quint32)(context.Dr0)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR1, XBinary::getXVariant((quint32)(context.Dr1)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR2, XBinary::getXVariant((quint32)(context.Dr2)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR3, XBinary::getXVariant((quint32)(context.Dr3)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR6, XBinary::getXVariant((quint32)(context.Dr6)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR7, XBinary::getXVariant((quint32)(context.Dr7)));
+            g_statusCurrent.mapRegs.insert(XREG_DR0, XBinary::getXVariant((quint32)(context.Dr0)));
+            g_statusCurrent.mapRegs.insert(XREG_DR1, XBinary::getXVariant((quint32)(context.Dr1)));
+            g_statusCurrent.mapRegs.insert(XREG_DR2, XBinary::getXVariant((quint32)(context.Dr2)));
+            g_statusCurrent.mapRegs.insert(XREG_DR3, XBinary::getXVariant((quint32)(context.Dr3)));
+            g_statusCurrent.mapRegs.insert(XREG_DR6, XBinary::getXVariant((quint32)(context.Dr6)));
+            g_statusCurrent.mapRegs.insert(XREG_DR7, XBinary::getXVariant((quint32)(context.Dr7)));
 #endif
 #ifdef Q_PROCESSOR_X86_64
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR0, XBinary::getXVariant((quint64)(context.Dr0)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR1, XBinary::getXVariant((quint64)(context.Dr1)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR2, XBinary::getXVariant((quint64)(context.Dr2)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR3, XBinary::getXVariant((quint64)(context.Dr3)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR6, XBinary::getXVariant((quint64)(context.Dr6)));
-            g_statusCurrent.mapRegs.insert(
-                XREG_DR7, XBinary::getXVariant((quint64)(context.Dr7)));
+            g_statusCurrent.mapRegs.insert(XREG_DR0, XBinary::getXVariant((quint64)(context.Dr0)));
+            g_statusCurrent.mapRegs.insert(XREG_DR1, XBinary::getXVariant((quint64)(context.Dr1)));
+            g_statusCurrent.mapRegs.insert(XREG_DR2, XBinary::getXVariant((quint64)(context.Dr2)));
+            g_statusCurrent.mapRegs.insert(XREG_DR3, XBinary::getXVariant((quint64)(context.Dr3)));
+            g_statusCurrent.mapRegs.insert(XREG_DR6, XBinary::getXVariant((quint64)(context.Dr6)));
+            g_statusCurrent.mapRegs.insert(XREG_DR7, XBinary::getXVariant((quint64)(context.Dr7)));
 #endif
         }
 
         if (regOptions.bFloat) {
 #if defined(Q_PROCESSOR_X86_64)
             for (qint32 i = 0; i < 8; i++) {
-                g_statusCurrent.mapRegs.insert(
-                    XREG(XREG_ST0 + i),
-                    XBinary::getXVariant(
-                        (quint64)(context.FltSave.FloatRegisters[i].Low),
-                        (quint64)(context.FltSave.FloatRegisters[i].High)));
+                g_statusCurrent.mapRegs.insert(XREG(XREG_ST0 + i), XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low),
+                                                                                        (quint64)(context.FltSave.FloatRegisters[i].High)));
             }
 #endif
         }
@@ -1061,10 +962,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions) {
 #if defined(Q_PROCESSOR_X86_64)
             for (qint32 i = 0; i < 16; i++) {
                 g_statusCurrent.mapRegs.insert(
-                    XREG(XREG_XMM0 + i),
-                    XBinary::getXVariant(
-                        (quint64)(context.FltSave.XmmRegisters[i].Low),
-                        (quint64)(context.FltSave.XmmRegisters[i].High)));
+                    XREG(XREG_XMM0 + i), XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
             }
 #endif
             //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
@@ -1111,12 +1009,10 @@ void XInfoDB::updateMemoryRegionsList() {
 
     g_statusCurrent.listMemoryRegions.clear();
 #ifdef Q_OS_WIN
-    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(
-        g_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
-    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(
-        g_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
+    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
 }
 #endif
@@ -1126,8 +1022,7 @@ void XInfoDB::updateModulesList() {
 
     g_statusCurrent.listModules.clear();
 
-    g_statusCurrent.listModules =
-        XProcess::getModulesList(g_processInfo.nProcessID);
+    g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1141,14 +1036,12 @@ void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg,
-                                    XBinary::XVARIANT variant) {
+bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant) {
     bool bResult = false;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
-    context.ContextFlags =
-        CONTEXT_ALL;  // All registers TODO Check regOptions
-                      // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
+    context.ContextFlags = CONTEXT_ALL;  // All registers TODO Check regOptions
+                                         // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
     if (GetThreadContext(hThread, &context)) {
         bool bUnknownRegister = false;
@@ -1226,8 +1119,7 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg,
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg,
-                                XBinary::XVARIANT variant) {
+bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant) {
     bool bResult = false;
 #ifdef Q_OS_LINUX
     // TODO
@@ -1309,8 +1201,7 @@ QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList() {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo,
-                            qint32 nCount, QString sInfo, QString sGUID) {
+bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, QString sInfo, QString sGUID) {
     bool bResult = false;
 
     if (bpType == BPT_CODE_SOFTWARE) {
@@ -1326,8 +1217,7 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo,
 
             bp.nOrigDataSize = 1;
 
-            if (read_array(nAddress, bp.origData, bp.nOrigDataSize) ==
-                bp.nOrigDataSize) {
+            if (read_array(nAddress, bp.origData, bp.nOrigDataSize) == bp.nOrigDataSize) {
                 if (write_array(nAddress, (char *)"\xCC",
                                 bp.nOrigDataSize))  // TODO Check if x86
                 {
@@ -1366,8 +1256,7 @@ bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType) {
         qint32 nNumberOfRecords = g_listBreakpoints.count();
 
         for (qint32 i = 0; i < nNumberOfRecords; i++) {
-            if ((g_listBreakpoints.at(i).nAddress == nAddress) &&
-                (g_listBreakpoints.at(i).bpType == bpType)) {
+            if ((g_listBreakpoints.at(i).nAddress == nAddress) && (g_listBreakpoints.at(i).bpType == bpType)) {
                 g_listBreakpoints.removeAt(i);
 
                 break;
@@ -1408,9 +1297,7 @@ QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints() {
 #endif
 #ifdef USE_XPROCESS
 bool XInfoDB::isRegChanged(XREG reg) {
-    return !(
-        XBinary::isXVariantEqual(_getRegCache(&(g_statusCurrent.mapRegs), reg),
-                                 _getRegCache(&(g_statusPrev.mapRegs), reg)));
+    return !(XBinary::isXVariantEqual(_getRegCache(&(g_statusCurrent.mapRegs), reg), _getRegCache(&(g_statusPrev.mapRegs), reg)));
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1478,8 +1365,7 @@ XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread,
-                                                 XADDR nValue) {
+bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue) {
     bool bResult = false;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
@@ -1621,8 +1507,7 @@ bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue) {
 //}
 //#endif
 
-QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase,
-                                                          quint64 nSize) {
+QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize) {
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
     qint32 nNumberOfRecords = g_listBreakpoints.count();
@@ -1631,12 +1516,10 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase,
         XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
 
         if (breakPoint.nOrigDataSize) {
-            if ((breakPoint.nAddress >= nBase) &&
-                (breakPoint.nAddress < nBase + nSize)) {
+            if ((breakPoint.nAddress >= nBase) && (breakPoint.nAddress < nBase + nSize)) {
                 XBinary::MEMORY_REPLACE record = {};
                 record.nAddress = breakPoint.nAddress;
-                record.baOriginal =
-                    QByteArray(breakPoint.origData, breakPoint.nOrigDataSize);
+                record.baOriginal = QByteArray(breakPoint.origData, breakPoint.nOrigDataSize);
                 record.nSize = record.baOriginal.size();
 
                 listResult.append(record);
@@ -2098,8 +1981,7 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg) {
 XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
     RECORD_INFO result = {};
 
-    if ((nValue >= g_nMainModuleAddress) &&
-        (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
+    if ((nValue >= g_nMainModuleAddress) && (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
         result.bValid = true;
         result.sModule = g_sMainModuleName;
         result.nAddress = nValue;
@@ -2107,16 +1989,13 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
 #ifdef USE_XPROCESS
     else {
         // TODO mapRegions
-        XProcess::MEMORY_REGION memoryRegion =
-            XProcess::getMemoryRegionByAddress(
-                &(g_statusCurrent.listMemoryRegions), nValue);
+        XProcess::MEMORY_REGION memoryRegion = XProcess::getMemoryRegionByAddress(&(g_statusCurrent.listMemoryRegions), nValue);
 
         if (memoryRegion.nSize) {
             result.bValid = true;
             result.nAddress = nValue;
 
-            XProcess::MODULE _module = XProcess::getModuleByAddress(
-                &(g_statusCurrent.listModules), nValue);
+            XProcess::MODULE _module = XProcess::getModuleByAddress(&(g_statusCurrent.listModules), nValue);
 
             if (_module.nSize) {
                 result.sModule = _module.sName;
@@ -2125,9 +2004,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
     }
 #endif
 
-    if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_DATA) ||
-        (riType == RI_TYPE_ANSI) || (riType == RI_TYPE_UNICODE) ||
-        (riType == RI_TYPE_UTF8)) {
+    if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_DATA) || (riType == RI_TYPE_ANSI) || (riType == RI_TYPE_UNICODE) || (riType == RI_TYPE_UTF8)) {
         if (result.bValid) {
             result.baData = read_array(result.nAddress, 64);  // TODO const
         }
@@ -2140,8 +2017,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
             // If not use address
             if (riType == RI_TYPE_SYMBOL) {
                 if (result.sSymbol == "") {
-                    result.sSymbol = QString("<%1.%2>").arg(
-                        result.sModule, XBinary::valueToHexOS(result.nAddress));
+                    result.sSymbol = QString("<%1.%2>").arg(result.sModule, XBinary::valueToHexOS(result.nAddress));
                 }
             }
         }
@@ -2159,17 +2035,14 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType) {
             QString sUnicodeString;
 
             quint8 nAnsiSymbol = XBinary::_read_uint8(recordInfo.baData.data());
-            quint16 nUnicodeSymbol =
-                XBinary::_read_uint16(recordInfo.baData.data());
+            quint16 nUnicodeSymbol = XBinary::_read_uint16(recordInfo.baData.data());
 
             if ((nAnsiSymbol >= 8) && (nAnsiSymbol < 128)) {
                 sAnsiString = QString::fromLatin1(recordInfo.baData);
             }
 
             if ((nUnicodeSymbol >= 8) && (nUnicodeSymbol < 128)) {
-                sUnicodeString =
-                    QString::fromUtf16((quint16 *)(recordInfo.baData.data()),
-                                       recordInfo.baData.size() / 2);
+                sUnicodeString = QString::fromUtf16((quint16 *)(recordInfo.baData.data()), recordInfo.baData.size() / 2);
             }
 
             qint32 nAnsiSize = sAnsiString.size();
@@ -2182,20 +2055,16 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType) {
             } else if (recordInfo.sSymbol != "") {
                 sResult = recordInfo.sSymbol;
             } else {
-                sResult = QString("<%1.%2>").arg(
-                    recordInfo.sModule,
-                    XBinary::valueToHexOS(recordInfo.nAddress));
+                sResult = QString("<%1.%2>").arg(recordInfo.sModule, XBinary::valueToHexOS(recordInfo.nAddress));
             }
         } else if (riType == RI_TYPE_ADDRESS) {
-            sResult = QString("<%1.%2>").arg(
-                recordInfo.sModule, XBinary::valueToHexOS(recordInfo.nAddress));
+            sResult = QString("<%1.%2>").arg(recordInfo.sModule, XBinary::valueToHexOS(recordInfo.nAddress));
         } else if (riType == RI_TYPE_SYMBOL) {
             sResult = recordInfo.sSymbol;
         } else if (riType == RI_TYPE_ANSI) {
             sResult = QString::fromLatin1(recordInfo.baData);
         } else if (riType == RI_TYPE_UNICODE) {
-            sResult = QString::fromUtf16((quint16 *)(recordInfo.baData.data()),
-                                         recordInfo.baData.size() / 2);
+            sResult = QString::fromUtf16((quint16 *)(recordInfo.baData.data()), recordInfo.baData.size() / 2);
         } else if (riType == RI_TYPE_UTF8) {
             sResult = QString::fromUtf8(recordInfo.baData);
         } else if (riType == RI_TYPE_SYMBOLADDRESS) {
@@ -2210,7 +2079,9 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType) {
     return sResult;
 }
 
-void XInfoDB::clearRecordInfoCache() { g_mapSRecordInfoCache.clear(); }
+void XInfoDB::clearRecordInfoCache() {
+    g_mapSRecordInfoCache.clear();
+}
 
 XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue) {
     RECORD_INFO result = {};
@@ -2226,14 +2097,15 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue) {
     return result;
 }
 
-QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols() { return &g_listSymbols; }
+QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols() {
+    return &g_listSymbols;
+}
 
 QMap<quint32, QString> *XInfoDB::getSymbolModules() {
     return &g_mapSymbolModules;
 }
 
-void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
-                        QString sSymbol, ST symbolType, SS symbolSource) {
+void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource) {
     qint32 nInsertIndex = 0;
     qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
@@ -2253,8 +2125,7 @@ void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
     }
 }
 
-void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule,
-                         QString sSymbol, ST symbolType, SS symbolSource) {
+void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource) {
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
     symbol.nSize = nSize;
@@ -2270,17 +2141,14 @@ void XInfoDB::_sortSymbols() {
     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
 }
 
-qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule,
-                                qint32 *pnInsertIndex) {
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex) {
     // For sorted g_listSymbols!
     qint32 nResult = -1;
 
     qint32 nNumberOfRecords = g_listSymbols.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if ((g_listSymbols.at(i).nAddress == nAddress) &&
-            (g_listSymbols.at(i).nSize == nSize) &&
-            (g_listSymbols.at(i).nModule == nModule)) {
+        if ((g_listSymbols.at(i).nAddress == nAddress) && (g_listSymbols.at(i).nSize == nSize) && (g_listSymbols.at(i).nModule == nModule)) {
             nResult = i;
 
             break;
@@ -2333,8 +2201,7 @@ void XInfoDB::testFunction() {
 
     errno = 0;
 
-    long int nRet =
-        ptrace(PTRACE_GETREGS, g_statusCurrent.nThreadId, nullptr, &regs);
+    long int nRet = ptrace(PTRACE_GETREGS, g_statusCurrent.nThreadId, nullptr, &regs);
 
     qDebug("ptrace failed: %s", strerror(errno));
 
@@ -2347,16 +2214,14 @@ void XInfoDB::testFunction() {
 #endif
 }
 #ifdef USE_XPROCESS
-XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
-                                        XREG reg) {
+XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg) {
     // TODO AX AL AH
     XBinary::XVARIANT result = {};
 
     XREG _reg = reg;
 #ifdef Q_PROCESSOR_X86
-    if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) ||
-        (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) ||
-        (reg == XREG_IF) || (reg == XREG_DF) || (reg == XREG_OF)) {
+    if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) ||
+        (reg == XREG_DF) || (reg == XREG_OF)) {
 #ifdef Q_PROCESSOR_X86_32
         _reg = XREG_EFLAGS;
 #endif
@@ -2401,8 +2266,7 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 }
 #ifdef USE_XPROCESS
 #endif
-void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg,
-                           XBinary::XVARIANT variant) {
+void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant) {
     pMapRegs->insert(reg, variant);
 }
 #endif
