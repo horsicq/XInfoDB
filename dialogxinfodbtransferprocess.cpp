@@ -20,7 +20,8 @@
  */
 #include "dialogxinfodbtransferprocess.h"
 
-DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) : XDialogProcess(pParent) {
+DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) : XDialogProcess(pParent)
+{
     g_pTransfer = new XInfoDBTransfer;
     g_pThread = new QThread;
 
@@ -32,7 +33,8 @@ DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) : X
     //    connect(g_pTransfer,SIGNAL(progressValueChanged(qint32)),this,SLOT(onProgressValueChanged(qint32)));
 }
 
-DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess() {
+DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
+{
     g_pThread->quit();
     g_pThread->wait();
 
@@ -40,21 +42,24 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess() {
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType) {
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+{
     setWindowTitle(tr("Import"));
 
     g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, sFileName, fileType, getPdStruct());
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType) {
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+{
     setWindowTitle(tr("Import"));
 
     g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, pDevice, fileType, getPdStruct());
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileName) {
+void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileName)
+{
     setWindowTitle(tr("Export"));
 
     g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_EXPORT, sFileName, XBinary::FT_UNKNOWN, getPdStruct());

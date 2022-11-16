@@ -20,7 +20,8 @@
  */
 #include "xinfodb.h"
 
-bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2) {
+bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
+{
     bool bResult = false;
 
     if (v1.nModule != v2.nModule) {
@@ -32,7 +33,8 @@ bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2) {
     return bResult;
 }
 
-XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent) {
+XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
+{
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
@@ -56,13 +58,15 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent) {
 #endif
 }
 
-XInfoDB::~XInfoDB() {
+XInfoDB::~XInfoDB()
+{
 #ifdef USE_XPROCESS
     XCapstone::closeHandle(&g_handle);
 #endif
 }
 
-void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType) {
+void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
+{
     g_pDevice = pDevice;
     g_fileType = fileType;
     g_mode = MODE_DEVICE;
@@ -78,19 +82,23 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType) {
     g_sMainModuleName = XBinary::getDeviceFileBaseName(pDevice);
 }
 
-QIODevice *XInfoDB::getDevice() {
+QIODevice *XInfoDB::getDevice()
+{
     return g_pDevice;
 }
 
-XBinary::FT XInfoDB::getFileType() {
+XBinary::FT XInfoDB::getFileType()
+{
     return g_fileType;
 }
 
-void XInfoDB::reload(bool bDataReload) {
+void XInfoDB::reload(bool bDataReload)
+{
     emit dataChanged(bDataReload);
 }
 
-quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian) {
+quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian)
+{
     quint32 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -104,7 +112,8 @@ quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian) {
     return nResult;
 }
 
-quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian) {
+quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian)
+{
     quint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -117,7 +126,8 @@ quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian) {
     return nResult;
 }
 
-qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize) {
+qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize)
+{
     qint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -130,7 +140,8 @@ qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize) {
     return nResult;
 }
 
-qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize) {
+qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize)
+{
     qint64 nResult = 0;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -143,7 +154,8 @@ qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize) {
     return nResult;
 }
 
-QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize) {
+QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize)
+{
     QByteArray baResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -156,7 +168,8 @@ QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize) {
     return baResult;
 }
 
-QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize) {
+QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
+{
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -169,7 +182,8 @@ QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize) {
     return sResult;
 }
 
-QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize) {
+QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize)
+{
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -182,7 +196,8 @@ QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize) {
     return sResult;
 }
 
-QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize) {
+QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
+{
     QString sResult;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -195,7 +210,8 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize) {
     return sResult;
 }
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP) {
+bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
+{
     bool bResult = false;
 
     XADDR nAddress = getCurrentInstructionPointer_Handle(hThread);
@@ -221,7 +237,8 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
+bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
+{
     bool bResult = false;
 
     XADDR nAddress = getCurrentInstructionPointer_Id(nThreadId);
@@ -247,7 +264,8 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType) {
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
+{
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -265,7 +283,8 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType) {
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType)
+{
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -285,7 +304,8 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::breakpointToggle(XADDR nAddress) {
+bool XInfoDB::breakpointToggle(XADDR nAddress)
+{
     bool bResult = false;
 
     if (!isBreakPointPresent(nAddress)) {
@@ -302,22 +322,26 @@ bool XInfoDB::breakpointToggle(XADDR nAddress) {
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::addSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo) {
+void XInfoDB::addSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
+{
     g_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase, *pSharedObjectInfo);
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo) {
+void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
+{
     g_mapSharedObjectInfos.remove(pSharedObjectInfo->nImageBase);
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo) {
+void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
+{
     g_listThreadInfos.append(*pThreadInfo);
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::removeThreadInfo(X_ID nThreadID) {
+void XInfoDB::removeThreadInfo(X_ID nThreadID)
+{
     qint32 nNumberOfThread = g_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfThread; i++) {
@@ -330,7 +354,8 @@ void XInfoDB::removeThreadInfo(X_ID nThreadID) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setFunctionHook(QString sFunctionName) {
+bool XInfoDB::setFunctionHook(QString sFunctionName)
+{
     bool bResult = false;
 
     qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
@@ -349,7 +374,8 @@ bool XInfoDB::setFunctionHook(QString sFunctionName) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeFunctionHook(QString sFunctionName) {
+bool XInfoDB::removeFunctionHook(QString sFunctionName)
+{
     bool bResult = false;
     // TODO Check !!!
 
@@ -374,22 +400,26 @@ bool XInfoDB::removeFunctionHook(QString sFunctionName) {
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos() {
+QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
+{
     return &g_mapSharedObjectInfos;
 }
 #endif
 #ifdef USE_XPROCESS
-QList<XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos() {
+QList<XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
+{
     return &g_listThreadInfos;
 }
 #endif
 #ifdef USE_XPROCESS
-QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos() {
+QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
+{
     return &g_mapFunctionHookInfos;
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName) {
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName)
+{
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
     for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
@@ -406,7 +436,8 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress) {
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress)
+{
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
     for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
@@ -425,7 +456,8 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID) {
+XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
+{
     XInfoDB::THREAD_INFO result = {};
 
     qint32 nNumberOfRecords = g_listThreadInfos.count();
@@ -443,7 +475,8 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID) {
 #endif
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread) {
+XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
+{
     XInfoDB::THREAD_INFO result = {};
 
     qint32 nNumberOfRecords = g_listThreadInfos.count();
@@ -461,14 +494,16 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread) {
 #endif
 #endif
 #ifdef USE_XPROCESS
-quint64 XInfoDB::getFunctionAddress(QString sFunctionName) {
+quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
+{
     Q_UNUSED(sFunctionName)
     // TODO
     return 0;
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo) {
+bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo)
+{
     XInfoDB::BREAKPOINT breakPoint = {};
     breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
     breakPoint.bpInfo = XInfoDB::BPI_STEPINTO;
@@ -480,7 +515,8 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo) {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress) {
+XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
+{
     XADDR nResult = -1;
 
     QByteArray baData = read_array(nAddress, 15);
@@ -495,7 +531,8 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP) {
+bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
+{
     if (bAddThreadBP) {
         XInfoDB::BREAKPOINT breakPoint = {};
         breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
@@ -509,7 +546,8 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
+bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
+{
     if (bAddThreadBP) {
         XInfoDB::BREAKPOINT breakPoint = {};
         breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
@@ -523,7 +561,8 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::_setStep_Handle(X_HANDLE hThread) {
+bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
+{
     bool bResult = false;
 
     if (hThread) {
@@ -547,7 +586,8 @@ bool XInfoDB::_setStep_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::_setStep_Id(X_ID nThreadId) {
+bool XInfoDB::_setStep_Id(X_ID nThreadId)
+{
     bool bResult = false;
 #ifdef Q_OS_LINUX
     errno = 0;
@@ -567,7 +607,8 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendThread_Id(X_ID nThreadId) {
+bool XInfoDB::suspendThread_Id(X_ID nThreadId)
+{
     bool bResult = false;
 
 #ifdef Q_OS_LINUX
@@ -583,7 +624,8 @@ bool XInfoDB::suspendThread_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendThread_Handle(X_HANDLE hThread) {
+bool XInfoDB::suspendThread_Handle(X_HANDLE hThread)
+{
     bool bResult = false;
 #ifdef Q_OS_WIN
     bResult = (SuspendThread(hThread) != ((DWORD)-1));
@@ -596,7 +638,8 @@ bool XInfoDB::suspendThread_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeThread_Handle(X_HANDLE hThread) {
+bool XInfoDB::resumeThread_Handle(X_HANDLE hThread)
+{
     bool bResult = false;
 #ifdef Q_OS_WIN
     bResult = (ResumeThread(hThread) != ((DWORD)-1));
@@ -609,7 +652,8 @@ bool XInfoDB::resumeThread_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendOtherThreads(X_ID nThreadId) {
+bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
+{
     bool bResult = false;
 
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
@@ -630,7 +674,8 @@ bool XInfoDB::suspendOtherThreads(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeOtherThreads(X_ID nThreadId) {
+bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
+{
     bool bResult = false;
 
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
@@ -650,7 +695,8 @@ bool XInfoDB::resumeOtherThreads(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendAllThreads() {
+bool XInfoDB::suspendAllThreads()
+{
     bool bResult = false;
 
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
@@ -681,7 +727,8 @@ bool XInfoDB::suspendAllThreads() {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeAllThreads() {
+bool XInfoDB::resumeAllThreads()
+{
     bool bResult = false;
 
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
@@ -705,7 +752,8 @@ bool XInfoDB::resumeAllThreads() {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName) {
+XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
+{
     FUNCTION_INFO result = {};
 
 #ifdef Q_OS_WIN
@@ -784,7 +832,8 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
 //}
 //#endif
 #ifdef USE_XPROCESS
-void XInfoDB::setProcessInfo(PROCESS_INFO processInfo) {
+void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
+{
     g_processInfo = processInfo;
     g_mode = MODE_PROCESS;
 
@@ -796,12 +845,14 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo() {
+XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
+{
     return &g_processInfo;
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions) {
+void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions)
+{
     g_statusPrev.mapRegs = g_statusCurrent.mapRegs;  // TODO save nThreadID
 
     g_statusCurrent.mapRegs.clear();
@@ -859,7 +910,8 @@ void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions) {
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions) {
+void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
+{
     g_statusPrev.mapRegs = g_statusCurrent.mapRegs;  // TODO save nThreadID
 
     g_statusCurrent.mapRegs.clear();
@@ -1004,7 +1056,8 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions) {
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateMemoryRegionsList() {
+void XInfoDB::updateMemoryRegionsList()
+{
     g_statusPrev.listMemoryRegions = g_statusCurrent.listMemoryRegions;
 
     g_statusCurrent.listMemoryRegions.clear();
@@ -1017,7 +1070,8 @@ void XInfoDB::updateMemoryRegionsList() {
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::updateModulesList() {
+void XInfoDB::updateModulesList()
+{
     g_statusPrev.listModules = g_statusCurrent.listModules;
 
     g_statusCurrent.listModules.clear();
@@ -1026,17 +1080,20 @@ void XInfoDB::updateModulesList() {
 }
 #endif
 #ifdef USE_XPROCESS
-XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg) {
+XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg)
+{
     return _getRegCache(&(g_statusCurrent.mapRegs), reg);
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant) {
+void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant)
+{
     _setRegCache(&(g_statusCurrent.mapRegs), reg, variant);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant) {
+bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIANT variant)
+{
     bool bResult = false;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
@@ -1119,7 +1176,8 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant) {
+bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant)
+{
     bool bResult = false;
 #ifdef Q_OS_LINUX
     // TODO
@@ -1179,7 +1237,8 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant) {
+bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
+{
     bool bResult = false;
 #ifdef Q_OS_WIN
     bResult = setCurrentRegByThread(g_statusCurrent.hThread, reg, variant);
@@ -1191,17 +1250,20 @@ bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant) {
 }
 #endif
 #ifdef USE_XPROCESS
-QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList() {
+QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
+{
     return &(g_statusCurrent.listMemoryRegions);
 }
 #endif
 #ifdef USE_XPROCESS
-QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList() {
+QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList()
+{
     return &(g_statusCurrent.listModules);
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, QString sInfo, QString sGUID) {
+bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, QString sInfo, QString sGUID)
+{
     bool bResult = false;
 
     if (bpType == BPT_CODE_SOFTWARE) {
@@ -1235,7 +1297,8 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType) {
+bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType)
+{
     bool bResult = false;
 
     if (bpType == BPT_CODE_SOFTWARE) {
@@ -1268,7 +1331,8 @@ bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::isBreakPointPresent(XADDR nAddress, BPT bpType) {
+bool XInfoDB::isBreakPointPresent(XADDR nAddress, BPT bpType)
+{
     bool bResult = false;
 
     BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
@@ -1279,29 +1343,34 @@ bool XInfoDB::isBreakPointPresent(XADDR nAddress, BPT bpType) {
 }
 #endif
 #ifdef USE_XPROCESS
-QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints() {
+QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
+{
     return &g_listBreakpoints;
 }
 #endif
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-QMap<X_HANDLE, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints() {
+QMap<X_HANDLE, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+{
     return &g_mapThreadBreakpoints;
 }
 #endif
 #ifdef Q_OS_LINUX
-QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints() {
+QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
+{
     return &g_mapThreadBreakpoints;
 }
 #endif
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::isRegChanged(XREG reg) {
+bool XInfoDB::isRegChanged(XREG reg)
+{
     return !(XBinary::isXVariantEqual(_getRegCache(&(g_statusCurrent.mapRegs), reg), _getRegCache(&(g_statusPrev.mapRegs), reg)));
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointerCache() {
+XADDR XInfoDB::getCurrentStackPointerCache()
+{
     XADDR nResult = 0;
 
 #ifdef Q_PROCESSOR_X86_32
@@ -1315,7 +1384,8 @@ XADDR XInfoDB::getCurrentStackPointerCache() {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointerCache() {
+XADDR XInfoDB::getCurrentInstructionPointerCache()
+{
     XADDR nResult = 0;
 
 #ifdef Q_PROCESSOR_X86_32
@@ -1329,7 +1399,8 @@ XADDR XInfoDB::getCurrentInstructionPointerCache() {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread) {
+XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread)
+{
     XADDR nResult = 0;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
@@ -1348,7 +1419,8 @@ XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId) {
+XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId)
+{
     XADDR nResult = 0;
 #ifdef Q_OS_LINUX
     user_regs_struct regs = {};
@@ -1365,7 +1437,8 @@ XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue) {
+bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue)
+{
     bool bResult = false;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
@@ -1386,7 +1459,8 @@ bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue)
     return bResult;
 }
 
-bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue) {
+bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue)
+{
     bool bResult = false;
 #ifdef Q_OS_LINUX
     user_regs_struct regs = {};
@@ -1406,7 +1480,8 @@ bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue) {
 }
 #endif
 #ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread) {
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
+{
     XCapstone::OPCODE_ID result = {};
 
     // TODO
@@ -1415,7 +1490,8 @@ XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId) {
+XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId)
+{
     XCapstone::OPCODE_ID result = {};
 
     // TODO
@@ -1424,7 +1500,8 @@ XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread) {
+XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
+{
     XADDR nResult = 0;
 #ifdef Q_OS_WIN
     CONTEXT context = {0};
@@ -1444,7 +1521,8 @@ XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread) {
 }
 #endif
 #ifdef USE_XPROCESS
-XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId) {
+XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
+{
     XADDR nResult = 0;
 
     // TODO
@@ -1453,7 +1531,8 @@ XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId) {
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue) {
+bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue)
+{
     bool bResult = false;
 
     // TODO
@@ -1507,7 +1586,8 @@ bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue) {
 //}
 //#endif
 
-QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize) {
+QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64 nSize)
+{
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
     qint32 nNumberOfRecords = g_listBreakpoints.count();
@@ -1530,7 +1610,8 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
     return listResult;
 }
 #ifdef USE_XPROCESS
-QString XInfoDB::regIdToString(XREG reg) {
+QString XInfoDB::regIdToString(XREG reg)
+{
     QString sResult = "Unknown";
 
     if (reg == XREG_NONE) sResult = QString("");
@@ -1782,7 +1863,8 @@ QString XInfoDB::regIdToString(XREG reg) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::XREG XInfoDB::getSubReg32(XREG reg) {
+XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
+{
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_64
@@ -1828,7 +1910,8 @@ XInfoDB::XREG XInfoDB::getSubReg32(XREG reg) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::XREG XInfoDB::getSubReg16(XREG reg) {
+XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
+{
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
@@ -1897,7 +1980,8 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg) {
+XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
+{
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
@@ -1926,7 +2010,8 @@ XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg) {
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg) {
+XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
+{
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
@@ -1978,7 +2063,8 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg) {
     return result;
 }
 #endif
-XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
+XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
+{
     RECORD_INFO result = {};
 
     if ((nValue >= g_nMainModuleAddress) && (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
@@ -2026,7 +2112,8 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType) {
     return result;
 }
 
-QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType) {
+QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
+{
     QString sResult;
 
     if (recordInfo.bValid) {
@@ -2079,11 +2166,13 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType) {
     return sResult;
 }
 
-void XInfoDB::clearRecordInfoCache() {
+void XInfoDB::clearRecordInfoCache()
+{
     g_mapSRecordInfoCache.clear();
 }
 
-XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue) {
+XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
+{
     RECORD_INFO result = {};
 
     if (g_mapSRecordInfoCache.contains(nValue)) {
@@ -2097,15 +2186,18 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue) {
     return result;
 }
 
-QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols() {
+QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
+{
     return &g_listSymbols;
 }
 
-QMap<quint32, QString> *XInfoDB::getSymbolModules() {
+QMap<quint32, QString> *XInfoDB::getSymbolModules()
+{
     return &g_mapSymbolModules;
 }
 
-void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource) {
+void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+{
     qint32 nInsertIndex = 0;
     qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
@@ -2125,7 +2217,8 @@ void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString s
     }
 }
 
-void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource) {
+void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+{
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
     symbol.nSize = nSize;
@@ -2137,11 +2230,13 @@ void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString 
     g_listSymbols.append(symbol);
 }
 
-void XInfoDB::_sortSymbols() {
+void XInfoDB::_sortSymbols()
+{
     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
 }
 
-qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex) {
+qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
+{
     // For sorted g_listSymbols!
     qint32 nResult = -1;
 
@@ -2162,7 +2257,8 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
     return nResult;
 }
 
-QString XInfoDB::symbolSourceIdToString(SS symbolSource) {
+QString XInfoDB::symbolSourceIdToString(SS symbolSource)
+{
     QString sResult = tr("Unknown");
 
     if (symbolSource == SS_FILE)
@@ -2173,7 +2269,8 @@ QString XInfoDB::symbolSourceIdToString(SS symbolSource) {
     return sResult;
 }
 
-QString XInfoDB::symbolTypeIdToString(ST symbolType) {
+QString XInfoDB::symbolTypeIdToString(ST symbolType)
+{
     QString sResult = tr("Unknown");
 
     if (symbolType == ST_LABEL)
@@ -2194,7 +2291,8 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType) {
     return sResult;
 }
 
-void XInfoDB::testFunction() {
+void XInfoDB::testFunction()
+{
 #ifdef USE_XPROCESS
 #ifdef Q_OS_LINUX
     user_regs_struct regs = {};
@@ -2214,7 +2312,8 @@ void XInfoDB::testFunction() {
 #endif
 }
 #ifdef USE_XPROCESS
-XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg) {
+XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg)
+{
     // TODO AX AL AH
     XBinary::XVARIANT result = {};
 
@@ -2266,7 +2365,8 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 }
 #ifdef USE_XPROCESS
 #endif
-void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant) {
+void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant)
+{
     pMapRegs->insert(reg, variant);
 }
 #endif

@@ -20,7 +20,8 @@
  */
 #include "xinfodbtransfer.h"
 
-XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent) {
+XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
+{
     g_pXInfoDB = nullptr;
     g_transferType = TT_IMPORT;
     g_fileType = XBinary::FT_UNKNOWN;
@@ -28,7 +29,8 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent) {
     g_pPdStruct = nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct) {
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+{
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
     g_sFileName = sFileName;
@@ -36,7 +38,8 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileN
     g_pPdStruct = pPdStruct;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct) {
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+{
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
     g_pDevice = pDevice;
@@ -44,7 +47,8 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDe
     g_pPdStruct = pPdStruct;
 }
 
-bool XInfoDBTransfer::process() {
+bool XInfoDBTransfer::process()
+{
     bool bResult = false;
 
     QElapsedTimer scanTimer;
