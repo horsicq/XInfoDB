@@ -33,7 +33,8 @@ bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
     return bResult;
 }
 
-XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
+XInfoDB::XInfoDB(QObject *pParent)
+    : QObject(pParent)
 {
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS

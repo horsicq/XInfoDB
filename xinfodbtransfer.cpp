@@ -20,7 +20,8 @@
  */
 #include "xinfodbtransfer.h"
 
-XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
+XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
+    : QObject(pParent)
 {
     g_pXInfoDB = nullptr;
     g_transferType = TT_IMPORT;
