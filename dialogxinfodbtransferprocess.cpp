@@ -20,8 +20,7 @@
  */
 #include "dialogxinfodbtransferprocess.h"
 
-DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent)
-    : XDialogProcess(pParent)
+DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) : XDialogProcess(pParent)
 {
     g_pTransfer = new XInfoDBTransfer;
     g_pThread = new QThread;

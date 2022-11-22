@@ -20,8 +20,7 @@
  */
 #include "xinfodbtransfer.h"
 
-XInfoDBTransfer::XInfoDBTransfer(QObject *pParent)
-    : QObject(pParent)
+XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
 {
     g_pXInfoDB = nullptr;
     g_transferType = TT_IMPORT;
@@ -211,8 +210,7 @@ bool XInfoDBTransfer::process()
                             for (qint32 i = 0; (i < nNumberOfRecords) && (!(g_pPdStruct->bIsStop)); i++) {
                                 QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
 
-                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA), 0, 0, sFunctionName, XInfoDB::ST_IMPORT,
-                                                       XInfoDB::SS_FILE);
+                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA), 0, 0, sFunctionName, XInfoDB::ST_IMPORT, XInfoDB::SS_FILE);
                             }
                         }
                         // TODO TLS

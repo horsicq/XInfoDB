@@ -33,8 +33,7 @@ bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
     return bResult;
 }
 
-XInfoDB::XInfoDB(QObject *pParent)
-    : QObject(pParent)
+XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
@@ -1005,8 +1004,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
         if (regOptions.bFloat) {
 #if defined(Q_PROCESSOR_X86_64)
             for (qint32 i = 0; i < 8; i++) {
-                g_statusCurrent.mapRegs.insert(XREG(XREG_ST0 + i),
-                                               XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
+                g_statusCurrent.mapRegs.insert(XREG(XREG_ST0 + i), XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
             }
 #endif
         }
@@ -1014,8 +1012,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
         if (regOptions.bXMM) {
 #if defined(Q_PROCESSOR_X86_64)
             for (qint32 i = 0; i < 16; i++) {
-                g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i),
-                                               XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+                g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i), XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
             }
 #endif
             //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
@@ -2320,8 +2317,7 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 
     XREG _reg = reg;
 #ifdef Q_PROCESSOR_X86
-    if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) || (reg == XREG_DF) ||
-        (reg == XREG_OF)) {
+    if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) || (reg == XREG_DF) || (reg == XREG_OF)) {
 #ifdef Q_PROCESSOR_X86_32
         _reg = XREG_EFLAGS;
 #endif
