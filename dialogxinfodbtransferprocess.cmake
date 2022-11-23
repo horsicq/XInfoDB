@@ -8,4 +8,6 @@ set(DIALOGXINFODBTRANSFERPROCESS_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/dialogxinfodbtransferprocess.ui
     ${CMAKE_CURRENT_LIST_DIR}/xinfodbtransfer.cpp
     ${CMAKE_CURRENT_LIST_DIR}/xinfodb.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/xinfodboptionswidget.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/xinfodboptionswidget.ui
 )

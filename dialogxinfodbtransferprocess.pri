@@ -2,13 +2,16 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 HEADERS += \
-    $$PWD/dialogxinfodbtransferprocess.h
+    $$PWD/dialogxinfodbtransferprocess.h \
+    $$PWD/xinfodboptionswidget.h
 
 SOURCES += \
-    $$PWD/dialogxinfodbtransferprocess.cpp
+    $$PWD/dialogxinfodbtransferprocess.cpp \
+    $$PWD/xinfodboptionswidget.cpp
 
 FORMS += \
-    $$PWD/dialogxinfodbtransferprocess.ui
+    $$PWD/dialogxinfodbtransferprocess.ui \
+    $$PWD/xinfodboptionswidget.ui
 
 !contains(XCONFIG, xinfodbtransfer) {
     XCONFIG += xinfodbtransfer

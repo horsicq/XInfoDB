@@ -210,7 +210,8 @@ bool XInfoDBTransfer::process()
                             for (qint32 i = 0; (i < nNumberOfRecords) && (!(g_pPdStruct->bIsStop)); i++) {
                                 QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
 
-                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA), 0, 0, sFunctionName, XInfoDB::ST_IMPORT, XInfoDB::SS_FILE);
+                                g_pXInfoDB->_addSymbol(XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA), 0, 0, sFunctionName, XInfoDB::ST_IMPORT,
+                                                       XInfoDB::SS_FILE);
                             }
                         }
                         // TODO TLS
