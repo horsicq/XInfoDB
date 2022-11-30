@@ -22,7 +22,6 @@
 #define XINFODB_H
 
 #include <QMutex>
-#include <QObject>
 
 #include "xcapstone.h"
 #include "xformats.h"
