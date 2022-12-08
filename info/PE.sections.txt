@@ -1,0 +1,286 @@
+!EPack|Epack|Epack
+.00cfg|compiler|Control Flow Guard (CFG) section (added by newer versions of Visual Studio)
+.AAWEBS|compiler|section used by Amiti Antivirus DLLs webspam.dll and webspamwow64.dll
+.ASPack|packer|Aspack
+.BSS|compiler|Uninitialized Data Section
+.ByDwing|packer|Upack
+.CLR_UEF|compiler|.CLR Unhandled Exception Handler section
+.CRT|compiler|Initialized Data Section  (C RunTime)
+.CRT|compiler|mingw/cygwin
+.DATA|compiler|Data Section
+.MPRESS1|packer|Mpress
+.MPRESS2|packer|Mpress
+.MaskPE|packer|MaskPE
+.RLPack|packer|RLPack
+.RPCrypt|protector|RPCrypt
+.Razor|demos|Razor 
+.Themida|protector|Themida
+.UPX0|packer|UPX
+.UPX1|packer|UPX
+.UPX2|packer|UPX
+.Upack|packer|Upack
+.WWP32|packer|WWPack32
+.WWPACK|packer|WWPACK
+.adata|packer|Aspack
+.adata|protector|ASProtect
+.adata|protector|Armadillo
+.apiset|compiler|a section present inside the apisetschema.dll
+.arch|compiler|Alpha-architecture section
+.aspack|packer|Aspack
+.autoload_text|compiler|cygwin/gcc; the Cygwin DLL uses a section to avoid copying certain data on fork.
+.bindat|compiler|Binary data (also used by one of the downware installers based on LUA)
+.boom|builder|The Boomerang List Builder (config+exe xored with a single byte key 0x77)
+.bootdat|compiler|section that can be found inside Visual Studio files; contains palette entries
+.bss|compiler|Uninitialized Data Section
+.buildid|compiler|gcc/cygwin; Contains debug information (if overlaps with debug directory)
+.ccg|packer|CCG Packer (Chinese Packer)
+.charmve|tool|Added by the PIN tool
+.code|compiler|Code Section
+.complua|compiler|Binary data|demos|most likely compiled LUA (also used by one of the downware installers based on LUA)
+.cormeta|compiler|.CLR Metadata Section
+.crtemui|demos|
+.cygheap|compiler|mingw/cygwin DEBUG
+.cygwin_dll_common|compiler|cygwin section containing flags representing Cygwin’s capabilities; refer to cygwin.sc and wincap.cc inside Cygwin run-time
+.data1|compiler|Data Section
+.data2|compiler|Data Section
+.data3|compiler|Data Section
+.data_cygwin_nocopy|compiler|cygwin
+.data|compiler|Data Section
+.debug$F|compiler|Debug info Section (Visual C++ version <7.0)
+.debug$F|compiler|mingw/cygwin
+.debug$P|compiler|Debug info Section (Visual C++ debug information|compiler|precompiled information
+.debug$S|compiler|Debug info Section (Visual C++ debug information|compiler|symbolic information)
+.debug$S|compiler|mingw/cygwin
+.debug$T|compiler|Debug info Section (Visual C++ debug information|compiler|type information)
+.debug$T|compiler|mingw/cygwin
+.debug_abbrev|compiler|mingw/cygwin DEBUG
+.debug_aranges|compiler|mingw/cygwin DEBUG
+.debug_frame|compiler|mingw/cygwin DEBUG
+.debug_info|compiler|mingw/cygwin DEBUG
+.debug_line|compiler|mingw/cygwin DEBUG
+.debug_loc|compiler|mingw/cygwin DEBUG
+.debug_macinfo|compiler|mingw/cygwin DEBUG
+.debug_pubnames|compiler|mingw/cygwin DEBUG
+.debug_ranges|compiler|mingw/cygwin DEBUG
+.debug_str|compiler|mingw/cygwin DEBUG
+.debug|compiler|Debug info Section
+.delete|demos|
+.didata|compiler|Delay Import Section
+.didat|compiler|Delay Import Section
+.drectve |compiler|directive section (temporary|demos|linker removes it after processing it
+.drectve|compiler|mingw/cygwin
+.ecode|compiler|Built with EPL
+.edata|compiler|Built with EPL
+.edata|compiler|Export Data Section
+.edata|compiler|mingw/cygwin
+.eh_frame|compiler|mingw/cygwin
+.eh_fram|compiler|gcc/cygwin; Exception Handler Frame section
+.endjunk|compiler|mingw/cygwin
+.enigma1|protector|Enigma
+.enigma2|protector|Enigma
+.exc|demos|
+.export|compiler|Alternative Export Data Section
+.fasm|compiler|FASM flat Section
+.fini|compiler|mingw/cygwin
+.flat|compiler|FASM flat Section
+.g4kcod2|demos|
+.g4kcod3|demos|
+.g4kcod4|demos|
+.g4kcoda|demos|
+.g4kcodb|demos|
+.g4kcodc|demos|
+.g4kcodd|demos|
+.g4kcodf|demos|
+.g4kcodg|demos|
+.g4kcodh|demos|
+.g4kcodi|demos|
+.g4kcodj|demos|
+.g4kcodk|demos|
+.g4kcodl|demos|
+.g4kcodp|demos|
+.g4kcods|demos|.
+.g4kcodw|demos|
+.g4kcodx|demos|
+.g4kcody|demos|
+.g4kcodz|demos|
+.g4kdat1|demos|
+.g4kdat2|demos|
+.g4kmuc1|demos|
+.g4kmuc2|demos|
+.g4kmuc3|demos|
+.g4kmuc4|demos|
+.g4kmuc5|demos|
+.gcc_except_table|compiler|mingw/cygwin
+.gcc_exc|compiler|mingw/cygwin
+.gentee|installer|Gentee installer
+.gfids|compiler|section added by new Visual Studio (14.0)
+.giats|compiler|section added by new Visual Studio (14.0)
+.gljmp|compiler|section added by new Visual Studio (14.0)
+.glue_7t|compiler|ARMv7 core glue functions (thumb mode)
+.glue_7t|compiler|mingw/cygwin
+.glue_7|compiler|ARMv7 core glue functions (32-bit ARM mode)
+.glue_7|compiler|mingw/cygwin
+.icon|demos|possibly an icon resource
+.idata$2|compiler|mingw/cygwin
+.idata$3|compiler|mingw/cygwin
+.idata$4|compiler|mingw/cygwin
+.idata$5|compiler|mingw/cygwin
+.idata$6|compiler|mingw/cygwin
+.idata$7|compiler|mingw/cygwin
+.idata|compiler|Initialized Data Section  (Borland)
+.idata|compiler|mingw/cygwin
+.idlsym|compiler|IDL Attributes (registered SEH)
+.impdata|compiler|Alternative Import data section
+.import|compiler|Alternative Import data section
+.imrsiv|tool|special section used for applications that can be loaded to OS desktop bands.
+.intro|demos|
+.itext|compiler|Code Section (Borland)
+.load|demos|
+.mackt|tool|ImpRec-created section
+.mnbvcx1|loader|most likely associated with Firseria PUP downloaders
+.mnbvcx2|loader|most likely associated with Firseria PUP downloaders
+.mydata|demos|
+.ndata|installer|Nullsoft Installer section
+.neolite|packer|Neolite
+.neolit|packer|Neolite
+.nsp0|packer|NsPack
+.nsp1|packer|NsPack
+.nsp2|packer|NsPack
+.orpc|compiler|Code section inside rpcrt4.dll
+.packed|packer|RLPack
+.packed|packer|Unknown Packer
+.pdata|compiler|Exception Handling Functions Section (PDATA records)
+.perplex|protector|Perplex
+.petite|packer|Petite
+.pe|demos|possibly PE file 
+.pinclie|tool|Added by the PIN tool
+.pklstb|demos|
+.profile|tool|NightHawk C2 framework (by MDSec)
+.rdata|compiler|Read-only initialized Data Section  (MS and Borland)
+.relo2|demos|
+.reloc|compiler|Relocations Section
+.rmnet|virus|Ramnit virus marker
+.rodata|compiler|Read-only Data Section
+.rsrc A|demos|possibly variant of resource section
+.rsrc|compiler|Resource section
+.sCe!05|demos|Scienide group
+.sbss|compiler|GP-relative Uninitialized Data Section
+.script|compiler|Section containing script
+.sdata|compiler|GP-relative Initialized Data Section
+.seau|sfx|SeauSFX 
+.sforce3|protector|StarForce
+.shared|compiler|Shared section
+.shrink1|protector|Shrinker
+.shrink2|protector|Shrinker
+.shrink3|protector|Shrinker
+.spack|packer|Simple Pack (by bagie)
+.srdata|compiler|GP-relative Read-only Data Section
+.stabstr|compiler|Created by Haskell compiler (GHC)
+.stabstr|compiler|mingw/cygwin
+.stab|compiler|Created by Haskell compiler (GHC)
+.stab|compiler|mingw/cygwin
+.svkp|protector|SVKP
+.sxdata|compiler|Registered Exception Handlers Section
+.taz|protector|Some version os PESpin
+.text0|compiler|Alternative Code Section
+.text1|compiler|Alternative Code Section
+.text2|compiler|Alternative Code Section
+.text3|compiler|Alternative Code Section
+.textbss|compiler|Section used by incremental linking
+.text|compiler|Code Section
+.tls$|compiler|Thread Local Storage Section
+.tls|compiler|Thread Local Storage Section
+.trace|demos|
+.tsuarch|loader|TSULoader
+.tsustub|loader|TSULoader
+.udata|compiler|Uninitialized Data Section
+.vmp0|protector|VMProtect
+.vmp1|protector|VMProtect
+.vmp2|protector|VMProtect
+.vsdata|compiler|GP-relative Initialized Data
+.wavefmt|demos|
+.wavehdr|demos|
+.winapi|tool|Added by API Override tool
+.wixburn|compiler|Wix section
+.wpp_sf |compiler|section that is most likely related to WPP (Windows software trace PreProcessor)
+.xdata|compiler|Exception Information Section
+.xm|demos|possibly an XM module
+.y0da|protector|Y0da's Protector
+.yP|protector|Y0da's Protector
+ASPack|packer|Aspack
+AUTO|demos|
+Address|demos|
+BSS|compiler|Uninitialized Data Section (Borland)
+BitArts|protector|Crunch 2.0
+CLS|demos|
+CODE32|demos|
+CODE|compiler|Code Section (Borland)
+COMMON|compiler|mingw/cygwin
+CONST32|demos|
+CPHb|demos|Coolphat group
+CR01|demos|Cro group
+CRO0|demos|Cro group
+DAStub|protector|DAStub Dragon Armor 
+DATA|compiler|Data Section (Borland)
+DGROUP|compiler|Legacy data group section
+Guy !|demos|
+INIT|compiler|INIT section (drivers)
+MEW|packer|MEW
+MYTH|demos|
+Not War!|demos|
+PAGE|compiler|PAGE section (drivers)
+PEBundle|protector|PEBundle
+PEC2MO|protector|PECompact
+PEC2TO|PECompact|PECompact
+PEC2|packer|PECompact
+PELOCKnt|protector|PELock
+PEPACK!!|packer|Pepack
+PEPACK!!|packer|Pepack
+PESHiELD|protector|PEShield
+PS|demos|
+ProCrypt|protector|ProCrypt
+RCryptor|protector|RPCrypt
+STACK|demos|
+Scooopex|demos|Scoopex group
+Scoopex|demos|Scoopex group
+Shared|compiler|Shared section
+Signatur|demos|
+Themida|protector|Themida
+UPX!|packer|UPX
+UPX0|packer|UPX
+UPX1|packer|UPX
+UPX2|packer|UPX
+UPX3|packer|UPX
+VProtect|protector|Vprotect
+WinLicen|protector|WinLicense (Themida)
+_RDATA|demos|
+_winzip_|sfx|WinZip Self-Extractor
+edata|compiler|Export Data Section
+fuzzion|demos|Fuzzion group
+fzn03|demos|Fuzzion group
+g4kcodt|demos|
+idata|compiler|Initialized Data Section (C RunTime)
+imports|demos|
+kkrunchy|packer|kkrunchy
+lz32.dll|packer|Crinkler
+minATL|compiler|Section that can be found inside some ARM PE files
+nsp0|packer|NsPack
+nsp1|packer|NsPack
+nsp2|packer|NsPack
+packer.|demos|Farbrausch group
+pebundle|protector|PEBundle
+pec1|packer|PECompact
+pec2|packer|PECompact
+pec3|packer|PECompact
+pec4|packer|PECompact
+pec5|packer|PECompact
+pec6|packer|PECompact
+pec|packer|PECompact
+rdata|compiler|Read-only Data Section
+relocs|demos|
+resource|demos|
+resultat|demos|
+sdata|compiler|Initialized Data Section
+shared|compiler|Shared section
+testdata|compiler|section containing test data (can be found inside Visual Studio files)
+text|compiler|Alternative Code Section
