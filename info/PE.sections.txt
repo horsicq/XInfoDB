@@ -13,7 +13,7 @@
 .MaskPE|packer|MaskPE
 .RLPack|packer|RLPack
 .RPCrypt|protector|RPCrypt
-.Razor|demos|Razor 
+.Razor|demos|Razor
 .Themida|protector|Themida
 .UPX0|packer|UPX
 .UPX1|packer|UPX
@@ -21,9 +21,12 @@
 .Upack|packer|Upack
 .WWP32|packer|WWPack32
 .WWPACK|packer|WWPACK
+.aBc  |protector|ABC Cryptor
 .adata|packer|Aspack
 .adata|protector|ASProtect
 .adata|protector|Armadillo
+.alex|protector|Alex Protector
+.alloy32|protector|Alloy
 .apiset|compiler|a section present inside the apisetschema.dll
 .arch|compiler|Alpha-architecture section
 .aspack|packer|Aspack
@@ -150,9 +153,10 @@
 .packed|packer|RLPack
 .packed|packer|Unknown Packer
 .pdata|compiler|Exception Handling Functions Section (PDATA records)
+.perplex|protector|ACProtect
 .perplex|protector|Perplex
 .petite|packer|Petite
-.pe|demos|possibly PE file 
+.pe|demos|possibly PE file
 .pinclie|tool|Added by the PIN tool
 .pklstb|demos|
 .profile|tool|NightHawk C2 framework (by MDSec)
@@ -167,7 +171,7 @@
 .sbss|compiler|GP-relative Uninitialized Data Section
 .script|compiler|Section containing script
 .sdata|compiler|GP-relative Initialized Data Section
-.seau|sfx|SeauSFX 
+.seau|sfx|SeauSFX
 .sforce3|protector|StarForce
 .shared|compiler|Shared section
 .shrink1|protector|Shrinker
@@ -220,7 +224,7 @@ CONST32|demos|
 CPHb|demos|Coolphat group
 CR01|demos|Cro group
 CRO0|demos|Cro group
-DAStub|protector|DAStub Dragon Armor 
+DAStub|protector|DAStub Dragon Armor
 DATA|compiler|Data Section (Borland)
 DGROUP|compiler|Legacy data group section
 Guy !|demos|
@@ -253,6 +257,7 @@ UPX2|packer|UPX
 UPX3|packer|UPX
 VProtect|protector|Vprotect
 WinLicen|protector|WinLicense (Themida)
+Xiao|protector|12311134
 _RDATA|demos|
 _winzip_|sfx|WinZip Self-Extractor
 edata|compiler|Export Data Section
