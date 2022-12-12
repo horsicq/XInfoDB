@@ -209,6 +209,83 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 #endif
     return sResult;
 }
+
+QList<QString> XInfoDB::getStringsFromFile(QString sFileName)
+{
+    QList<QString> listResult;
+
+    QFile inputFile(sFileName);
+
+    if (inputFile.open(QIODevice::ReadOnly)) {
+       QTextStream in(&inputFile);
+       while (!in.atEnd()) {
+          QString sLine = in.readLine();
+
+          listResult.append(sLine);
+       }
+       inputFile.close();
+    }
+
+    return listResult;
+}
+
+XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, QString sString, bool bIsMulti)
+{
+    STRRECORD result = {};
+
+    qint32 nNumberOfRecords = pListStrings->count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        QString sRecord = pListStrings->at(i);
+
+        if (sRecord.contains("|")) {
+            QString sValue = sRecord.section("|", 0, -3);
+
+            if(sString == sValue) {
+                QString sType = sRecord.section("|", -2, -2);
+                QString _sString = sRecord.section("|", -1, -1);
+
+                if (result.sDescription != "") {
+                    result.sDescription += " | ";
+                }
+
+                if (sType != "") {
+                    result.sDescription += QString("(%1) ").arg(sType);
+                }
+
+                result.sDescription += _sString;
+
+                if (result.sString == "") {
+                    result.sString  = _sString;
+                    result.sType  = sType;
+                }
+
+                if (!bIsMulti) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+QList<QString> XInfoDB::loadStrDB(QString sPath, STRDB strDB)
+{
+    QList<QString> listResult;
+
+    QString sStrDBFileName;
+
+    if (strDB == STRDB_PESECTIONS) {
+        sStrDBFileName = "PE.sections.txt";
+    }
+
+    if (sStrDBFileName != "") {
+        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName);
+    }
+
+    return listResult;
+}
 #ifdef USE_XPROCESS
 bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 {

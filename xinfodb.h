@@ -338,6 +338,22 @@ public:
     QString read_unicodeString(XADDR nAddress,
                                quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
+
+    enum STRDB {
+        STRDB_UNKNOWN = 0,
+        STRDB_PESECTIONS
+    };
+
+    static QList<QString> getStringsFromFile(QString sFileName);
+
+    struct STRRECORD {
+        QString sString;
+        QString sType;
+        QString sDescription;
+    };
+
+    static STRRECORD handleStringDB(QList<QString> *pListStrings, QString sString, bool bIsMulti);
+    static QList<QString> loadStrDB(QString sPath, STRDB strDB);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
