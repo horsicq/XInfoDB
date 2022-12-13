@@ -1,16 +1,28 @@
-!EPack|Epack|Epack
+!EPack|packer|!EP(EXE Pack)
+!eprot|protector|!EProt
+"_!_!_!_|protector|Krypton
+.!ep|packer|!EP(EXE Pack)
 .00cfg|compiler|Control Flow Guard (CFG) section (added by newer versions of Visual Studio)
 .AAWEBS|compiler|section used by Amiti Antivirus DLLs webspam.dll and webspamwow64.dll
 .ASPack|packer|Aspack
+.BCPack|protector|Backdoor PE Compress Protector
 .BSS|compiler|Uninitialized Data Section
 .ByDwing|packer|Upack
 .CLR_UEF|compiler|.CLR Unhandled Exception Handler section
-.CRT|compiler|Initialized Data Section  (C RunTime)
+.CRT|compiler|Initialized Data Section (C RunTime)
 .CRT|compiler|mingw/cygwin
 .DATA|compiler|Data Section
+.DalKiT|protector|DalKrypt
+.FISHPEP|packer|Fish PE Packer
+.FishPE|protector|FishPE Shield
+.HOODLUM|pe tool|HOODLUM
+.Kaos12|protector|KaOs PE-DLL eXecutable Undetecter
+.Kaos2 |protector|KaOs PE-DLL eXecutable Undetecter
+.LARP|protector|lARP64
 .MPRESS1|packer|Mpress
 .MPRESS2|packer|Mpress
 .MaskPE|packer|MaskPE
+.PEDATA|packer|Fish PE Packer
 .RLPack|packer|RLPack
 .RPCrypt|protector|RPCrypt
 .Razor|demos|Razor
@@ -31,15 +43,18 @@
 .arch|compiler|Alpha-architecture section
 .aspack|packer|Aspack
 .autoload_text|compiler|cygwin/gcc; the Cygwin DLL uses a section to avoid copying certain data on fork.
+.avc|protector|AverCryptor
+.bedrock|packer|bambam
 .bindat|compiler|Binary data (also used by one of the downware installers based on LUA)
 .boom|builder|The Boomerang List Builder (config+exe xored with a single byte key 0x77)
 .bootdat|compiler|section that can be found inside Visual Studio files; contains palette entries
 .bss|compiler|Uninitialized Data Section
 .buildid|compiler|gcc/cygwin; Contains debug information (if overlaps with debug directory)
 .ccg|packer|CCG Packer (Chinese Packer)
+.ccp3p|protector|CrypToCrack Pe Protector
 .charmve|tool|Added by the PIN tool
 .code|compiler|Code Section
-.complua|compiler|Binary data|demos|most likely compiled LUA (also used by one of the downware installers based on LUA)
+.complua|compiler|most likely compiled LUA (also used by one of the downware installers based on LUA)
 .cormeta|compiler|.CLR Metadata Section
 .crtemui|demos|
 .cygheap|compiler|mingw/cygwin DEBUG
@@ -51,10 +66,10 @@
 .data|compiler|Data Section
 .debug$F|compiler|Debug info Section (Visual C++ version <7.0)
 .debug$F|compiler|mingw/cygwin
-.debug$P|compiler|Debug info Section (Visual C++ debug information|compiler|precompiled information
-.debug$S|compiler|Debug info Section (Visual C++ debug information|compiler|symbolic information)
+.debug$P|compiler|Debug info Section (Visual C++ debug information/compiler/precompiled information)
+.debug$S|compiler|Debug info Section (Visual C++ debug information/compiler/precompiled information)
 .debug$S|compiler|mingw/cygwin
-.debug$T|compiler|Debug info Section (Visual C++ debug information|compiler|type information)
+.debug$T|compiler|Debug info Section (Visual C++ debug information/compiler/precompiled information)
 .debug$T|compiler|mingw/cygwin
 .debug_abbrev|compiler|mingw/cygwin DEBUG
 .debug_aranges|compiler|mingw/cygwin DEBUG
@@ -67,11 +82,16 @@
 .debug_ranges|compiler|mingw/cygwin DEBUG
 .debug_str|compiler|mingw/cygwin DEBUG
 .debug|compiler|Debug info Section
+.decode|packer|MEW10
 .delete|demos|
+.depack|packer|dePack
 .didata|compiler|Delay Import Section
 .didat|compiler|Delay Import Section
+.dotfix|protector|DotFix Nice Protect
 .drectve |compiler|directive section (temporary|demos|linker removes it after processing it
 .drectve|compiler|mingw/cygwin
+.dyamarC|protector|DYAMAR
+.dyamarD|protector|DYAMAR
 .ecode|compiler|Built with EPL
 .edata|compiler|Built with EPL
 .edata|compiler|Export Data Section
@@ -79,8 +99,10 @@
 .eh_frame|compiler|mingw/cygwin
 .eh_fram|compiler|gcc/cygwin; Exception Handler Frame section
 .endjunk|compiler|mingw/cygwin
-.enigma1|protector|Enigma
-.enigma2|protector|Enigma
+.enigma1|protector|Enigma Virtual Box
+.enigma2|protector|Enigma Virtual Box
+.ex_cod|protector|eXPressor
+.ex_rsc|protector|eXPressor
 .exc|demos|
 .export|compiler|Alternative Export Data Section
 .fasm|compiler|FASM flat Section
@@ -115,7 +137,7 @@
 .g4kmuc5|demos|
 .gcc_except_table|compiler|mingw/cygwin
 .gcc_exc|compiler|mingw/cygwin
-.gentee|installer|Gentee installer
+.gentee|installer|Gentee Installer
 .gfids|compiler|section added by new Visual Studio (14.0)
 .giats|compiler|section added by new Visual Studio (14.0)
 .gljmp|compiler|section added by new Visual Studio (14.0)
@@ -123,6 +145,7 @@
 .glue_7t|compiler|mingw/cygwin
 .glue_7|compiler|ARMv7 core glue functions (32-bit ARM mode)
 .glue_7|compiler|mingw/cygwin
+.guruX|protector|G!X Protector
 .icon|demos|possibly an icon resource
 .idata$2|compiler|mingw/cygwin
 .idata$3|compiler|mingw/cygwin
@@ -136,13 +159,18 @@
 .impdata|compiler|Alternative Import data section
 .import|compiler|Alternative Import data section
 .imrsiv|tool|special section used for applications that can be loaded to OS desktop bands.
+.inq|protector|Inquartos Obfuscator
 .intro|demos|
 .itext|compiler|Code Section (Borland)
+.jdpack|packer|JDPack
+.jedata|compiler|Excelsior JET
+.jidata|compiler|Excelsior JET
 .load|demos|
 .mackt|tool|ImpRec-created section
 .mnbvcx1|loader|most likely associated with Firseria PUP downloaders
 .mnbvcx2|loader|most likely associated with Firseria PUP downloaders
 .mydata|demos|
+.nah|protector|Morphnah
 .ndata|installer|Nullsoft Installer section
 .neolite|packer|Neolite
 .neolit|packer|Neolite
@@ -161,6 +189,7 @@
 .pklstb|demos|
 .profile|tool|NightHawk C2 framework (by MDSec)
 .rdata|compiler|Read-only initialized Data Section  (MS and Borland)
+.reacto|protector|.NET Reactor
 .relo2|demos|
 .reloc|compiler|Relocations Section
 .rmnet|virus|Ramnit virus marker
@@ -171,20 +200,24 @@
 .sbss|compiler|GP-relative Uninitialized Data Section
 .script|compiler|Section containing script
 .sdata|compiler|GP-relative Initialized Data Section
+.sdata|protector|.NET Reactor
 .seau|sfx|SeauSFX
 .sforce3|protector|StarForce
 .shared|compiler|Shared section
+.shoooo|packer|KByS
 .shrink1|protector|Shrinker
 .shrink2|protector|Shrinker
 .shrink3|protector|Shrinker
 .spack|packer|Simple Pack (by bagie)
 .srdata|compiler|GP-relative Read-only Data Section
+.sstb|protector|ElecKey
 .stabstr|compiler|Created by Haskell compiler (GHC)
 .stabstr|compiler|mingw/cygwin
 .stab|compiler|Created by Haskell compiler (GHC)
 .stab|compiler|mingw/cygwin
 .svkp|protector|SVKP
 .sxdata|compiler|Registered Exception Handlers Section
+.symtab|compiler|Go
 .taz|protector|Some version os PESpin
 .text0|compiler|Alternative Code Section
 .text1|compiler|Alternative Code Section
@@ -198,6 +231,7 @@
 .tsuarch|loader|TSULoader
 .tsustub|loader|TSULoader
 .udata|compiler|Uninitialized Data Section
+.ultra|protector|MoleBox Ultra
 .vmp0|protector|VMProtect
 .vmp1|protector|VMProtect
 .vmp2|protector|VMProtect
@@ -211,8 +245,10 @@
 .xm|demos|possibly an XM module
 .y0da|protector|Y0da's Protector
 .yP|protector|Y0da's Protector
+ANDpakk2|packer|ANDpakk2
 ASPack|packer|Aspack
 AUTO|demos|
+AZPR0001|protector|AZProtect
 Address|demos|
 BSS|compiler|Uninitialized Data Section (Borland)
 BitArts|protector|Crunch 2.0
@@ -221,15 +257,20 @@ CODE32|demos|
 CODE|compiler|Code Section (Borland)
 COMMON|compiler|mingw/cygwin
 CONST32|demos|
+CPADinfo|library|Chromium Crashpad
 CPHb|demos|Coolphat group
 CR01|demos|Cro group
 CRO0|demos|Cro group
-DAStub|protector|DAStub Dragon Armor
+DAStub|protector|DragonArmor
 DATA|compiler|Data Section (Borland)
 DGROUP|compiler|Legacy data group section
+EPE0|protector|EncryptPE
+EPE1|protector|EncryptPE
+ExeS|protector|ExeStealth
+FCKCrypt|protector|Crypter
 Guy !|demos|
 INIT|compiler|INIT section (drivers)
-MEW|packer|MEW
+MEW|packer|MEW11 SE
 MYTH|demos|
 Not War!|demos|
 PAGE|compiler|PAGE section (drivers)
@@ -244,6 +285,7 @@ PESHiELD|protector|PEShield
 PS|demos|
 ProCrypt|protector|ProCrypt
 RCryptor|protector|RPCrypt
+SCRYPT|protector|Crypter
 STACK|demos|
 Scooopex|demos|Scoopex group
 Scoopex|demos|Scoopex group
@@ -258,21 +300,27 @@ UPX3|packer|UPX
 VProtect|protector|Vprotect
 WinLicen|protector|WinLicense (Themida)
 Xiao|protector|12311134
+YADO|protector|Krypton
 _RDATA|demos|
 _winzip_|sfx|WinZip Self-Extractor
+bero^fr |packer|BeRoEXEPacker
 edata|compiler|Export Data Section
 fuzzion|demos|Fuzzion group
 fzn03|demos|Fuzzion group
 g4kcodt|demos|
+hmimys|protector|Hmimys's Protector
 idata|compiler|Initialized Data Section (C RunTime)
 imports|demos|
 kkrunchy|packer|kkrunchy
+krypton|protector|Krypton
+lamecryp|protector|LameCrypt
 lz32.dll|packer|Crinkler
 minATL|compiler|Section that can be found inside some ARM PE files
 nsp0|packer|NsPack
 nsp1|packer|NsPack
 nsp2|packer|NsPack
 packer.|demos|Farbrausch group
+packerBY|packer|BeRoEXEPacker
 pebundle|protector|PEBundle
 pec1|packer|PECompact
 pec2|packer|PECompact
@@ -285,6 +333,7 @@ rdata|compiler|Read-only Data Section
 relocs|demos|
 resource|demos|
 resultat|demos|
+rsrr|protector|ExeStealth
 sdata|compiler|Initialized Data Section
 shared|compiler|Shared section
 testdata|compiler|section containing test data (can be found inside Visual Studio files)
