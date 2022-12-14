@@ -3,11 +3,11 @@
 "_!_!_!_|protector|Krypton
 .!ep|packer|!EP(EXE Pack)
 .00cfg|compiler|Control Flow Guard (CFG) section (added by newer versions of Visual Studio)
-.AAWEBS|compiler|section used by Amiti Antivirus DLLs webspam.dll and webspamwow64.dll
+.AAWEBS|compiler|Section used by Amiti Antivirus DLLs webspam.dll and webspamwow64.dll
 .ASPack|packer|Aspack
 .BCPack|protector|Backdoor PE Compress Protector
 .BSS|compiler|Uninitialized Data Section
-.ByDwing|packer|Upack
+.ByDwing|packer|(Win)Upack
 .CLR_UEF|compiler|.CLR Unhandled Exception Handler section
 .CRT|compiler|Initialized Data Section (C RunTime)
 .CRT|compiler|mingw/cygwin
@@ -36,7 +36,6 @@
 .UPX1|packer|UPX
 .UPX2|packer|UPX
 .Upack|packer|(Win)Upack
-.Upack|packer|Upack
 .WISE|installer|Wise
 .WWP32|packer|WWPack32
 .WWPACK|packer|WWPACK
@@ -54,7 +53,7 @@
 .bedrock|packer|bambam
 .bindat|compiler|Binary data (also used by one of the downware installers based on LUA)
 .boom|builder|The Boomerang List Builder (config+exe xored with a single byte key 0x77)
-.bootdat|compiler|section that can be found inside Visual Studio files; contains palette entries
+.bootdat|compiler|Section that can be found inside Visual Studio files; contains palette entries
 .boot|protector|Themida/Winlicense
 .bss|compiler|Uninitialized Data Section
 .buildid|compiler|gcc/cygwin; Contains debug information (if overlaps with debug directory)
@@ -63,7 +62,7 @@
 .ccp3p|protector|CrypToCrack Pe Protector
 .charmve|tool|Added by the PIN tool
 .code|compiler|Code Section
-.complua|compiler|most likely compiled LUA (also used by one of the downware installers based on LUA)
+.complua|compiler|Most likely compiled LUA (also used by one of the downware installers based on LUA)
 .cormeta|compiler|.CLR Metadata Section
 .crtemui|demo|
 .cygheap|compiler|mingw/cygwin DEBUG
@@ -97,7 +96,7 @@
 .didata|compiler|Delay Import Section
 .didat|compiler|Delay Import Section
 .dotfix|protector|DotFix Nice Protect
-.drectve |compiler|directive section (temporary|demo|linker removes it after processing it
+.drectve|compiler|directive section (temporary|demo|linker removes it after processing it
 .drectve|compiler|mingw/cygwin
 .dswlab|pe tool|VMUnpacker
 .dyamarC|protector|DYAMAR
@@ -134,7 +133,7 @@
 .g4kcodk|demo|
 .g4kcodl|demo|
 .g4kcodp|demo|
-.g4kcods|demo|.
+.g4kcods|demo|
 .g4kcodw|demo|
 .g4kcodx|demo|
 .g4kcody|demo|
@@ -346,7 +345,7 @@ UPX1|packer|UPX
 UPX2|packer|UPX
 UPX3|packer|UPX
 VProtect|protector|VirtualizeProtect
-WinLicen|protector|WinLicense (Themida)
+WinLicen|protector|Themida/Winlicense
 XPROT   |protector|Xtreme-Protector
 Xiao|protector|12311134
 YADO|protector|Krypton
