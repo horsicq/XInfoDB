@@ -72,7 +72,7 @@
 .data3|compiler|Data Section
 .data_cygwin_nocopy|compiler|cygwin
 .data|compiler|Data Section
-.debug$F|compiler|Debug info Section (Visual C++ version <7.0)
+.debug$F|compiler|Debug info Section (Visual C++ version < 7.0)
 .debug$F|compiler|mingw/cygwin
 .debug$P|compiler|Debug info Section (Visual C++ debug information/compiler/precompiled information)
 .debug$S|compiler|Debug info Section (Visual C++ debug information/compiler/precompiled information)
@@ -96,7 +96,7 @@
 .didata|compiler|Delay Import Section
 .didat|compiler|Delay Import Section
 .dotfix|protector|DotFix Nice Protect
-.drectve|compiler|directive section (temporary|demo|linker removes it after processing it
+.drectve|compiler|Directive section (temporary|demo|linker removes it after processing it
 .drectve|compiler|mingw/cygwin
 .dswlab|pe tool|VMUnpacker
 .dyamarC|protector|DYAMAR
@@ -180,8 +180,8 @@
 .loadcon|protector|Themida/Winlicense
 .load|demo|
 .mackt|tool|ImpRec-created section
-.mnbvcx1|loader|most likely associated with Firseria PUP downloaders
-.mnbvcx2|loader|most likely associated with Firseria PUP downloaders
+.mnbvcx1|loader|Most likely associated with Firseria PUP downloaders
+.mnbvcx2|loader|Most likely associated with Firseria PUP downloaders
 .mslrh|protector|MSLRH
 .mydata|demo|
 .n-coder|protector|N-Code
@@ -216,7 +216,7 @@
 .rlp|packer|RLP
 .rmnet|virus|Ramnit virus marker
 .rodata|compiler|Read-only Data Section
-.rsrc A|demo|possibly variant of resource section
+.rsrc A|demo|Possibly variant of resource section
 .rsrc|compiler|Resource section
 .sCe!05|demo|Scienide group
 .sbss|compiler|GP-relative Uninitialized Data Section
@@ -270,7 +270,6 @@
 .winapi|tool|Added by API Override tool
 .winlice|protector|Themida/Winlicense
 .wixburn|installer|WiX Toolset
-.wixburn|compiler|Wix section
 .wkt0|protector|WinKript
 .wpp_sf |compiler|section that is most likely related to WPP (Windows software trace PreProcessor)
 .xcpad|protector|Xenocode
@@ -316,8 +315,8 @@ NATIVES~|protector|NativeCryptor by DosX
 Not War!|demo|
 PAGE|compiler|PAGE section (drivers)
 PEBundle|protector|PEBundle
-PEC2MO|protector|PECompact
-PEC2TO|PECompact|PECompact
+PEC2MO|packer|PECompact
+PEC2TO|packer|PECompact
 PEC2|packer|PECompact
 PELOCKnt|packer|PELOCKnt
 PEPACK!!|packer|Pepack

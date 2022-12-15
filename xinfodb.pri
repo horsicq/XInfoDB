@@ -15,4 +15,5 @@ SOURCES += \
 DISTFILES += \
     $$PWD/LICENSE \
     $$PWD/README.md \
+    $$PWD/info/PE.sections.txt \
     $$PWD/xinfodb.cmake
