@@ -217,13 +217,13 @@ QList<QString> XInfoDB::getStringsFromFile(QString sFileName)
     QFile inputFile(sFileName);
 
     if (inputFile.open(QIODevice::ReadOnly)) {
-       QTextStream in(&inputFile);
-       while (!in.atEnd()) {
-          QString sLine = in.readLine();
+        QTextStream in(&inputFile);
+        while (!in.atEnd()) {
+            QString sLine = in.readLine();
 
-          listResult.append(sLine);
-       }
-       inputFile.close();
+            listResult.append(sLine);
+        }
+        inputFile.close();
     }
 
     return listResult;
@@ -241,7 +241,7 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, QString
         if (sRecord.contains("|")) {
             QString sValue = sRecord.section("|", 0, -3);
 
-            if(sString == sValue) {
+            if (sString == sValue) {
                 QString sType = sRecord.section("|", -2, -2);
                 QString _sString = sRecord.section("|", -1, -1);
 
@@ -256,8 +256,8 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, QString
                 result.sDescription += _sString;
 
                 if (result.sString == "") {
-                    result.sString  = _sString;
-                    result.sType  = sType;
+                    result.sString = _sString;
+                    result.sType = sType;
                 }
 
                 if (!bIsMulti) {
