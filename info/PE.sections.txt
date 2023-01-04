@@ -260,6 +260,7 @@
 .tsustub|loader|TSULoader
 .udata|compiler|Uninitialized Data Section
 .ultra|protector|MoleBox Ultra
+.vlizer|protector|Oreans CodeVirtualizer
 .vmp0|protector|VMProtect
 .vmp1|protector|VMProtect
 .vmp2|protector|VMProtect
