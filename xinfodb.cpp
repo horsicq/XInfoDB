@@ -1686,6 +1686,7 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 #endif
     return listResult;
 }
+
 #ifdef USE_XPROCESS
 QString XInfoDB::regIdToString(XREG reg)
 {
@@ -2175,9 +2176,9 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
 
     if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_SYMBOL)) {
         if (result.bValid) {
-            // TODO getSymbol
-            // TODO
-            // If not use address
+
+            result.sSymbol = getSymbolStringByAddress(result.nAddress);
+
             if (riType == RI_TYPE_SYMBOL) {
                 if (result.sSymbol == "") {
                     result.sSymbol = QString("<%1.%2>").arg(result.sModule, XBinary::valueToHexOS(result.nAddress));
@@ -2263,14 +2264,19 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
     return result;
 }
 
-QList<XInfoDB::SYMBOL> *XInfoDB::getSymbols()
+bool XInfoDB::isSymbolsPresent()
 {
-    return &g_listSymbols;
+    return !(g_listSymbols.isEmpty());
 }
 
-QMap<quint32, QString> *XInfoDB::getSymbolModules()
+QList<XInfoDB::SYMBOL> XInfoDB::getSymbols()
 {
-    return &g_mapSymbolModules;
+    return g_listSymbols;
+}
+
+QMap<quint32, QString> XInfoDB::getSymbolModules()
+{
+    return g_mapSymbolModules;
 }
 
 void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
@@ -2364,6 +2370,34 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
         sResult = tr("Object");
     else if (symbolType == ST_FUNCTION)
         sResult = tr("Function");
+
+    return sResult;
+}
+
+XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
+{
+    SYMBOL result = {};
+
+    qint32 nNumberOfSymbols = g_listSymbols.count();
+
+    for (qint32 i = 0; i < nNumberOfSymbols; i++) {
+        if (g_listSymbols.at(i).nAddress == nAddress) {
+            result = g_listSymbols.at(i);
+            break;
+        }
+    }
+
+    return result;
+}
+
+QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
+{
+    // TODO if sql
+    QString sResult;
+
+    SYMBOL symbol = getSymbolByAddress(nAddress);
+
+    sResult = symbol.sSymbol;
 
     return sResult;
 }

@@ -511,16 +511,20 @@ public:
         SS symbolSource;
     };
 
-    QList<SYMBOL> *getSymbols();
-    QMap<quint32, QString> *getSymbolModules();
+    bool isSymbolsPresent();
+    QList<SYMBOL> getSymbols();
+    QMap<quint32, QString> getSymbolModules();
 
-    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolTyp, SS symbolSource);
+    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     void _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
     static QString symbolSourceIdToString(SS symbolSource);
     static QString symbolTypeIdToString(ST symbolType);
+
+    SYMBOL getSymbolByAddress(XADDR nAddress);
+    QString getSymbolStringByAddress(XADDR nAddress);
 
     void testFunction();
 
