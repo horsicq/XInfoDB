@@ -30,7 +30,7 @@ public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
     enum TT {
-        TT_IMPORT = 0,
+        TT_ANALYZE = 0,
         TT_EXPORT
     };
 

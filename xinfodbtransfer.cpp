@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 hors<horsicq@gmail.com>
+/* Copyright (c) 2022-2023 hors<horsicq@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,7 @@
 XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
 {
     g_pXInfoDB = nullptr;
-    g_transferType = TT_IMPORT;
+    g_transferType = TT_ANALYZE;
     g_fileType = XBinary::FT_UNKNOWN;
     g_pDevice = nullptr;
     g_pPdStruct = nullptr;
@@ -49,6 +49,7 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDe
 
 bool XInfoDBTransfer::process()
 {
+    // TODO get string are not in code
     bool bResult = false;
 
     QElapsedTimer scanTimer;
@@ -58,7 +59,10 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if (g_transferType == TT_IMPORT) {
+        if (g_transferType == TT_ANALYZE) {
+
+            g_pXInfoDB->initDb();
+
             QIODevice *pDevice = g_pDevice;
 
             bool bFile = false;
@@ -215,12 +219,14 @@ bool XInfoDBTransfer::process()
                             }
                         }
                         // TODO TLS
+                        // TODO PDB
                         // TODO More
                     }
                 }
             }
 
             g_pXInfoDB->_sortSymbols();
+            // TODO sort records
 
             if (bFile && pDevice) {
                 QFile *pFile = static_cast<QFile *>(pDevice);

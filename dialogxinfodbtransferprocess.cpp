@@ -42,19 +42,19 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::analyzeData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
 {
-    setWindowTitle(tr("Import"));
+    setWindowTitle(tr("Analyze"));
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, sFileName, fileType, getPdStruct());
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_ANALYZE, sFileName, fileType, getPdStruct());
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::analyzeData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
 {
-    setWindowTitle(tr("Import"));
+    setWindowTitle(tr("Analyze"));
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, pDevice, fileType, getPdStruct());
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_ANALYZE, pDevice, fileType, getPdStruct());
     g_pThread->start();
 }
 

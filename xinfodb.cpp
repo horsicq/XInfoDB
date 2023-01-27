@@ -38,9 +38,9 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    g_handle = 0;
 #endif
     g_pDevice = nullptr;
+    g_handle = 0;
     g_fileType = XBinary::FT_UNKNOWN;
     g_nMainModuleAddress = 0;
     g_nMainModuleSize = 0;
@@ -54,32 +54,48 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef Q_PROCESSOR_X86_64
     disasmMode = XBinary::DM_X86_64;
 #endif
-    XCapstone::openHandle(disasmMode, &g_handle, true);
 #endif
+    setDisasmMode(disasmMode);
 }
 
 XInfoDB::~XInfoDB()
 {
-#ifdef USE_XPROCESS
     XCapstone::closeHandle(&g_handle);
+#ifdef QT_SQL_LIB
+    if (g_dataBase.open()) {
+        g_dataBase.close();
+        g_dataBase = QSqlDatabase();
+        QSqlDatabase::removeDatabase("local_db");
+    }
 #endif
 }
 
 void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
 {
     g_pDevice = pDevice;
-    g_fileType = fileType;
     g_mode = MODE_DEVICE;
 
-    if (fileType == XBinary::FT_UNKNOWN) {
-        g_fileType = XBinary::getPrefFileType(pDevice);
+#ifdef QT_SQL_LIB
+    if (g_dataBase.open()) {
+        g_dataBase.close();
+        g_dataBase = QSqlDatabase();
+        QSqlDatabase::removeDatabase("local_db");
     }
 
-    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
+    g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    g_dataBase.setDatabaseName("C:\\tmp_build\\local_db.db");
 
-    g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
-    g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
-    g_sMainModuleName = XBinary::getDeviceFileBaseName(pDevice);
+    if (g_dataBase.open()) {
+        g_dataBase.exec("PRAGMA synchronous = OFF");
+        g_dataBase.exec("PRAGMA journal_mode = MEMORY");
+    } else {
+#ifdef QT_DEBUG
+        qDebug("Cannot open sqlite database");
+#endif
+    }
+#endif
+
+    setFileType(fileType);
 }
 
 QIODevice *XInfoDB::getDevice()
@@ -87,9 +103,41 @@ QIODevice *XInfoDB::getDevice()
     return g_pDevice;
 }
 
+void XInfoDB::setFileType(XBinary::FT fileType)
+{
+    g_fileType = fileType;
+
+    if (fileType == XBinary::FT_UNKNOWN) {
+        g_fileType = XBinary::getPrefFileType(g_pDevice);
+    }
+
+    setDisasmMode(XBinary::getDisasmMode(XFormats::getOsInfo(g_fileType, g_pDevice)));
+
+    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, g_pDevice);
+
+    g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
+    g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
+
+    g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
+#ifdef QT_SQL_LIB
+    s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+#endif
+}
+
 XBinary::FT XInfoDB::getFileType()
 {
     return g_fileType;
+}
+
+void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
+{
+    g_disasmMode = disasmMode;
+
+    XCapstone::closeHandle(&g_handle);
+    XCapstone::openHandle(disasmMode, &g_handle, true);
+#ifdef QT_SQL_LIB
+    s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+#endif
 }
 
 void XInfoDB::reload(bool bDataReload)
@@ -2266,12 +2314,44 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
 
 bool XInfoDB::isSymbolsPresent()
 {
-    return !(g_listSymbols.isEmpty());
+    bool bResult = false;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_symbolTableName));
+
+    bResult = query.next();
+#else
+    bResult = !(g_listSymbols.isEmpty());
+#endif
+
+    return bResult;
 }
 
 QList<XInfoDB::SYMBOL> XInfoDB::getSymbols()
 {
-    return g_listSymbols;
+    QList<SYMBOL> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS, SIZE, MODULE, SYMBOL, SYMTYPE, SYMSOURCE FROM %1").arg(s_sql_symbolTableName));
+
+    while (query.next()) {
+        SYMBOL record = {};
+
+        record.nAddress = query.value(0).toULongLong();
+        record.nSize = query.value(1).toULongLong();
+        record.nModule = query.value(2).toULongLong();
+        record.sSymbol = query.value(3).toString();
+        record.symbolType = (ST)query.value(4).toULongLong();
+        record.symbolSource = (SS)query.value(5).toULongLong();
+
+        listResult.append(record);
+    }
+#else
+    listResult = g_listSymbols;
+#endif
+    return listResult;
 }
 
 QMap<quint32, QString> XInfoDB::getSymbolModules()
@@ -2281,6 +2361,9 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
 
 void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
 {
+#ifdef QT_SQL_LIB
+    _addSymbol(nAddress, nSize, nModule, sSymbol, symbolType, symbolSource);
+#else
     qint32 nInsertIndex = 0;
     qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
@@ -2298,10 +2381,26 @@ void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString s
 
         g_listSymbols.insert(nInsertIndex, symbol);
     }
+#endif
 }
 
 void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
 {
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, MODULE, SYMBOL, SYMTYPE, SYMSOURCE) "
+                            "VALUES (?, ?, ?, ?, ?, ?)").arg(s_sql_symbolTableName));
+
+    query.bindValue(0, nAddress);
+    query.bindValue(1, nSize);
+    query.bindValue(2, nModule);
+    query.bindValue(3, sSymbol);
+    query.bindValue(4, symbolType);
+    query.bindValue(5, symbolSource);
+
+    query.exec();
+#else
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
     symbol.nSize = nSize;
@@ -2311,18 +2410,21 @@ void XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString 
     symbol.symbolSource = symbolSource;
 
     g_listSymbols.append(symbol);
+#endif
 }
 
 void XInfoDB::_sortSymbols()
 {
+#ifndef QT_SQL_LIB
     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
+#endif
 }
 
 qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
 {
     // For sorted g_listSymbols!
     qint32 nResult = -1;
-
+#ifndef QT_SQL_LIB
     qint32 nNumberOfRecords = g_listSymbols.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
@@ -2336,7 +2438,7 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
             break;
         }
     }
-
+#endif
     return nResult;
 }
 
@@ -2377,7 +2479,20 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
 XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
     SYMBOL result = {};
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
 
+    querySQL(&query, QString("SELECT ADDRESS, SIZE, MODULE, SYMBOL, SYMTYPE, SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
+
+    while (query.next()) {
+        result.nAddress = query.value(0).toULongLong();
+        result.nSize = query.value(1).toULongLong();
+        result.nModule = query.value(2).toULongLong();
+        result.sSymbol = query.value(3).toString();
+        result.symbolType = (ST)query.value(4).toULongLong();
+        result.symbolSource = (SS)query.value(5).toULongLong();
+    }
+#else
     qint32 nNumberOfSymbols = g_listSymbols.count();
 
     for (qint32 i = 0; i < nNumberOfSymbols; i++) {
@@ -2386,7 +2501,7 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
             break;
         }
     }
-
+#endif
     return result;
 }
 
@@ -2402,6 +2517,49 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
     return sResult;
 }
 
+void XInfoDB::initDb()
+{
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_symbolTableName));
+
+    querySQL(&query, QString("CREATE TABLE %1 ("
+                                "address INTEGER,"
+                                "size INTEGER,"
+                                "module INTEGER,"
+                                "symbol TEXT,"
+                                "symtype INTEGER,"
+                                "symsource INTEGER"
+                            ")").arg(s_sql_symbolTableName));
+
+#endif
+    // TODO
+}
+#ifdef QT_SQL_LIB
+void XInfoDB::querySQL(QSqlQuery *pSqlQuery, QString sSQL)
+{
+    pSqlQuery->exec(sSQL);
+
+#ifdef QT_DEBUG
+    if ((pSqlQuery->lastError().text() != " ") && (pSqlQuery->lastError().text() != "")) {
+        qDebug("%s", pSqlQuery->lastQuery().toLatin1().data());
+        qDebug("%s", pSqlQuery->lastError().text().toLatin1().data());
+    }
+#endif
+}
+#endif
+#ifdef QT_SQL_LIB
+QString XInfoDB::convertStringSQL(QString sSQL)
+{
+    QString sResult;
+
+    sResult = sSQL;
+    sResult = sResult.replace("-", "_");
+
+    return sResult;
+}
+#endif
 void XInfoDB::testFunction()
 {
 #ifdef USE_XPROCESS

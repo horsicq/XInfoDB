@@ -34,8 +34,8 @@ public:
     explicit DialogXInfoDBTransferProcess(QWidget *pParent = nullptr);
     ~DialogXInfoDBTransferProcess();
 
-    void importData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType = XBinary::FT_UNKNOWN);
-    void importData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void analyzeData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void analyzeData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     void exportData(XInfoDB *pXInfoDB, QString sFileName);
 
 private:

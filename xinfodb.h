@@ -29,6 +29,12 @@
 #include "xprocess.h"
 #endif
 
+#ifdef QT_SQL_LIB
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#endif
+
 class XInfoDB : public QObject {
     Q_OBJECT
 public:
@@ -325,7 +331,9 @@ public:
 
     void setDevice(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     QIODevice *getDevice();
+    void setFileType(XBinary::FT fileType);
     XBinary::FT getFileType();
+    void setDisasmMode(XBinary::DM disasmMode);
 
     void reload(bool bDataReload);
 
@@ -526,6 +534,11 @@ public:
     SYMBOL getSymbolByAddress(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
 
+    void initDb();
+#ifdef QT_SQL_LIB
+    void querySQL(QSqlQuery *pSqlQuery, QString sSQL);
+    QString convertStringSQL(QString sSQL);
+#endif
     void testFunction();
 
 signals:
@@ -548,7 +561,7 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
-    csh g_handle;
+
     QList<BREAKPOINT> g_listBreakpoints;
 #ifdef Q_OS_WIN
     QMap<X_HANDLE, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
@@ -567,16 +580,24 @@ private:
     STATUS g_statusCurrent;
     STATUS g_statusPrev;
 #endif
+#ifndef QT_SQL_LIB
     QList<SYMBOL> g_listSymbols;
-    QMap<quint32, QString> g_mapSymbolModules;
+#endif
+    QMap<quint32, QString> g_mapSymbolModules; // TODO move to SQL
     QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     QIODevice *g_pDevice;
     XBinary::FT g_fileType;
+    XBinary::DM g_disasmMode;
+    csh g_handle;
     XBinary::_MEMORY_MAP g_MainModuleMemoryMap;
     XADDR g_nMainModuleAddress;
     quint64 g_nMainModuleSize;
     QString g_sMainModuleName;
     QMap<quint32, QMutex *> g_mapIds;
+#ifdef QT_SQL_LIB
+    QSqlDatabase g_dataBase;
+    QString s_sql_symbolTableName;
+#endif
 };
 
 #endif  // XINFODB_H
