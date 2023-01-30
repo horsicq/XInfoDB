@@ -42,7 +42,7 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::analyzeData(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
 {
     setWindowTitle(tr("Analyze"));
 
@@ -50,7 +50,7 @@ void DialogXInfoDBTransferProcess::analyzeData(XInfoDB *pXInfoDB, QString sFileN
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::analyzeData(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
 {
     setWindowTitle(tr("Analyze"));
 

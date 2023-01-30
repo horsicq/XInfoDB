@@ -510,6 +510,11 @@ public:
         ST_FUNCTION
     };
 
+    enum RT {
+        RT_UNKNOWN = 0,
+        RT_CODE
+    };
+
     struct SYMBOL {
         XADDR nAddress;
         qint64 nSize;
@@ -519,12 +524,20 @@ public:
         SS symbolSource;
     };
 
+    struct RECORD {
+        XADDR nAddress;
+        qint64 nSize;
+        QString sRecText1;
+        QString sRecText2;
+        RT recordType;
+    };
+
     bool isSymbolsPresent();
     QList<SYMBOL> getSymbols();
     QMap<quint32, QString> getSymbolModules();
 
     void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
-    void _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
+    bool _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
@@ -535,8 +548,14 @@ public:
     QString getSymbolStringByAddress(XADDR nAddress);
 
     void initDb();
+    void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool _addRecord(XADDR nAddress, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType);
+    bool _isRecordPresent(XADDR nAddress);
+
 #ifdef QT_SQL_LIB
-    void querySQL(QSqlQuery *pSqlQuery, QString sSQL);
+    bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
+    bool querySQL(QSqlQuery *pSqlQuery);
     QString convertStringSQL(QString sSQL);
 #endif
     void testFunction();
@@ -597,6 +616,7 @@ private:
 #ifdef QT_SQL_LIB
     QSqlDatabase g_dataBase;
     QString s_sql_symbolTableName;
+    QString s_sql_recordTableName;
 #endif
 };
 
