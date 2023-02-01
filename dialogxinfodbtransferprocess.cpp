@@ -58,6 +58,14 @@ void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice
     g_pThread->start();
 }
 
+void DialogXInfoDBTransferProcess::clear(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+{
+    setWindowTitle(tr("Clear"));
+
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_CLEAR, pDevice, fileType, getPdStruct());
+    g_pThread->start();
+}
+
 void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileName)
 {
     setWindowTitle(tr("Export"));

@@ -31,6 +31,7 @@ public:
 
     enum TT {
         TT_ANALYZE = 0,
+        TT_CLEAR,
         TT_EXPORT
     };
 

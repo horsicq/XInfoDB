@@ -61,8 +61,6 @@ bool XInfoDBTransfer::process()
     if (g_pXInfoDB) {
         if (g_transferType == TT_ANALYZE) {
 
-            g_pXInfoDB->initDb();
-
             QIODevice *pDevice = g_pDevice;
 
             bool bFile = false;
@@ -82,13 +80,17 @@ bool XInfoDBTransfer::process()
             }
 
             if (pDevice) {
+                g_pXInfoDB->initDb();
+
                 g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
+
+                XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
+
+                g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, g_pPdStruct);
+                // TODO sort records
             }
 
-            XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
-
-            g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, g_pPdStruct);
-            // TODO sort records
+            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isSymbolsPresent());
 
             if (bFile && pDevice) {
                 QFile *pFile = static_cast<QFile *>(pDevice);
@@ -99,6 +101,9 @@ bool XInfoDBTransfer::process()
             }
         } else if (g_transferType == TT_EXPORT) {
             // TODO
+        } else if (g_transferType == TT_CLEAR) {
+            g_pXInfoDB->clearDb();
+            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isSymbolsPresent());
         }
     }
 

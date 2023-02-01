@@ -1,4 +1,4 @@
-/* Copyright (c) 2022 hors<horsicq@gmail.com>
+/* Copyright (c) 2022-2023 hors<horsicq@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -512,7 +512,8 @@ public:
 
     enum RT {
         RT_UNKNOWN = 0,
-        RT_CODE
+        RT_CODE,
+        RT_DATA
     };
 
     struct SYMBOL {
@@ -524,8 +525,9 @@ public:
         SS symbolSource;
     };
 
-    struct RECORD {
+    struct SHOWRECORD {
         XADDR nAddress;
+        qint64 nOffset;
         qint64 nSize;
         QString sRecText1;
         QString sRecText2;
@@ -548,10 +550,18 @@ public:
     QString getSymbolStringByAddress(XADDR nAddress);
 
     void initDb();
+    void clearDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _addRecord(XADDR nAddress, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType);
+    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType);
     bool _isRecordPresent(XADDR nAddress);
+    SHOWRECORD getShowRecordByAddress(XADDR nAddress);
+    SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
+    SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
+    SHOWRECORD getShowRecordByNumber(qint64 nNumber);
+    qint64 getShowRecordsCount();
+    void setAnalyzed(bool bState);
+    bool isAnalyzed();
 
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
@@ -617,6 +627,7 @@ private:
     QSqlDatabase g_dataBase;
     QString s_sql_symbolTableName;
     QString s_sql_recordTableName;
+    bool g_bIsAnalyzed;
 #endif
 };
 

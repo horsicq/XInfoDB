@@ -36,6 +36,7 @@ public:
 
     void analyze(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     void analyze(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void clear(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     void exportData(XInfoDB *pXInfoDB, QString sFileName);
 
 private:
