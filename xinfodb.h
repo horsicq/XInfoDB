@@ -559,9 +559,13 @@ public:
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getShowRecordByNumber(qint64 nNumber);
+    qint64 getShowRecordOffset(XADDR nAddress);
     qint64 getShowRecordsCount();
     void setAnalyzed(bool bState);
     bool isAnalyzed();
+
+    void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
+    XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
 
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
