@@ -85,11 +85,18 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     }
 
     g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+
+#ifndef QT_DEBUG
+    g_dataBase.setDatabaseName(":memory:");
+#else
     g_dataBase.setDatabaseName("C:\\tmp_build\\local_db.db");
+#endif
 
     if (g_dataBase.open()) {
         g_dataBase.exec("PRAGMA synchronous = OFF");
         g_dataBase.exec("PRAGMA journal_mode = MEMORY");
+
+        //setAnalyzed(isSymbolsPresent());
     } else {
 #ifdef QT_DEBUG
         qDebug("Cannot open sqlite database");
@@ -123,7 +130,8 @@ void XInfoDB::setFileType(XBinary::FT fileType)
     g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
 #ifdef QT_SQL_LIB
     s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_recordTableName = convertStringSQL(QString("%1_%2_RECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_recordTableName = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_relativeTableName = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
 #endif
 }
 
@@ -140,7 +148,8 @@ void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
     XCapstone::openHandle(disasmMode, &g_handle, true);
 #ifdef QT_SQL_LIB
     s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_recordTableName = convertStringSQL(QString("%1_%2_RECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_recordTableName = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_relativeTableName = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
 #endif
 }
 
@@ -2554,7 +2563,16 @@ void XInfoDB::initDb()
                                 "RECTYPE INTEGER"
                              ")").arg(s_sql_recordTableName));
 
+    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_relativeTableName));
 
+    querySQL(&query, QString("CREATE TABLE %1 ("
+                                "ADDRESS INTEGER PRIMARY KEY,"
+                                "RELATIVE INTEGER,"
+                                "XREFTORELATIVE INTEGER,"
+                                "MEMORY INTEGER,"
+                                "XREFTOMEMORY INTEGER,"
+                                "MEMORYSIZE INTEGER"
+                             ")").arg(s_sql_relativeTableName));
 #endif
     // TODO
 }
@@ -2768,7 +2786,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
             while (!(pPdStruct->bIsStop))
             {
-                if(!_isRecordPresent(nCurrentAddress)) {
+                if(!_isShowRecordPresent(nCurrentAddress)) {
                     qint64 nOffset = XBinary::addressToOffset(pMemoryMap, nCurrentAddress);
 
                     if (nOffset != -1) {
@@ -2882,7 +2900,7 @@ bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QStri
     return bResult;
 }
 
-bool XInfoDB::_isRecordPresent(XADDR nAddress)
+bool XInfoDB::_isShowRecordPresent(XADDR nAddress)
 {
     bool bResult = false;
 
@@ -2895,6 +2913,29 @@ bool XInfoDB::_isRecordPresent(XADDR nAddress)
     if (querySQL(&query)) {
         bResult = query.next();
     }
+#endif
+
+    return bResult;
+}
+
+bool XInfoDB::_addRelRecord(XADDR nAddress, bool bRelative, XADDR nXrefToRelative, bool bMemory, XADDR nXrefToMemory, qint32 nMemorySize)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, RELATIVE, XREFTORELATIVE, MEMORY, XREFTOMEMORY, MEMORYSIZE) "
+                            "VALUES (?, ?, ?, ?, ?, ?)").arg(s_sql_relativeTableName));
+
+    query.bindValue(0, nAddress);
+    query.bindValue(1, bRelative);
+    query.bindValue(2, nXrefToRelative);
+    query.bindValue(3, bMemory);
+    query.bindValue(4, nXrefToMemory);
+    query.bindValue(5, nMemorySize);
+
+    bResult = querySQL(&query);
 #endif
 
     return bResult;
@@ -2935,10 +2976,10 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(1).toLongLong();
-        result.sRecText1 = query.value(2).toString();
-        result.sRecText2 = query.value(3).toString();
-        result.recordType = (RT)query.value(4).toULongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
     }
 
 #endif
@@ -2958,10 +2999,10 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(1).toLongLong();
-        result.sRecText1 = query.value(2).toString();
-        result.sRecText2 = query.value(3).toString();
-        result.recordType = (RT)query.value(4).toULongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
     }
 
 #endif
@@ -2981,10 +3022,10 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByNumber(qint64 nNumber)
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(1).toLongLong();
-        result.sRecText1 = query.value(2).toString();
-        result.sRecText2 = query.value(3).toString();
-        result.recordType = (RT)query.value(4).toULongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
     }
 
 #endif
@@ -3025,6 +3066,37 @@ qint64 XInfoDB::getShowRecordsCount()
     return nResult;
 }
 
+XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
+{
+    XInfoDB::RELRECORD result = {};
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS, RELATIVE, XREFTORELATIVE, MEMORY, XREFTOMEMORY, MEMORYSIZE FROM %1 WHERE ADDRESS = %2").arg(s_sql_relativeTableName, QString::number(nAddress)));
+
+    if (query.next()) {
+        result.nAddress = query.value(0).toULongLong();
+        result.bRelative = query.value(1).toLongLong(); // TODO
+        result.nXrefToRelative = query.value(2).toULongLong();
+        result.bMemory = query.value(3).toLongLong(); // TODO
+        result.nXrefToMemory = query.value(4).toULongLong();
+        result.nMemorySize = query.value(5).toLongLong();
+    }
+#endif
+
+    return result;
+}
+
+bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
+{
+    bool bResult = false;
+#ifdef QT_SQL_LIB
+    // TODO
+#endif
+    return bResult;
+}
+
 void XInfoDB::setAnalyzed(bool bState)
 {
 #ifdef QT_SQL_LIB
@@ -3045,6 +3117,11 @@ void XInfoDB::disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult)
 {
 #ifdef QT_SQL_LIB
     _addShowRecord(disasmResult.nAddress, nOffset, disasmResult.nSize, disasmResult.sMnemonic, disasmResult.sString, RT_CODE);
+
+    if (disasmResult.bRelative || disasmResult.bMemory) {
+        _addRelRecord(disasmResult.nAddress, disasmResult.bRelative, disasmResult.nXrefToRelative, disasmResult.bMemory, disasmResult.nXrefToMemory, disasmResult.nMemorySize);
+    }
+
     // TODO
 #endif
 }
@@ -3053,7 +3130,6 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
 {
     XCapstone::DISASM_RESULT result = {};
 #ifdef QT_SQL_LIB
-
     XInfoDB::SHOWRECORD showRecord = getShowRecordByAddress(nAddress);
 
     result.bIsValid = (showRecord.nSize!=0);
@@ -3062,6 +3138,13 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
     result.sMnemonic = showRecord.sRecText1;
     result.sString = showRecord.sRecText2;
 
+    XInfoDB::RELRECORD relRecord = getRelRecordByAddress(nAddress);
+
+    result.bRelative = relRecord.bRelative;
+    result.nXrefToRelative = relRecord.nXrefToRelative;
+    result.bMemory = relRecord.bMemory;
+    result.nXrefToMemory = relRecord.nXrefToMemory;
+    result.nMemorySize = relRecord.nMemorySize;
     // TODO
 #endif
     return result;

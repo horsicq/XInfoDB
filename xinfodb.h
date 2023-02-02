@@ -534,6 +534,15 @@ public:
         RT recordType;
     };
 
+    struct RELRECORD {
+        XADDR nAddress;
+        bool bRelative; // TODO jmp/jxx/call
+        XADDR nXrefToRelative;
+        bool bMemory; // TODO read/write/access
+        XADDR nXrefToMemory;
+        qint32 nMemorySize;
+    };
+
     bool isSymbolsPresent();
     QList<SYMBOL> getSymbols();
     QMap<quint32, QString> getSymbolModules();
@@ -554,13 +563,20 @@ public:
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType);
-    bool _isRecordPresent(XADDR nAddress);
+    bool _isShowRecordPresent(XADDR nAddress);
+    bool _addRelRecord(XADDR nAddress, bool bRelative, XADDR nXrefToRelative, bool bMemory, XADDR nXrefToMemory, qint32 nMemorySize);
+
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getShowRecordByNumber(qint64 nNumber);
     qint64 getShowRecordOffset(XADDR nAddress);
     qint64 getShowRecordsCount();
+
+    RELRECORD getRelRecordByAddress(XADDR nAddress);
+
+    bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
+
     void setAnalyzed(bool bState);
     bool isAnalyzed();
 
@@ -631,6 +647,7 @@ private:
     QSqlDatabase g_dataBase;
     QString s_sql_symbolTableName;
     QString s_sql_recordTableName;
+    QString s_sql_relativeTableName;
     bool g_bIsAnalyzed;
 #endif
 };
