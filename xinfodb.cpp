@@ -2857,7 +2857,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 qint64 _nRecordSize = qMin((qint64)((mr.nAddress + mr.nSize) - _nCurrentAddress), (qint64)((nCurrentAddress + nRecordSize) - _nCurrentAddress));
                 qint64 _nOffset = XBinary::addressToOffset(pMemoryMap, _nCurrentAddress);
 
-                QString sDupName = QString("%1h dup (?)").arg(QString::number(_nRecordSize, 16));
+                QString sDupName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
 
                 _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDupName, RT_DATA);
 
@@ -3010,7 +3010,7 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
     return result;
 }
 
-XInfoDB::SHOWRECORD XInfoDB::getShowRecordByNumber(qint64 nNumber)
+XInfoDB::SHOWRECORD XInfoDB::getShowRecordByLine(qint64 nNumber)
 {
     XInfoDB::SHOWRECORD result = {};
 
@@ -3033,16 +3033,92 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByNumber(qint64 nNumber)
     return result;
 }
 
-qint64 XInfoDB::getShowRecordOffset(XADDR nAddress)
+XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
 {
-    qint64 nResult = -1;
+    XInfoDB::SHOWRECORD result = {};
+
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ROFFSET FROM %1 WHERE ADDRESS = %2").arg(s_sql_recordTableName, QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE FROM %1 WHERE ROFFSET = '%2'").arg(s_sql_recordTableName, QString::number(nOffset)));
+
+    if (query.next()) {
+        result.nAddress = query.value(0).toULongLong();
+        result.nOffset = query.value(1).toLongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
+    }
+
+#endif
+
+    return result;
+}
+
+qint64 XInfoDB::getShowRecordOffsetByAddress(XADDR nAddress)
+{
+    qint64 nResult = 0;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ROFFSET FROM %1 WHERE ADDRESS >= %2 LIMIT 1").arg(s_sql_recordTableName, QString::number(nAddress)));
 
     if (query.next()) {
         nResult = query.value(0).toLongLong();
+    }
+#endif
+
+    return nResult;
+}
+
+qint64 XInfoDB::getShowRecordPrevOffsetByAddress(XADDR nAddress)
+{
+    qint64 nResult = 0;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT MAX(ROFFSET) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_recordTableName, QString::number(nAddress)));
+
+    if (query.next()) {
+        nResult = query.value(0).toLongLong();
+    }
+#endif
+
+    return nResult;
+}
+
+qint64 XInfoDB::getShowRecordOffsetByLine(qint64 nNumber)
+{
+    return getShowRecordOffsetByAddress(getShowRecordAddressByLine(nNumber));
+}
+
+XADDR XInfoDB::getShowRecordAddressByOffset(qint64 nOffset)
+{
+    XADDR nResult = 0;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ROFFSET >= %2 LIMIT 1").arg(s_sql_recordTableName, QString::number(nOffset)));
+
+    if (query.next()) {
+        nResult = query.value(0).toULongLong();
+    }
+#endif
+
+    return nResult;
+}
+
+XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
+{
+    XADDR nResult = 0;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 LIMIT 1 OFFSET %2").arg(s_sql_recordTableName, QString::number(nLine)));
+
+    if (query.next()) {
+        nResult = query.value(0).toULongLong();
     }
 #endif
 
@@ -3064,6 +3140,32 @@ qint64 XInfoDB::getShowRecordsCount()
 #endif
 
     return nResult;
+}
+
+qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
+{
+    qint64 nResult = 0;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT count(*) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_recordTableName, QString::number(nAddress)));
+
+    if (query.next()) {
+        nResult = query.value(0).toLongLong();
+    }
+
+    if (nResult > 0) {
+        nResult --;
+    }
+#endif
+
+    return nResult;
+}
+
+qint64 XInfoDB::getShowRecordLineByOffset(qint64 nOffset)
+{
+    return getShowRecordLineByAddress(getShowRecordAddressByOffset(nOffset));
 }
 
 XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
@@ -3092,7 +3194,10 @@ bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
-    // TODO
+    QSqlQuery query(g_dataBase);
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3 AND ROFFSET = -1").arg(s_sql_recordTableName, QString::number(nAddress), QString::number(nAddress + nSize)));
+
+    bResult = query.next();
 #endif
     return bResult;
 }

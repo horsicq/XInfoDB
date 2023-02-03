@@ -569,9 +569,16 @@ public:
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
-    SHOWRECORD getShowRecordByNumber(qint64 nNumber);
-    qint64 getShowRecordOffset(XADDR nAddress);
+    SHOWRECORD getShowRecordByLine(qint64 nLine);
+    SHOWRECORD getShowRecordByOffset(qint64 nOffset);
+    qint64 getShowRecordOffsetByAddress(XADDR nAddress);
+    qint64 getShowRecordPrevOffsetByAddress(XADDR nAddress);
+    qint64 getShowRecordOffsetByLine(qint64 nLine);
+    XADDR getShowRecordAddressByOffset(qint64 nOffset);
+    XADDR getShowRecordAddressByLine(qint64 nLine);
     qint64 getShowRecordsCount();
+    qint64 getShowRecordLineByAddress(XADDR nAddress);
+    qint64 getShowRecordLineByOffset(qint64 nOffset);
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
 
