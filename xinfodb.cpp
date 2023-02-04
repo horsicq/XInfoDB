@@ -89,7 +89,7 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
 #ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
 #else
-    g_dataBase.setDatabaseName("C:\\tmp_build\\local_db.db");
+    g_dataBase.setDatabaseName("local_db.db");
 #endif
 
     if (g_dataBase.open()) {
@@ -2851,8 +2851,13 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
             }
 
-            for (XADDR _nCurrentAddress = nCurrentAddress; _nCurrentAddress < nCurrentAddress + nRecordSize;) {
+            // 030a3000
+            for (XADDR _nCurrentAddress = nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
                 XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
+
+                if (mr.nSize == 0) {
+                    break;
+                }
 
                 qint64 _nRecordSize = qMin((qint64)((mr.nAddress + mr.nSize) - _nCurrentAddress), (qint64)((nCurrentAddress + nRecordSize) - _nCurrentAddress));
                 qint64 _nOffset = XBinary::addressToOffset(pMemoryMap, _nCurrentAddress);
