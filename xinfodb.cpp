@@ -2694,6 +2694,10 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
                                 if (XBinary::isAddressValid(&memoryMap, nSymbolAddress)) {
                                     _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
+                                } else {
+                                #ifdef QT_DEBUG
+                                    qDebug("%s", sSymbolName.toLatin1().data());
+                                #endif
                                 }
                             }
                         }
@@ -2851,7 +2855,6 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
             }
 
-            // 030a3000
             for (XADDR _nCurrentAddress = nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
                 XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
 
