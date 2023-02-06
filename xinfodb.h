@@ -532,6 +532,7 @@ public:
         QString sRecText1;
         QString sRecText2;
         RT recordType;
+        quint64 nLineNumber;
     };
 
     struct RELRECORD {
@@ -547,6 +548,8 @@ public:
     QList<SYMBOL> getSymbols();
     QMap<quint32, QString> getSymbolModules();
 
+    QList<XADDR> getSymbolFunctionAddresses();
+
     void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     bool _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     void _sortSymbols();
@@ -560,9 +563,10 @@ public:
 
     void initDb();
     void clearDb();
+    void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType);
+    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber);
     bool _isShowRecordPresent(XADDR nAddress);
     bool _addRelRecord(XADDR nAddress, bool bRelative, XADDR nXrefToRelative, bool bMemory, XADDR nXrefToMemory, qint32 nMemorySize);
 
@@ -579,6 +583,7 @@ public:
     qint64 getShowRecordsCount();
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
+    void updateShowRecordLine(XADDR nAddress, qint64 nLine);
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
 
