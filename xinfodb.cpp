@@ -89,7 +89,8 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
 #ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
 #else
-    g_dataBase.setDatabaseName("local_db.db");
+//    g_dataBase.setDatabaseName("local_db.db");
+    g_dataBase.setDatabaseName(":memory:");
 #endif
 
     if (g_dataBase.open()) {
@@ -153,9 +154,14 @@ void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
 #endif
 }
 
-void XInfoDB::reload(bool bDataReload)
+void XInfoDB::reload(bool bReloadData)
 {
-    emit dataChanged(bDataReload);
+    emit reloadSignal(bReloadData);
+}
+
+void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
+{
+    // TODO
 }
 
 quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian)
@@ -2924,9 +2930,32 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 qint64 _nRecordSize = qMin((qint64)((mr.nAddress + mr.nSize) - _nCurrentAddress), (qint64)((nCurrentAddress + nRecordSize) - _nCurrentAddress));
                 qint64 _nOffset = XBinary::addressToOffset(pMemoryMap, _nCurrentAddress);
 
-                QString sDupName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
+                if (_nOffset == -1) {
+                    QString sDataName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
+                    _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDataName, RT_DATA, nLineNumber++);
+                } else {
+                    for (XADDR _nCurrentAddressData = _nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddressData < _nCurrentAddress + _nRecordSize);) {
+                        qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
-                _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDupName, RT_DATA, nLineNumber++);
+                        qint64 _nRecordSizeData = 0;
+                        QString sDataName;
+
+                        XBinary::REGION_FILL regionFill = binary.getRegionFill(_nOffsetData, 16, 16);
+
+                        if (regionFill.nSize) {
+                            _nRecordSizeData = regionFill.nSize;
+                            sDataName = QString("0x%1 dup (0x%2)").arg(QString::number(_nRecordSizeData, 16), QString::number(regionFill.nByte, 16));
+                        } else {
+                            _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData)); // TODO consts
+                        }
+
+                        _addShowRecord(_nCurrentAddressData, _nOffsetData, _nRecordSizeData, "db", sDataName, RT_DATA, nLineNumber++);
+
+                        _nCurrentAddressData += _nRecordSizeData;
+
+                        XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, _nCurrentAddress - pMemoryMap->nModuleAddress);
+                    }
+                }
 
                 _nCurrentAddress += _nRecordSize;
             }
@@ -3229,14 +3258,10 @@ qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT count(*) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_recordTableName, QString::number(nAddress)));
+    querySQL(&query, QString("SELECT max(LINENUMBER) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_recordTableName, QString::number(nAddress)));
 
     if (query.next()) {
         nResult = query.value(0).toLongLong();
-    }
-
-    if (nResult > 0) {
-        nResult --;
     }
 #endif
 

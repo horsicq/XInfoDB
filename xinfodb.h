@@ -335,7 +335,8 @@ public:
     XBinary::FT getFileType();
     void setDisasmMode(XBinary::DM disasmMode);
 
-    void reload(bool bDataReload);
+    void reload(bool bReloadData);
+    void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
 
     quint32 read_uint32(XADDR nAddress, bool bIsBigEndian = false);
     quint64 read_uint64(XADDR nAddress, bool bIsBigEndian = false);
@@ -603,7 +604,8 @@ public:
     void testFunction();
 
 signals:
-    void dataChanged(bool bDataReload);
+    void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
+    bool reloadSignal(bool bReloadData);
 
 private:
 #ifdef USE_XPROCESS
