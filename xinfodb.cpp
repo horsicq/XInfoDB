@@ -2565,7 +2565,12 @@ void XInfoDB::initDb()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_symbolTableName));
+    querySQL(&query, QString("PRAGMA writable_schema = 1"));
+    querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"));
+    querySQL(&query, QString("PRAGMA writable_schema = 0"));
+
+    querySQL(&query, QString("VACUUM"));
+    querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
 
     querySQL(&query, QString("CREATE TABLE %1 ("
                                 "ADDRESS INTEGER,"
@@ -2575,9 +2580,6 @@ void XInfoDB::initDb()
                                 "SYMTYPE INTEGER,"
                                 "SYMSOURCE INTEGER"
                             ")").arg(s_sql_symbolTableName));
-
-    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_recordTableName));
-
     querySQL(&query, QString("CREATE TABLE %1 ("
                                 "ADDRESS INTEGER PRIMARY KEY,"
                                 "ROFFSET INTEGER,"
@@ -2587,9 +2589,6 @@ void XInfoDB::initDb()
                                 "RECTYPE INTEGER,"
                                 "LINENUMBER INTEGER"
                              ")").arg(s_sql_recordTableName));
-
-    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_relativeTableName));
-
     querySQL(&query, QString("CREATE TABLE %1 ("
                                 "ADDRESS INTEGER PRIMARY KEY,"
                                 "RELATIVE INTEGER,"
