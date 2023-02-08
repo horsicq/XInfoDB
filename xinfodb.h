@@ -337,7 +337,7 @@ public:
 
     void reload(bool bReloadData);
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
-
+#ifdef USE_XPROCESS
     quint32 read_uint32(XADDR nAddress, bool bIsBigEndian = false);
     quint64 read_uint64(XADDR nAddress, bool bIsBigEndian = false);
     qint64 read_array(XADDR nAddress, char *pData, quint64 nSize);
@@ -347,6 +347,17 @@ public:
     QString read_unicodeString(XADDR nAddress,
                                quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
+#else
+    quint32 read_uint32(qint64 nOffset, bool bIsBigEndian = false);
+    quint64 read_uint64(qint64 nOffset, bool bIsBigEndian = false);
+    qint64 read_array(qint64 nOffset, char *pData, quint64 nSize);
+    qint64 write_array(qint64 nOffset, char *pData, quint64 nSize);
+    QByteArray read_array(qint64 nOffset, quint64 nSize);
+    QString read_ansiString(qint64 nOffset, quint64 nMaxSize = 256);
+    QString read_unicodeString(qint64 nOffset,
+                               quint64 nMaxSize = 256);  // TODO endian ??
+    QString read_utf8String(qint64 nOffset, quint64 nMaxSize = 256);
+#endif
 
     enum STRDB {
         STRDB_UNKNOWN = 0,
@@ -500,7 +511,7 @@ public:
         // TODO More
     };
 
-    enum ST {
+    enum ST { // TODO mb rewrite
         ST_UNKNOWN = 0,
         ST_LABEL,
         ST_ENTRYPOINT,
@@ -538,9 +549,9 @@ public:
 
     struct RELRECORD {
         XADDR nAddress;
-        bool bRelative; // TODO jmp/jxx/call
+        XCapstone::RELTYPE relType;
         XADDR nXrefToRelative;
-        bool bMemory; // TODO read/write/access
+        XCapstone::MEMTYPE memType;
         XADDR nXrefToMemory;
         qint32 nMemorySize;
     };
@@ -560,6 +571,7 @@ public:
     static QString symbolTypeIdToString(ST symbolType);
 
     SYMBOL getSymbolByAddress(XADDR nAddress);
+    bool isSymbolPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
 
     void initDb();
@@ -569,7 +581,7 @@ public:
     void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber);
     bool _isShowRecordPresent(XADDR nAddress);
-    bool _addRelRecord(XADDR nAddress, bool bRelative, XADDR nXrefToRelative, bool bMemory, XADDR nXrefToMemory, qint32 nMemorySize);
+    bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
@@ -649,6 +661,7 @@ private:
     QMap<quint32, QString> g_mapSymbolModules; // TODO move to SQL
     QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     QIODevice *g_pDevice;
+    XBinary g_binary;
     XBinary::FT g_fileType;
     XBinary::DM g_disasmMode;
     csh g_handle;

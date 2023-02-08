@@ -77,6 +77,8 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_pDevice = pDevice;
     g_mode = MODE_DEVICE;
 
+    g_binary.setDevice(pDevice); // TODO read/write signals
+
 #ifdef QT_SQL_LIB
     if (g_dataBase.open()) {
         g_dataBase.close();
@@ -89,8 +91,8 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
 #ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
 #else
-//    g_dataBase.setDatabaseName("local_db.db");
-    g_dataBase.setDatabaseName(":memory:");
+    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
+//    g_dataBase.setDatabaseName(":memory:");
 #endif
 
     if (g_dataBase.open()) {
@@ -164,119 +166,159 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
     // TODO
 }
 
+#ifdef USE_XPROCESS
 quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian)
 {
     quint32 nResult = 0;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     nResult = XProcess::read_uint32(g_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_uint32(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
-#endif
-    // TODO XBinary
+
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian)
 {
     quint64 nResult = 0;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     nResult = XProcess::read_uint64(g_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_uint64(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
-#endif
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize)
 {
     qint64 nResult = 0;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     nResult = XProcess::read_array(g_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
-#endif
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize)
 {
     qint64 nResult = 0;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     nResult = XProcess::write_array(g_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
     nResult = XProcess::write_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
-#endif
     return nResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize)
 {
     QByteArray baResult;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     baResult = XProcess::read_array(g_processInfo.hProcess, nAddress, nSize);
 #endif
 #ifdef Q_OS_LINUX
     baResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, nSize);
 #endif
-#endif
     return baResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     sResult = XProcess::read_ansiString(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_ansiString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
-#endif
     return sResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     sResult = XProcess::read_unicodeString(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_unicodeString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
-#endif
     return sResult;
 }
-
+#endif
+#ifdef USE_XPROCESS
 QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
-#ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     sResult = XProcess::read_utf8String(g_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_utf8String(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
-#endif
     return sResult;
 }
-
+#endif
+#ifndef USE_XPROCESS
+quint32 XInfoDB::read_uint32(qint64 nOffset, bool bIsBigEndian)
+{
+    return g_binary.read_uint32(nOffset, bIsBigEndian);
+}
+#endif
+#ifndef USE_XPROCESS
+quint64 XInfoDB::read_uint64(qint64 nOffset, bool bIsBigEndian)
+{
+    return g_binary.read_uint64(nOffset, bIsBigEndian);
+}
+#endif
+#ifndef USE_XPROCESS
+qint64 XInfoDB::read_array(qint64 nOffset, char *pData, quint64 nSize)
+{
+    return g_binary.read_array(nOffset, pData, nSize);
+}
+#endif
+#ifndef USE_XPROCESS
+qint64 XInfoDB::write_array(qint64 nOffset, char *pData, quint64 nSize)
+{
+    return g_binary.write_array(nOffset, pData, nSize);
+}
+#endif
+#ifndef USE_XPROCESS
+QByteArray XInfoDB::read_array(qint64 nOffset, quint64 nSize)
+{
+    return g_binary.read_array(nOffset, nSize);
+}
+#endif
+#ifndef USE_XPROCESS
+QString XInfoDB::read_ansiString(qint64 nOffset, quint64 nMaxSize)
+{
+    return g_binary.read_ansiString(nOffset, nMaxSize);
+}
+#endif
+#ifndef USE_XPROCESS
+QString XInfoDB::read_unicodeString(qint64 nOffset, quint64 nMaxSize)
+{
+    return g_binary.read_unicodeString(nOffset, nMaxSize);
+}
+#endif
+#ifndef USE_XPROCESS
+QString XInfoDB::read_utf8String(qint64 nOffset, quint64 nMaxSize)
+{
+    return g_binary.read_utf8String(nOffset, nMaxSize);
+}
+#endif
 QList<QString> XInfoDB::getStringsFromFile(QString sFileName)
 {
     QList<QString> listResult;
@@ -2237,7 +2279,12 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
 
     if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_DATA) || (riType == RI_TYPE_ANSI) || (riType == RI_TYPE_UNICODE) || (riType == RI_TYPE_UTF8)) {
         if (result.bValid) {
+         #ifdef USE_XPROCESS
             result.baData = read_array(result.nAddress, 64);  // TODO const
+        #else
+            qint64 nCurrentOffset = XBinary::addressToOffset(&g_MainModuleMemoryMap, result.nAddress);
+            result.baData = read_array(nCurrentOffset, 64);  // TODO const
+        #endif
         }
     }
 
@@ -2547,6 +2594,21 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
     return result;
 }
 
+bool XInfoDB::isSymbolPresent(XADDR nAddress)
+{
+    bool bResult = false;
+#ifdef QT_SQL_LIB
+    if (g_bIsAnalyzed) {
+        QSqlQuery query(g_dataBase);
+
+        querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
+
+        bResult = query.next();
+    }
+#endif
+    return bResult;
+}
+
 QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
 {
     // TODO if sql
@@ -2573,7 +2635,7 @@ void XInfoDB::initDb()
     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
 
     querySQL(&query, QString("CREATE TABLE %1 ("
-                                "ADDRESS INTEGER,"
+                                "ADDRESS INTEGER PRIMARY KEY,"
                                 "SIZE INTEGER,"
                                 "MODULE INTEGER,"
                                 "SYMTEXT TEXT,"
@@ -2591,9 +2653,9 @@ void XInfoDB::initDb()
                              ")").arg(s_sql_recordTableName));
     querySQL(&query, QString("CREATE TABLE %1 ("
                                 "ADDRESS INTEGER PRIMARY KEY,"
-                                "RELATIVE INTEGER,"
+                                "RELTYPE INTEGER,"
                                 "XREFTORELATIVE INTEGER,"
-                                "MEMORY INTEGER,"
+                                "MEMTYPE INTEGER,"
                                 "XREFTOMEMORY INTEGER,"
                                 "MEMORYSIZE INTEGER"
                              ")").arg(s_sql_relativeTableName));
@@ -2802,6 +2864,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
     XBinary::DM disasmMode = XBinary::getDisasmMode(pMemoryMap);
+    XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
 
@@ -2852,16 +2915,23 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
                                 nCurrentAddress += disasmResult.nSize;
 
-                                if (disasmResult.bRelative) {
+                                if (disasmResult.relType) {
                                     stEntries.insert(disasmResult.nXrefToRelative);
                                     nMaxTotal ++;
                                 }
 
-                                // TODO Check
-                                if (    (disasmResult.sMnemonic == "ret") ||
-                                        (disasmResult.sMnemonic == "retn") ||
-                                        (disasmResult.sMnemonic == "jmp")) {
-                                    break;
+                                if (dmFamily == XBinary::DMFAMILY_X86) {
+                                    // TODO Check
+                                    if (    (disasmResult.sMnemonic == "ret") ||
+                                            (disasmResult.sMnemonic == "retn") ||
+                                            (disasmResult.sMnemonic == "jmp")) {
+                                        break;
+                                    }
+                                } else if ((dmFamily == XBinary::DMFAMILY_ARM) || (dmFamily == XBinary::DMFAMILY_ARM64)) {
+                                    // TODO Check
+                                    if (    (disasmResult.sMnemonic == "b") ) {
+                                        break;
+                                    }
                                 }
                             } else {
                                 break;
@@ -2885,6 +2955,36 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
         } else {
             break;
         }
+    }
+
+    vacuumDb();
+
+    // Call labels
+    {
+    #ifdef QT_SQL_LIB
+        g_dataBase.transaction();
+    #endif
+//        QList<XADDR> listLabels = getShowRecordLabels();
+        QList<XADDR> listLabels;
+        qint32 nNumberOfLabels = listLabels.count();
+
+        XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
+        XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfLabels);
+
+        for (qint32 i = 0; i < nNumberOfLabels; i++) {
+            XADDR nSymbolAddress = listLabels.at(i);
+
+            if (!isSymbolPresent(nSymbolAddress)) {
+                QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+
+                _addSymbol(nSymbolAddress, 0, 0, sSymbolName, ST_FUNCTION, SS_FILE);
+            }
+
+            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
+        }
+    #ifdef QT_SQL_LIB
+        g_dataBase.commit();
+    #endif
     }
 
     vacuumDb();
@@ -3021,20 +3121,20 @@ bool XInfoDB::_isShowRecordPresent(XADDR nAddress)
     return bResult;
 }
 
-bool XInfoDB::_addRelRecord(XADDR nAddress, bool bRelative, XADDR nXrefToRelative, bool bMemory, XADDR nXrefToMemory, qint32 nMemorySize)
+bool XInfoDB::_addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize)
 {
     bool bResult = false;
 
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, RELATIVE, XREFTORELATIVE, MEMORY, XREFTOMEMORY, MEMORYSIZE) "
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
                             "VALUES (?, ?, ?, ?, ?, ?)").arg(s_sql_relativeTableName));
 
     query.bindValue(0, nAddress);
-    query.bindValue(1, bRelative);
+    query.bindValue(1, relType);
     query.bindValue(2, nXrefToRelative);
-    query.bindValue(3, bMemory);
+    query.bindValue(3, memType);
     query.bindValue(4, nXrefToMemory);
     query.bindValue(5, nMemorySize);
 
@@ -3288,13 +3388,13 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, RELATIVE, XREFTORELATIVE, MEMORY, XREFTOMEMORY, MEMORYSIZE FROM %1 WHERE ADDRESS = %2").arg(s_sql_relativeTableName, QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1 WHERE ADDRESS = %2").arg(s_sql_relativeTableName, QString::number(nAddress)));
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
-        result.bRelative = query.value(1).toLongLong(); // TODO
+        result.relType = (XCapstone::RELTYPE)query.value(1).toULongLong(); // TODO
         result.nXrefToRelative = query.value(2).toULongLong();
-        result.bMemory = query.value(3).toLongLong(); // TODO
+        result.memType = (XCapstone::MEMTYPE)query.value(3).toULongLong(); // TODO
         result.nXrefToMemory = query.value(4).toULongLong();
         result.nMemorySize = query.value(5).toLongLong();
     }
@@ -3336,8 +3436,8 @@ void XInfoDB::disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult)
 #ifdef QT_SQL_LIB
     _addShowRecord(disasmResult.nAddress, nOffset, disasmResult.nSize, disasmResult.sMnemonic, disasmResult.sString, RT_CODE, 0);
 
-    if (disasmResult.bRelative || disasmResult.bMemory) {
-        _addRelRecord(disasmResult.nAddress, disasmResult.bRelative, disasmResult.nXrefToRelative, disasmResult.bMemory, disasmResult.nXrefToMemory, disasmResult.nMemorySize);
+    if (disasmResult.relType || disasmResult.memType) {
+        _addRelRecord(disasmResult.nAddress, disasmResult.relType, disasmResult.nXrefToRelative, disasmResult.memType, disasmResult.nXrefToMemory, disasmResult.nMemorySize);
     }
 
     // TODO
@@ -3358,9 +3458,9 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
 
     XInfoDB::RELRECORD relRecord = getRelRecordByAddress(nAddress);
 
-    result.bRelative = relRecord.bRelative;
+    result.relType = relRecord.relType;
     result.nXrefToRelative = relRecord.nXrefToRelative;
-    result.bMemory = relRecord.bMemory;
+    result.memType = relRecord.memType;
     result.nXrefToMemory = relRecord.nXrefToMemory;
     result.nMemorySize = relRecord.nMemorySize;
     // TODO
