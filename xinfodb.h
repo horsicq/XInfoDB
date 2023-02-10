@@ -597,6 +597,9 @@ public:
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
+    QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
+
+    QList<XADDR> getShowRecordLabels(XCapstone::RELTYPE relType);
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
 
