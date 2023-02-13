@@ -618,6 +618,13 @@ public:
 #endif
     void testFunction();
 
+public slots:
+    void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
+    void writeDataSlot(quint64 nOffset, char *pData, qint64 nSize);
+
+private:
+    void replaceMemory(quint64 nOffset, char *pData, qint64 nSize);
+
 signals:
     void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
     bool reloadSignal(bool bReloadData);

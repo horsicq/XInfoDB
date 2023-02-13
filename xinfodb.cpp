@@ -3591,6 +3591,52 @@ void XInfoDB::testFunction()
 #endif
 #endif
 }
+
+void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
+{
+#ifdef QT_DEBUG
+    qDebug("%llx", nOffset);
+#endif
+    replaceMemory(nOffset, pData, nSize);
+}
+
+void XInfoDB::writeDataSlot(quint64 nOffset, char *pData, qint64 nSize)
+{
+#ifdef QT_DEBUG
+    qDebug("%llx", nOffset);
+#endif
+    replaceMemory(nOffset, pData, nSize);
+}
+
+void XInfoDB::replaceMemory(quint64 nOffset, char *pData, qint64 nSize)
+{
+    qint32 nNumberOfBreakPoints = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfBreakPoints; i++) {
+        if (g_listBreakpoints.at(i).nOrigDataSize && XBinary::_isAddressCrossed(nOffset, nSize, g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nSize)) {
+        #ifdef QT_DEBUG
+            qDebug("Breakpoint replace");
+        #endif
+            char *pSource = nullptr;
+            char *pDest = nullptr;
+            qint64 nDataSize = 0;
+
+            if (g_listBreakpoints.at(i).nAddress >= nOffset) {
+                pSource = (char *)g_listBreakpoints.at(i).origData;
+                pDest = pData + (g_listBreakpoints.at(i).nAddress - nOffset);
+                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nOrigDataSize, nOffset + nSize - g_listBreakpoints.at(i).nAddress);
+            } else if (nOffset > g_listBreakpoints.at(i).nAddress) {
+                pSource = (char *)g_listBreakpoints.at(i).origData + (nOffset - g_listBreakpoints.at(i).nAddress);
+                pDest = pData;
+                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nOrigDataSize, nOffset - g_listBreakpoints.at(i).nAddress);
+            }
+
+            if (pSource && pDest && nDataSize) {
+                XBinary::_copyMemory(pDest, pSource, nDataSize);
+            }
+        }
+    }
+}
 #ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg)
 {
