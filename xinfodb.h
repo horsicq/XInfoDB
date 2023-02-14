@@ -513,13 +513,13 @@ public:
 
     enum ST { // TODO mb rewrite
         ST_UNKNOWN = 0,
-        ST_LABEL,
-        ST_ENTRYPOINT,
-        ST_EXPORT,
-        ST_IMPORT,
-        ST_DATA,
-        ST_OBJECT,
-        ST_FUNCTION
+        ST_LABEL = 0x10,
+        ST_LABEL_ENTRYPOINT,
+        ST_FUNCTION = 0x20,
+        ST_FUNCTION_EXPORT,
+        ST_FUNCTION_IMPORT,
+        ST_DATA  = 0x30,
+        ST_OBJECT = 0x40
     };
 
     enum RT {
@@ -578,9 +578,9 @@ public:
     void clearDb();
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber);
-    bool _isShowRecordPresent(XADDR nAddress);
+    bool _isShowRecordPresent(XADDR nAddress, qint64 nSize);
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
@@ -599,7 +599,8 @@ public:
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
 
-    QList<XADDR> getShowRecordLabels(XCapstone::RELTYPE relType);
+    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType);
+    QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables();
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
 
@@ -617,6 +618,9 @@ public:
     QString convertStringSQL(QString sSQL);
 #endif
     void testFunction();
+
+    void setDebuggerState(bool bState);
+    bool isDebugger();
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -666,7 +670,7 @@ private:
     STATUS g_statusPrev;
 #endif
 #ifndef QT_SQL_LIB
-    QList<SYMBOL> g_listSymbols;
+    QList<SYMBOL> g_listSymbols; // TODO remove
 #endif
     QMap<quint32, QString> g_mapSymbolModules; // TODO move to SQL
     QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
@@ -687,6 +691,7 @@ private:
     QString s_sql_relativeTableName;
     bool g_bIsAnalyzed;
 #endif
+    bool g_bIsDebugger;
 };
 
 #endif  // XINFODB_H
