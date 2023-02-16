@@ -3134,6 +3134,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                             qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
                             qint64 _nRecordSizeData = 0;
+                            QString sOpcodeName;
                             QString sDataName;
 
                             XBinary::REGION_FILL regionFill = {};
@@ -3142,12 +3143,13 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
                             if (regionFill.nSize) {
                                 _nRecordSizeData = regionFill.nSize;
+                                sOpcodeName = "db";
                                 sDataName = QString("0x%1 dup (0x%2)").arg(QString::number(_nRecordSizeData, 16), QString::number(regionFill.nByte, 16));
                             } else {
                                 _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData)); // TODO consts
                             }
 
-                            _addShowRecord(_nCurrentAddressData, _nOffsetData, _nRecordSizeData, QString(), sDataName, RT_DATA, nLineNumber++);
+                            _addShowRecord(_nCurrentAddressData, _nOffsetData, _nRecordSizeData, sOpcodeName, sDataName, RT_DATA, nLineNumber++);
 
                             _nCurrentAddressData += _nRecordSizeData;
 

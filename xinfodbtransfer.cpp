@@ -86,7 +86,7 @@ bool XInfoDBTransfer::process()
 
                 XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
 
-                g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, g_pPdStruct);
+                g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
                 // TODO sort records
             }
 
