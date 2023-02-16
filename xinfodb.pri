@@ -24,6 +24,11 @@ SOURCES += \
     include($$PWD/../Formats/xformats.pri)
 }
 
+!contains(XCONFIG, xcapstone) {
+    XCONFIG += xcapstone
+    include($$PWD/../XCapstone/xcapstone.pri)
+}
+
 DISTFILES += \
     $$PWD/LICENSE \
     $$PWD/README.md \
