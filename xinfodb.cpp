@@ -2661,6 +2661,8 @@ void XInfoDB::initDb()
                                 "MEMORYSIZE INTEGER"
                              ")").arg(s_sql_relativeTableName));
 #endif
+
+    clearRecordInfoCache();
     // TODO
 }
 
@@ -2675,6 +2677,8 @@ void XInfoDB::clearDb()
 
     querySQL(&query, QString("VACUUM"));
     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
+
+    clearRecordInfoCache();
 #endif
 }
 
