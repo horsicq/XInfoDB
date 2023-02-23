@@ -511,7 +511,7 @@ public:
         // TODO More
     };
 
-    enum ST { // TODO mb rewrite
+    enum ST {  // TODO mb rewrite
         ST_UNKNOWN = 0,
         ST_LABEL = 0x10,
         ST_LABEL_ENTRYPOINT,
@@ -519,7 +519,7 @@ public:
         ST_FUNCTION_EXPORT,
         ST_FUNCTION_IMPORT,
         ST_FUNCTION_TLS,
-        ST_DATA  = 0x30,
+        ST_DATA = 0x30,
         ST_OBJECT = 0x40
     };
 
@@ -671,9 +671,9 @@ private:
     STATUS g_statusPrev;
 #endif
 #ifndef QT_SQL_LIB
-    QList<SYMBOL> g_listSymbols; // TODO remove
+    QList<SYMBOL> g_listSymbols;  // TODO remove
 #endif
-    QMap<quint32, QString> g_mapSymbolModules; // TODO move to SQL
+    QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
     QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     QIODevice *g_pDevice;
     XBinary g_binary;

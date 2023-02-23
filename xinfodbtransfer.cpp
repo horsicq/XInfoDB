@@ -60,7 +60,6 @@ bool XInfoDBTransfer::process()
 
     if (g_pXInfoDB) {
         if (g_transferType == TT_ANALYZE) {
-
             QIODevice *pDevice = g_pDevice;
 
             bool bFile = false;
