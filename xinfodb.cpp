@@ -2426,13 +2426,13 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
     return g_mapSymbolModules;
 }
 
-QList<XADDR> XInfoDB::getSymbolFunctionAddresses()
+QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE SYMTYPE = '%2'").arg(s_sql_symbolTableName,QString::number(ST_FUNCTION)));
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE SYMTYPE = '%2'").arg(s_sql_symbolTableName,QString::number(symbolType)));
 
     while (query.next()) {
         XADDR nAddress = query.value(0).toULongLong();
@@ -2554,6 +2554,8 @@ QString XInfoDB::symbolTypeIdToString(ST symbolType)
         sResult = tr("Export");
     else if (symbolType == ST_FUNCTION_IMPORT)
         sResult = tr("Import");
+    else if (symbolType == ST_FUNCTION_TLS)
+        sResult = QString("TLS");
     else if (symbolType == ST_DATA)
         sResult = tr("Data");
     else if (symbolType == ST_OBJECT)
@@ -2848,7 +2850,17 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                                            XInfoDB::SS_FILE);
                 }
             }
-            // TODO TLS
+            {
+                QList<XADDR> listTLSFunctions = pe.getTLS_CallbacksList(&memoryMap, pPdStruct);
+
+                qint32 nNumberOfRecords = listTLSFunctions.count();
+
+                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+                    QString sFunctionName = QString("tlsfunc_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
+
+                    _addSymbol(listTLSFunctions.at(i), 0, 0, sFunctionName, XInfoDB::ST_FUNCTION_TLS, XInfoDB::SS_FILE);
+                }
+            }
             // TODO PDB
             // TODO More
         }
@@ -2887,7 +2899,11 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     stEntries.insert(nStartAddress);
 
     if (bIsInit) {
-        QList<XADDR> listFunctionAddresses = getSymbolFunctionAddresses();
+        QList<XADDR> listFunctionAddresses;
+        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION));
+        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_EXPORT));
+        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_TLS));
+
         qint32 nNumberOfRecords = listFunctionAddresses.count();
 
         for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {

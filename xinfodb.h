@@ -518,6 +518,7 @@ public:
         ST_FUNCTION = 0x20,
         ST_FUNCTION_EXPORT,
         ST_FUNCTION_IMPORT,
+        ST_FUNCTION_TLS,
         ST_DATA  = 0x30,
         ST_OBJECT = 0x40
     };
@@ -560,7 +561,7 @@ public:
     QList<SYMBOL> getSymbols();
     QMap<quint32, QString> getSymbolModules();
 
-    QList<XADDR> getSymbolFunctionAddresses();
+    QList<XADDR> getSymbolAddresses(ST symbolType);
 
     void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
     bool _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
