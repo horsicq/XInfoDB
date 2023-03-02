@@ -3081,22 +3081,26 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
             }
 
             if (bAdd) {
-                qint64 nOffset = XBinary::addressToOffset(pMemoryMap, record.nAddress);
-                _addShowRecord(record.nAddress, nOffset, record.nSize, QString(), QString(), RT_DATA, 0);
+                if (XBinary::isAddressValid(pMemoryMap, record.nAddress)) {
+                    qint64 nOffset = XBinary::addressToOffset(pMemoryMap, record.nAddress);
+                    _addShowRecord(record.nAddress, nOffset, record.nSize, QString(), QString(), RT_DATA, 0);
+                }
             } else {
                 record.nSize = 0;
             }
 
             if (!isSymbolPresent(record.nAddress)) {
-                QString sSymbolName;
+                if (XBinary::isAddressValid(pMemoryMap, record.nAddress)) {
+                    QString sSymbolName;
 
-                if (record.nSize) {
-                    sSymbolName = QString("var_%1").arg(XBinary::valueToHexEx(record.nAddress));
-                } else {
-                    sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
+                    if (record.nSize) {
+                        sSymbolName = QString("var_%1").arg(XBinary::valueToHexEx(record.nAddress));
+                    } else {
+                        sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
+                    }
+
+                    _addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE);  // TODO ST_DATA_ANSISTRING
                 }
-
-                _addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE);  // TODO ST_DATA_ANSISTRING
             }
         }
 
