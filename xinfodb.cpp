@@ -2602,13 +2602,11 @@ bool XInfoDB::isSymbolPresent(XADDR nAddress)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
-    if (g_bIsAnalyzed) {
-        QSqlQuery query(g_dataBase);
+    QSqlQuery query(g_dataBase);
 
-        querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
 
-        bResult = query.next();
-    }
+    bResult = query.next();
 #endif
     return bResult;
 }
@@ -2898,6 +2896,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
     char byte_buffer[16];  // TODO const
     XBinary binary(pDevice);
+    qint64 nTotalSize = pDevice->size();
 
     QSet<XADDR> stEntries;
     stEntries.insert(nStartAddress);
@@ -2937,6 +2936,9 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
                     if (nOffset != -1) {
                         qint64 nSize = 16;
+
+                        nSize = qMin(nTotalSize - nOffset, nSize);
+
                         nSize = binary.read_array(nOffset, byte_buffer, nSize);
 
                         if (nSize > 0) {
@@ -3099,7 +3101,10 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                         sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
                     }
 
-                    _addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE);  // TODO ST_DATA_ANSISTRING
+                    if(!_addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE)) {
+                        qDebug(XBinary::valueToHex(record.nAddress).toLatin1().data());
+                    }
+                        // TODO ST_DATA_ANSISTRING
                 }
             }
         }
