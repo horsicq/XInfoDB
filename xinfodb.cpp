@@ -3101,10 +3101,10 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                         sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
                     }
 
-                    if(!_addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE)) {
+                    if (!_addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE)) {
                         qDebug(XBinary::valueToHex(record.nAddress).toLatin1().data());
                     }
-                        // TODO ST_DATA_ANSISTRING
+                    // TODO ST_DATA_ANSISTRING
                 }
             }
         }
