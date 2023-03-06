@@ -3785,9 +3785,9 @@ bool XInfoDB::isDebugger()
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
 {
-#ifdef QT_DEBUG
-    qDebug("%llx", nOffset);
-#endif
+//#ifdef QT_DEBUG
+//    qDebug("%llx", nOffset);
+//#endif
     replaceMemory(nOffset, pData, nSize);
 }
 
