@@ -604,6 +604,7 @@ public:
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables();
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
+    bool isAddressHasReferences(XADDR nAddress);
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 

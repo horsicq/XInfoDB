@@ -92,7 +92,11 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
 #ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
 #else
+#ifdef Q_OS_WIN
     g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
+#else
+    g_dataBase.setDatabaseName(":memory:");
+#endif
 //    g_dataBase.setDatabaseName(":memory:");
 #endif
 
@@ -3085,7 +3089,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
             if (bAdd) {
                 if (XBinary::isAddressValid(pMemoryMap, record.nAddress)) {
                     qint64 nOffset = XBinary::addressToOffset(pMemoryMap, record.nAddress);
-                    _addShowRecord(record.nAddress, nOffset, record.nSize, QString(), QString(), RT_DATA, 0);
+                    _addShowRecord(record.nAddress, nOffset, record.nSize, "db", QString(), RT_DATA, 0);
                 }
             } else {
                 record.nSize = 0;
@@ -3164,7 +3168,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                             qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
                             qint64 _nRecordSizeData = 0;
-                            QString sOpcodeName;
+                            QString sOpcodeName = "db";
                             QString sDataName;
 
                             XBinary::REGION_FILL regionFill = {};
@@ -3173,7 +3177,6 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
                             if (regionFill.nSize) {
                                 _nRecordSizeData = regionFill.nSize;
-                                sOpcodeName = "db";
                                 sDataName = QString("0x%1 dup (0x%2)").arg(QString::number(_nRecordSizeData, 16), QString::number(regionFill.nByte, 16));
                             } else {
                                 _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData));  // TODO consts
@@ -3625,6 +3628,23 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
 #endif
 
     return result;
+}
+
+bool XInfoDB::isAddressHasReferences(XADDR nAddress)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_relativeTableName, QString::number(nAddress)));
+
+    if (query.next()) {
+        bResult = true;
+    }
+#endif
+
+    return bResult;
 }
 
 bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
