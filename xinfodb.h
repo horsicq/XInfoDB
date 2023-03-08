@@ -546,6 +546,8 @@ public:
         QString sRecText2;
         RT recordType;
         quint64 nLineNumber;
+        quint64 nRefTo;
+        quint64 nRefFrom;
     };
 
     struct RELRECORD {
@@ -580,7 +582,7 @@ public:
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber);
+    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo, quint64 nRefFrom);
     bool _isShowRecordPresent(XADDR nAddress, qint64 nSize);
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
 
@@ -604,7 +606,7 @@ public:
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables();
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
-    bool isAddressHasReferences(XADDR nAddress);
+    bool isAddressHasRefFrom(XADDR nAddress);
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 
@@ -639,6 +641,7 @@ private:
 #ifdef USE_XPROCESS
     struct STATUS {
         QMap<XREG, XBinary::XVARIANT> mapRegs;
+        QMap<XREG, XBinary::XVARIANT> mapRegsPrev;
 #ifdef USE_XPROCESS
         X_ID nThreadId;
         X_HANDLE hThread;
@@ -669,7 +672,7 @@ private:
     MODE g_mode;
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
-    STATUS g_statusPrev;
+//    STATUS g_statusPrev;
 #endif
 #ifndef QT_SQL_LIB
     QList<SYMBOL> g_listSymbols;  // TODO remove
