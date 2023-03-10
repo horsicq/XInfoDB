@@ -585,6 +585,8 @@ public:
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo, quint64 nRefFrom);
     bool _isShowRecordPresent(XADDR nAddress, qint64 nSize);
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
+    void _addShowRecords(QList<SHOWRECORD> *pListRecords);
+    void _addRelRecords(QList<RELRECORD> *pListRecords);
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
@@ -612,6 +614,7 @@ public:
 
     void setAnalyzed(bool bState);
     bool isAnalyzed();
+    bool isAnalyzeInProgress();
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
@@ -694,8 +697,9 @@ private:
     QString s_sql_symbolTableName;
     QString s_sql_recordTableName;
     QString s_sql_relativeTableName;
-    bool g_bIsAnalyzed;
 #endif
+    bool g_bIsAnalyzed;
+    bool g_bIsAnalyzeInProgress;
     bool g_bIsDebugger;
 };
 
