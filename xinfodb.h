@@ -587,6 +587,8 @@ public:
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
     void _addShowRecords(QList<SHOWRECORD> *pListRecords);
     void _addRelRecords(QList<RELRECORD> *pListRecords);
+    QList<RELRECORD> getRelRecords();
+    bool _incShowRecordRefFrom(XADDR nAddress);
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
@@ -618,6 +620,9 @@ public:
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
+
+    bool loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
