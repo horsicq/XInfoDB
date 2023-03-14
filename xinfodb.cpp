@@ -1249,23 +1249,32 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
 #ifdef USE_XPROCESS
 void XInfoDB::updateMemoryRegionsList()
 {
+    // TODO mark new Regions
     //    g_statusPrev.listMemoryRegions = g_statusCurrent.listMemoryRegions;
-
-    g_statusCurrent.listMemoryRegions.clear();
+    // TODO Hash
 #ifdef Q_OS_WIN
-    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
+    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Handle(g_processInfo.hProcess);
 #endif
 #ifdef Q_OS_LINUX
-    g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
+    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Id(g_processInfo.nProcessID);
 #endif
+    if (g_statusCurrent.nMemoryRegionsHash != nMemoryRegionsHash) {
+        g_statusCurrent.nMemoryRegionsHash = nMemoryRegionsHash;
+#ifdef Q_OS_WIN
+        g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
+#endif
+#ifdef Q_OS_LINUX
+        g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
+#endif
+        emit memoryRegionsListChanged();
+    }
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::updateModulesList()
 {
+    // TODO Hash
     //    g_statusPrev.listModules = g_statusCurrent.listModules;
-
-    g_statusCurrent.listModules.clear();
 
     g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
 }

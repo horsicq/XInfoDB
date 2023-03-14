@@ -644,7 +644,9 @@ private:
 
 signals:
     void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
-    bool reloadSignal(bool bReloadData);
+    void reloadSignal(bool bReloadData);
+    void memoryRegionsListChanged();
+    void modulesListChanged();
 
 private:
 #ifdef USE_XPROCESS
@@ -654,7 +656,9 @@ private:
 #ifdef USE_XPROCESS
         X_ID nThreadId;
         X_HANDLE hThread;
+        quint32 nMemoryRegionsHash;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
+        quint32 nListModulesHash;
         QList<XProcess::MODULE> listModules;
 #endif
     };
