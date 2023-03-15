@@ -1274,9 +1274,15 @@ void XInfoDB::updateMemoryRegionsList()
 void XInfoDB::updateModulesList()
 {
     // TODO Hash
+    // mb TODO function for compare 2 lists
     //    g_statusPrev.listModules = g_statusCurrent.listModules;
+    quint32 nModulesHash = XProcess::getModulesListHash(g_processInfo.nProcessID);
 
-    g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
+    if (g_statusCurrent.nModulesHash != nModulesHash) {
+        g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
+
+        emit modulesListChanged();
+    }
 }
 #endif
 #ifdef USE_XPROCESS

@@ -658,7 +658,7 @@ private:
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
-        quint32 nListModulesHash;
+        quint32 nModulesHash;
         QList<XProcess::MODULE> listModules;
 #endif
     };
