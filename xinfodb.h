@@ -334,7 +334,6 @@ public:
     void setFileType(XBinary::FT fileType);
     XBinary::FT getFileType();
     void setDisasmMode(XBinary::DM disasmMode);
-
     void reload(bool bReloadData);
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
 #ifdef USE_XPROCESS
@@ -647,20 +646,20 @@ signals:
     void reloadSignal(bool bReloadData);
     void memoryRegionsListChanged();
     void modulesListChanged();
+    void registersListChanged();
 
 private:
 #ifdef USE_XPROCESS
     struct STATUS {
+        quint32 nRegistersHash;
         QMap<XREG, XBinary::XVARIANT> mapRegs;
         QMap<XREG, XBinary::XVARIANT> mapRegsPrev;
-#ifdef USE_XPROCESS
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
         quint32 nModulesHash;
         QList<XProcess::MODULE> listModules;
-#endif
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
