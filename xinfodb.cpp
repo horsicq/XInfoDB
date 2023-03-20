@@ -3248,7 +3248,9 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                         }
 
                         if (!_addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE)) {
+#ifdef QT_DEBUG
                             qDebug(XBinary::valueToHex(record.nAddress).toLatin1().data());
+#endif
                         }
                         // TODO ST_DATA_ANSISTRING
                     }
