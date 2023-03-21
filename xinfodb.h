@@ -503,25 +503,6 @@ public:
     RECORD_INFO getRecordInfoCache(quint64 nValue);
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase = 0, quint64 nSize = 0xFFFFFFFFFFFFFFFF);
 
-    enum SS {
-        SS_UNKNOWN = 0,
-        SS_FILE,
-        SS_USER,
-        // TODO More
-    };
-
-    enum ST {  // TODO mb rewrite
-        ST_UNKNOWN = 0,
-        ST_LABEL = 0x10,
-        ST_LABEL_ENTRYPOINT,
-        ST_FUNCTION = 0x20,
-        ST_FUNCTION_EXPORT,
-        ST_FUNCTION_IMPORT,
-        ST_FUNCTION_TLS,
-        ST_DATA = 0x30,
-        ST_OBJECT = 0x40
-    };
-
     enum RT {
         RT_UNKNOWN = 0,
         RT_CODE,
@@ -530,11 +511,8 @@ public:
 
     struct SYMBOL {
         XADDR nAddress;
-        qint64 nSize;
         quint32 nModule;  // ModuleIndex; 0 - main module
         QString sSymbol;
-        ST symbolType;
-        SS symbolSource;
     };
 
     struct SHOWRECORD {
@@ -562,15 +540,15 @@ public:
     QList<SYMBOL> getSymbols();
     QMap<quint32, QString> getSymbolModules();
 
-    QList<XADDR> getSymbolAddresses(ST symbolType);
+//    QList<XADDR> getSymbolAddresses(ST symbolType);
 
-    void addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
-    bool _addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource);
+    void addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
+    bool _addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
-    static QString symbolSourceIdToString(SS symbolSource);
-    static QString symbolTypeIdToString(ST symbolType);
+//    static QString symbolSourceIdToString(SS symbolSource);
+//    static QString symbolTypeIdToString(ST symbolType);
 
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);

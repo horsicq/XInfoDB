@@ -1044,6 +1044,7 @@ XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
 #ifdef USE_XPROCESS
 void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions)
 {
+    // TODO HASH !!!
     g_statusCurrent.mapRegsPrev = g_statusCurrent.mapRegs;  // TODO save nThreadID
 
     g_statusCurrent.mapRegs.clear();
@@ -1091,7 +1092,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions)
             g_statusCurrent.mapRegs.insert(XREG_SS, XBinary::getXVariant((quint16)(regs.ss)));
         }
 
-        emit registersListChanged(); // TODO mb hash
+        emit registersListChanged();
     } else {
         qDebug("errno: %s", strerror(errno));
     }
@@ -1113,10 +1114,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
                                          // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
     if (GetThreadContext(hThread, &context)) {
-        quint32 crcTable[256];
-        XBinary::_createCRC32Table(crcTable);  // TODO const
-
-        quint32 nRegistersHash = XBinary::_getCRC32((char *)&context, sizeof(context), 0, crcTable);
+        quint32 nRegistersHash = XBinary::_getCRC32((char *)&context, sizeof(context), 0, XBinary::_getCRC32Table_EDB88320());
 
         if (g_statusCurrent.nRegistersHash != nRegistersHash) {
             g_statusCurrent.nRegistersHash = nRegistersHash;
@@ -2433,17 +2431,14 @@ QList<XInfoDB::SYMBOL> XInfoDB::getSymbols()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, SIZE, MODULE, SYMTEXT, SYMTYPE, SYMSOURCE FROM %1").arg(s_sql_symbolTableName));
+    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1").arg(s_sql_symbolTableName));
 
     while (query.next()) {
         SYMBOL record = {};
 
         record.nAddress = query.value(0).toULongLong();
-        record.nSize = query.value(1).toULongLong();
-        record.nModule = query.value(2).toULongLong();
-        record.sSymbol = query.value(3).toString();
-        record.symbolType = (ST)query.value(4).toULongLong();
-        record.symbolSource = (SS)query.value(5).toULongLong();
+        record.nModule = query.value(1).toULongLong();
+        record.sSymbol = query.value(2).toString();
 
         listResult.append(record);
     }
@@ -2458,74 +2453,68 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
     return g_mapSymbolModules;
 }
 
-QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
+//QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
+//{
+//    QList<XADDR> listResult;
+//#ifdef QT_SQL_LIB
+//    QSqlQuery query(g_dataBase);
+
+//    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE SYMTYPE = '%2'").arg(s_sql_symbolTableName, QString::number(symbolType)));
+
+//    while (query.next()) {
+//        XADDR nAddress = query.value(0).toULongLong();
+
+//        listResult.append(nAddress);
+//    }
+//#endif
+//    return listResult;
+//}
+
+void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
 {
-    QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE SYMTYPE = '%2'").arg(s_sql_symbolTableName, QString::number(symbolType)));
-
-    while (query.next()) {
-        XADDR nAddress = query.value(0).toULongLong();
-
-        listResult.append(nAddress);
-    }
-#endif
-    return listResult;
-}
-
-void XInfoDB::addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
-{
-#ifdef QT_SQL_LIB
-    _addSymbol(nAddress, nSize, nModule, sSymbol, symbolType, symbolSource);
+    _addSymbol(nAddress, nModule, sSymbol);
 #else
-    qint32 nInsertIndex = 0;
-    qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
+//    qint32 nInsertIndex = 0;
+//    qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
-    if (nIndex != -1) {
-        g_listSymbols[nIndex].sSymbol = sSymbol;
-        g_listSymbols[nIndex].symbolType = symbolType;
-    } else {
-        SYMBOL symbol = {};
-        symbol.nAddress = nAddress;
-        symbol.nSize = nSize;
-        symbol.nModule = nModule;
-        symbol.sSymbol = sSymbol;
-        symbol.symbolType = symbolType;
-        symbol.symbolSource = symbolSource;
+//    if (nIndex != -1) {
+//        g_listSymbols[nIndex].sSymbol = sSymbol;
+//        g_listSymbols[nIndex].symbolType = symbolType;
+//    } else {
+//        SYMBOL symbol = {};
+//        symbol.nAddress = nAddress;
+//        symbol.nSize = nSize;
+//        symbol.nModule = nModule;
+//        symbol.sSymbol = sSymbol;
+//        symbol.symbolType = symbolType;
+//        symbol.symbolSource = symbolSource;
 
-        g_listSymbols.insert(nInsertIndex, symbol);
-    }
+//        g_listSymbols.insert(nInsertIndex, symbol);
+//    }
 #endif
 }
 
-bool XInfoDB::_addSymbol(XADDR nAddress, qint64 nSize, quint32 nModule, QString sSymbol, ST symbolType, SS symbolSource)
+bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, MODULE, SYMTEXT, SYMTYPE, SYMSOURCE) "
-                          "VALUES (?, ?, ?, ?, ?, ?)")
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
+                          "VALUES (?, ?, ?)")
                       .arg(s_sql_symbolTableName));
 
     query.bindValue(0, nAddress);
-    query.bindValue(1, nSize);
-    query.bindValue(2, nModule);
-    query.bindValue(3, sSymbol);
-    query.bindValue(4, symbolType);
-    query.bindValue(5, symbolSource);
+    query.bindValue(1, nModule);
+    query.bindValue(2, sSymbol);
 
     bResult = querySQL(&query);
 #else
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
-    symbol.nSize = nSize;
     symbol.nModule = nModule;
     symbol.sSymbol = sSymbol;
-    symbol.symbolType = symbolType;
-    symbol.symbolSource = symbolSource;
 
     g_listSymbols.append(symbol);
 
@@ -2563,41 +2552,41 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
     return nResult;
 }
 
-QString XInfoDB::symbolSourceIdToString(SS symbolSource)
-{
-    QString sResult = tr("Unknown");
+//QString XInfoDB::symbolSourceIdToString(SS symbolSource)
+//{
+//    QString sResult = tr("Unknown");
 
-    if (symbolSource == SS_FILE)
-        sResult = tr("File");
-    else if (symbolSource == SS_USER)
-        sResult = tr("User");
+//    if (symbolSource == SS_FILE)
+//        sResult = tr("File");
+//    else if (symbolSource == SS_USER)
+//        sResult = tr("User");
 
-    return sResult;
-}
+//    return sResult;
+//}
 
-QString XInfoDB::symbolTypeIdToString(ST symbolType)
-{
-    QString sResult = tr("Unknown");
+//QString XInfoDB::symbolTypeIdToString(ST symbolType)
+//{
+//    QString sResult = tr("Unknown");
 
-    if (symbolType == ST_LABEL)
-        sResult = tr("Label");
-    else if (symbolType == ST_LABEL_ENTRYPOINT)
-        sResult = tr("Entry point");
-    else if (symbolType == ST_FUNCTION_EXPORT)
-        sResult = tr("Export");
-    else if (symbolType == ST_FUNCTION_IMPORT)
-        sResult = tr("Import");
-    else if (symbolType == ST_FUNCTION_TLS)
-        sResult = QString("TLS");
-    else if (symbolType == ST_DATA)
-        sResult = tr("Data");
-    else if (symbolType == ST_OBJECT)
-        sResult = tr("Object");
-    else if (symbolType == ST_FUNCTION)
-        sResult = tr("Function");
+//    if (symbolType == ST_LABEL)
+//        sResult = tr("Label");
+//    else if (symbolType == ST_LABEL_ENTRYPOINT)
+//        sResult = tr("Entry point");
+//    else if (symbolType == ST_FUNCTION_EXPORT)
+//        sResult = tr("Export");
+//    else if (symbolType == ST_FUNCTION_IMPORT)
+//        sResult = tr("Import");
+//    else if (symbolType == ST_FUNCTION_TLS)
+//        sResult = QString("TLS");
+//    else if (symbolType == ST_DATA)
+//        sResult = tr("Data");
+//    else if (symbolType == ST_OBJECT)
+//        sResult = tr("Object");
+//    else if (symbolType == ST_FUNCTION)
+//        sResult = tr("Function");
 
-    return sResult;
-}
+//    return sResult;
+//}
 
 XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
@@ -2607,15 +2596,12 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
         QSqlQuery query(g_dataBase);
 
         querySQL(&query,
-                 QString("SELECT ADDRESS, SIZE, MODULE, SYMTEXT, SYMTYPE, SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
+                 QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
 
         if (query.next()) {
             result.nAddress = query.value(0).toULongLong();
-            result.nSize = query.value(1).toLongLong();
-            result.nModule = query.value(2).toULongLong();
-            result.sSymbol = query.value(3).toString();
-            result.symbolType = (ST)query.value(4).toULongLong();
-            result.symbolSource = (SS)query.value(5).toULongLong();
+            result.nModule = query.value(1).toULongLong();
+            result.sSymbol = query.value(2).toString();
         }
     }
 #else
@@ -2669,13 +2655,14 @@ void XInfoDB::initDb()
     querySQL(&query, QString("VACUUM"));
     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
 
+    // TODO EXPORT
+    // TODO IMPORT
+    // TODO PDB
+    // TODO DWARF
     querySQL(&query, QString("CREATE TABLE %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
-                             "SIZE INTEGER,"
                              "MODULE INTEGER,"
-                             "SYMTEXT TEXT,"
-                             "SYMTYPE INTEGER,"
-                             "SYMSOURCE INTEGER"
+                             "SYMTEXT TEXT"
                              ")")
                          .arg(s_sql_symbolTableName));
     querySQL(&query, QString("CREATE TABLE %1 ("
@@ -2758,7 +2745,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
             QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList();
 
             if (memoryMap.nEntryPointAddress) {
-                _addSymbol(memoryMap.nEntryPointAddress, 0, 0, "EntryPoint", XInfoDB::ST_LABEL_ENTRYPOINT, XInfoDB::SS_FILE);
+                _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint");
             }
 
             QList<XELF::TAG_STRUCT> listTagStructs = elf.getTagStructs(&listProgramHeaders, &memoryMap);
@@ -2826,20 +2813,21 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                             if ((nType == 0) || (nType == 1) || (nType == 2))  // NOTYPE,OBJECT,FUNC
                                                                                // TODO consts
                             {
-                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
+//                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
 
-                                if (nType == 0)
-                                    symbolType = XInfoDB::ST_LABEL;
-                                else if (nType == 1)
-                                    symbolType = XInfoDB::ST_OBJECT;
-                                else if (nType == 2)
-                                    symbolType = XInfoDB::ST_FUNCTION;
+//                                if (nType == 0)
+//                                    symbolType = XInfoDB::ST_LABEL;
+//                                else if (nType == 1)
+//                                    symbolType = XInfoDB::ST_OBJECT;
+//                                else if (nType == 2)
+//                                    symbolType = XInfoDB::ST_FUNCTION;
 
                                 QString sSymbolName = elf.getStringFromIndex(nStringTableOffset, nStringTableSize, record.st_name);
 
                                 if (XBinary::isAddressValid(&memoryMap, nSymbolAddress)) {
                                     if (!isSymbolPresent(nSymbolAddress)) {
-                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
+//                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
+                                        _addSymbol(nSymbolAddress, 0, sSymbolName);
                                     }
                                 } else {
 #ifdef QT_DEBUG
@@ -2860,7 +2848,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
             XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
 
-            _addSymbol(memoryMap.nEntryPointAddress, 0, 0, "EntryPoint", XInfoDB::ST_LABEL_ENTRYPOINT, XInfoDB::SS_FILE);  // TD mb tr
+            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint");  // TD mb tr
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
 
@@ -2870,15 +2858,16 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                 qint32 nNumberOfRecords = _export.listPositions.count();
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    QString sFunctionName = _export.listPositions.at(i).sFunctionName;
+
                     XADDR nAddress = _export.listPositions.at(i).nAddress;
 
-                    if (sFunctionName == "") {
-                        sFunctionName = QString::number(_export.listPositions.at(i).nOrdinal);
-                    }
-
                     if (!stAddresses.contains(nAddress)) {
-                        _addSymbol(nAddress, 0, 0, sFunctionName, XInfoDB::ST_FUNCTION_EXPORT, XInfoDB::SS_FILE);
+                        QString sFunctionName = _export.listPositions.at(i).sFunctionName;
+                        if (sFunctionName == "") {
+                            sFunctionName = QString::number(_export.listPositions.at(i).nOrdinal);
+                        }
+
+                        _addSymbol(nAddress, 0, sFunctionName);
                         stAddresses.insert(nAddress);
                     }
                 }
@@ -2889,11 +2878,11 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                 qint32 nNumberOfRecords = listImportRecords.count();
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
                     XADDR nAddress = XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA);
 
                     if (!stAddresses.contains(nAddress)) {
-                        _addSymbol(nAddress, 0, 0, sFunctionName, XInfoDB::ST_FUNCTION_IMPORT, XInfoDB::SS_FILE);
+                        QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
+                        _addSymbol(nAddress, 0, sFunctionName);
                         stAddresses.insert(nAddress);
                     }
                 }
@@ -2904,16 +2893,17 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                 qint32 nNumberOfRecords = listTLSFunctions.count();
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    QString sFunctionName = QString("tlsfunc_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
                     XADDR nAddress = listTLSFunctions.at(i);
 
                     if (!stAddresses.contains(nAddress)) {
-                        _addSymbol(nAddress, 0, 0, sFunctionName, XInfoDB::ST_FUNCTION_TLS, XInfoDB::SS_FILE);
+                        QString sFunctionName = QString("tlsfunc_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
+                        _addSymbol(nAddress, 0, sFunctionName);
                         stAddresses.insert(nAddress);
                     }
                 }
             }
             // TODO PDB
+            // TODO DWARF
             // TODO More
         }
     }
@@ -2955,9 +2945,9 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
     if (bIsInit) {
         QList<XADDR> listFunctionAddresses;
-        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION));
-        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_EXPORT));
-        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_TLS));
+//        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION));
+//        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_EXPORT));
+//        listFunctionAddresses.append(getSymbolAddresses(ST_FUNCTION_TLS));
 
         qint32 nNumberOfRecords = listFunctionAddresses.count();
 
@@ -3157,7 +3147,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 if (!isSymbolPresent(nSymbolAddress)) {
                     QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
 
-                    _addSymbol(nSymbolAddress, 0, 0, sSymbolName, ST_FUNCTION, SS_FILE);
+                    _addSymbol(nSymbolAddress, 0, sSymbolName);
                 }
 
                 XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
@@ -3184,7 +3174,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 if (!isSymbolPresent(nSymbolAddress)) {
                     QString sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
 
-                    _addSymbol(nSymbolAddress, 0, 0, sSymbolName, ST_LABEL, SS_FILE);
+                    _addSymbol(nSymbolAddress, 0, sSymbolName);
                 }
 
                 XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
@@ -3241,13 +3231,14 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                     if (XBinary::isAddressValid(pMemoryMap, record.nAddress)) {
                         QString sSymbolName;
 
+                        // TODO Check string
                         if (record.nSize) {
                             sSymbolName = QString("var_%1").arg(XBinary::valueToHexEx(record.nAddress));
                         } else {
                             sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
                         }
 
-                        if (!_addSymbol(record.nAddress, record.nSize, 0, sSymbolName, ST_DATA, SS_FILE)) {
+                        if (!_addSymbol(record.nAddress, 0, sSymbolName)) {
 #ifdef QT_DEBUG
                             qDebug(XBinary::valueToHex(record.nAddress).toLatin1().data());
 #endif
