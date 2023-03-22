@@ -537,7 +537,7 @@ public:
     };
 
     bool isSymbolsPresent();
-    QList<SYMBOL> getSymbols();
+    QList<SYMBOL> getAllSymbols();
     QMap<quint32, QString> getSymbolModules();
 
 //    QList<XADDR> getSymbolAddresses(ST symbolType);
@@ -546,6 +546,10 @@ public:
     bool _addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
+
+    bool _addExportSymbol(XADDR nAddress, QString sSymbol);
+    bool _addImportSymbol(XADDR nAddress, QString sSymbol);
+    bool _addTLSSymbol(XADDR nAddress, QString sSymbol);
 
 //    static QString symbolSourceIdToString(SS symbolSource);
 //    static QString symbolTypeIdToString(ST symbolType);
@@ -586,6 +590,10 @@ public:
 
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables();
+
+    QList<XADDR> getExportSymbolAddresses();
+    QList<XADDR> getImportSymbolAddresses();
+    QList<XADDR> getTLSSymbolAddresses();
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);
@@ -684,6 +692,9 @@ private:
     QString s_sql_symbolTableName;
     QString s_sql_recordTableName;
     QString s_sql_relativeTableName;
+    QString s_sql_importTableName;
+    QString s_sql_exportTableName;
+    QString s_sql_tlsTableName;
 #endif
     bool g_bIsAnalyzed;
     bool g_bIsAnalyzeInProgress;
