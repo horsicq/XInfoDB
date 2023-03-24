@@ -353,8 +353,7 @@ public:
     qint64 write_array(qint64 nOffset, char *pData, quint64 nSize);
     QByteArray read_array(qint64 nOffset, quint64 nSize);
     QString read_ansiString(qint64 nOffset, quint64 nMaxSize = 256);
-    QString read_unicodeString(qint64 nOffset,
-                               quint64 nMaxSize = 256);  // TODO endian ??
+    QString read_unicodeString(qint64 nOffset, quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(qint64 nOffset, quint64 nMaxSize = 256);
 #endif
 
