@@ -336,6 +336,7 @@ public:
     void setDisasmMode(XBinary::DM disasmMode);
     void reload(bool bReloadData);
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
+    void _createTableNames();
 #ifdef USE_XPROCESS
     quint32 read_uint32(XADDR nAddress, bool bIsBigEndian = false);
     quint64 read_uint64(XADDR nAddress, bool bIsBigEndian = false);
@@ -694,6 +695,7 @@ private:
     QString s_sql_importTableName;
     QString s_sql_exportTableName;
     QString s_sql_tlsTableName;
+    QString s_sql_bookmarksTableName;
 #endif
     bool g_bIsAnalyzed;
     bool g_bIsAnalyzeInProgress;

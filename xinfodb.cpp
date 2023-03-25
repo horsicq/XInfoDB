@@ -136,14 +136,8 @@ void XInfoDB::setFileType(XBinary::FT fileType)
     g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
 
     g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
-#ifdef QT_SQL_LIB
-    s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_recordTableName = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_relativeTableName = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_importTableName = convertStringSQL(QString("%1_%2_IMPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_exportTableName = convertStringSQL(QString("%1_%2_EXPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tlsTableName = convertStringSQL(QString("%1_%2_TLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-#endif
+
+    _createTableNames();
 }
 
 XBinary::FT XInfoDB::getFileType()
@@ -157,14 +151,8 @@ void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
 
     XCapstone::closeHandle(&g_handle);
     XCapstone::openHandle(disasmMode, &g_handle, true);
-#ifdef QT_SQL_LIB
-    s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_recordTableName = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_relativeTableName = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_importTableName = convertStringSQL(QString("%1_%2_IMPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_exportTableName = convertStringSQL(QString("%1_%2_EXPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tlsTableName = convertStringSQL(QString("%1_%2_TLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-#endif
+
+    _createTableNames();
 }
 
 void XInfoDB::reload(bool bReloadData)
@@ -175,6 +163,19 @@ void XInfoDB::reload(bool bReloadData)
 void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 {
     // TODO
+}
+
+void XInfoDB::_createTableNames()
+{
+#ifdef QT_SQL_LIB
+    s_sql_symbolTableName = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_recordTableName = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_relativeTableName = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_importTableName = convertStringSQL(QString("%1_%2_IMPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_exportTableName = convertStringSQL(QString("%1_%2_EXPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tlsTableName = convertStringSQL(QString("%1_%2_TLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_bookmarksTableName = convertStringSQL(QString("%1_%2_BOOKMARKS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+#endif
 }
 
 #ifdef USE_XPROCESS
@@ -2759,6 +2760,15 @@ void XInfoDB::initDb()
                              "ORIGNAME TEXT"
                              ")")
                          .arg(s_sql_tlsTableName));
+
+    querySQL(&query, QString("CREATE TABLE %1 ("
+                             "ADDRESS INTEGER PRIMARY KEY,"
+                             "SIZE INTEGER,"
+                             "NAME TEXT,"
+                             "COLOR INTEGER,"
+                             "DESCRIPTION TEXT,"
+                             ")")
+                         .arg(s_sql_bookmarksTableName));
     // TODO PDB
     // TODO DWARF
 #endif
