@@ -83,17 +83,17 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     if (g_dataBase.open()) {
         g_dataBase.close();
         g_dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("local_db");
+        QSqlDatabase::removeDatabase("memory_db");
     }
 
-    g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
 #ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
 #else
 #ifdef Q_OS_WIN
-    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
-//    g_dataBase.setDatabaseName(":memory:");
+//    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
+    g_dataBase.setDatabaseName(":memory:");
 #else
     g_dataBase.setDatabaseName(":memory:");
 #endif
