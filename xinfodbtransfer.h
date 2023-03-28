@@ -32,11 +32,14 @@ public:
     enum TT {
         TT_ANALYZE = 0,
         TT_CLEAR,
-        TT_EXPORT
+        TT_EXPORT,
+        TT_IMPORT
     };
 
     void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, TT transferType, XBinary::PDSTRUCT *pPdStruct);
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:

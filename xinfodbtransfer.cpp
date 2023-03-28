@@ -47,6 +47,21 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDe
     g_pPdStruct = pPdStruct;
 }
 
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::PDSTRUCT *pPdStruct)
+{
+    g_pXInfoDB = pXInfoDB;
+    g_transferType = transferType;
+    g_sFileName = sFileName;
+    g_pPdStruct = pPdStruct;
+}
+
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, XBinary::PDSTRUCT *pPdStruct)
+{
+    g_pXInfoDB = pXInfoDB;
+    g_transferType = transferType;
+    g_pPdStruct = pPdStruct;
+}
+
 bool XInfoDBTransfer::process()
 {
     // TODO get string are not in code
@@ -79,7 +94,7 @@ bool XInfoDBTransfer::process()
             }
 
             if (pDevice) {
-                g_pXInfoDB->initDb();
+                g_pXInfoDB->initDb(); // TODO Check
 
                 g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
 

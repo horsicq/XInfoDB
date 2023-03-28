@@ -557,8 +557,10 @@ public:
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
-
     void initDb();
+#ifdef QT_SQL_LIB
+    void initDb(QSqlDatabase *pDatabase);
+#endif
     void clearDb();
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
@@ -614,6 +616,7 @@ public:
     bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
     bool querySQL(QSqlQuery *pSqlQuery);
     QString convertStringSQL(QString sSQL);
+    bool copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct);
 #endif
     void testFunction();
 
@@ -633,6 +636,7 @@ signals:
     void memoryRegionsListChanged();
     void modulesListChanged();
     void registersListChanged();
+//    void analyzeStateChanged();
 
 private:
 #ifdef USE_XPROCESS

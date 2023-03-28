@@ -3,11 +3,13 @@ DEPENDPATH += $$PWD
 
 HEADERS += \
     $$PWD/dialogxinfodbtransferprocess.h \
-    $$PWD/xinfodboptionswidget.h
+    $$PWD/xinfodboptionswidget.h \
+    $$PWD/xinfomenu.h
 
 SOURCES += \
     $$PWD/dialogxinfodbtransferprocess.cpp \
-    $$PWD/xinfodboptionswidget.cpp
+    $$PWD/xinfodboptionswidget.cpp \
+    $$PWD/xinfomenu.cpp
 
 FORMS += \
     $$PWD/dialogxinfodbtransferprocess.ui \

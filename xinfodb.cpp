@@ -64,10 +64,13 @@ XInfoDB::~XInfoDB()
 {
     XCapstone::closeHandle(&g_handle);
 #ifdef QT_SQL_LIB
-    if (g_dataBase.open()) {
+#ifdef QT_DEBUG
+    qDebug("XInfoDB::~XInfoDB()");
+#endif
+    if (g_dataBase.isOpen()) {
         g_dataBase.close();
         g_dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("local_db");
+        QSqlDatabase::removeDatabase("memory_db");
     }
 #endif
 }
@@ -80,7 +83,7 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_binary.setDevice(pDevice);  // TODO read/write signals
 
 #ifdef QT_SQL_LIB
-    if (g_dataBase.open()) {
+    if (g_dataBase.isOpen()) {
         g_dataBase.close();
         g_dataBase = QSqlDatabase();
         QSqlDatabase::removeDatabase("memory_db");
@@ -2705,9 +2708,16 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
 
 void XInfoDB::initDb()
 {
-    // UPDATE XXX SET LINENUMBER = LINENUMBER + 50 WHERE ADDRESS >= 1
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+    initDb(&g_dataBase);
+#endif
+}
+#ifdef QT_SQL_LIB
+void XInfoDB::initDb(QSqlDatabase *pDatabase)
+{
+    // UPDATE XXX SET LINENUMBER = LINENUMBER + 50 WHERE ADDRESS >= 1
+
+    QSqlQuery query(*pDatabase);
 
     querySQL(&query, QString("PRAGMA writable_schema = 1"));
     querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"));
@@ -2715,7 +2725,6 @@ void XInfoDB::initDb()
 
     querySQL(&query, QString("VACUUM"));
     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
-
 
     querySQL(&query, QString("CREATE TABLE %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
@@ -2766,17 +2775,17 @@ void XInfoDB::initDb()
                              "SIZE INTEGER,"
                              "NAME TEXT,"
                              "COLOR INTEGER,"
-                             "DESCRIPTION TEXT,"
+                             "DESCRIPTION TEXT"
                              ")")
                          .arg(s_sql_bookmarksTableName));
     // TODO PDB
     // TODO DWARF
-#endif
+
 
     clearRecordInfoCache();
     // TODO
 }
-
+#endif
 void XInfoDB::clearDb()
 {
 #ifdef QT_SQL_LIB
@@ -4100,6 +4109,11 @@ bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
 void XInfoDB::setAnalyzed(bool bState)
 {
     g_bIsAnalyzed = bState;
+//    if (g_bIsAnalyzed != bState) {
+//        g_bIsAnalyzed = bState;
+
+//        emit analyzeStateChanged();
+//    }
 }
 
 bool XInfoDB::isAnalyzed()
@@ -4162,28 +4176,42 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
 
 bool XInfoDB::loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
 {
-    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+    bool bResult = false;
 
-    if (!pPdStruct) {
-        pPdStruct = &pdStructEmpty;
-    }
 #ifdef QT_SQL_LIB
-    // TODO
+    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    dataBase.setDatabaseName(sDBFileName);
+
+    if (dataBase.open()) {
+        bResult = copyDb(&dataBase, &g_dataBase, pPdStruct);
+
+        dataBase.close();
+    }
+
+    dataBase = QSqlDatabase();
+    QSqlDatabase::removeDatabase("local_db");
 #endif
-    return false;
+    return bResult;
 }
 
 bool XInfoDB::saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
 {
-    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+    bool bResult = false;
 
-    if (!pPdStruct) {
-        pPdStruct = &pdStructEmpty;
-    }
 #ifdef QT_SQL_LIB
-    // TODO
+    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    dataBase.setDatabaseName(sDBFileName);
+
+    if (dataBase.open()) {
+        bResult = copyDb(&g_dataBase, &dataBase, pPdStruct);
+
+        dataBase.close();
+    }
+
+    dataBase = QSqlDatabase();
+    QSqlDatabase::removeDatabase("local_db");
 #endif
-    return false;
+    return bResult;
 }
 #ifdef QT_SQL_LIB
 bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, QString sSQL)
@@ -4242,6 +4270,50 @@ QString XInfoDB::convertStringSQL(QString sSQL)
     sResult = sResult.replace("-", "_");
 
     return sResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct)
+{
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
+    initDb(pDatabaseDest);
+
+    QSqlQuery queryRead(*pDatabaseSource);
+    QSqlQuery queryWrite(*pDatabaseDest);
+
+    bool bResult = false;
+
+    if (!(pPdStruct->bIsStop)) {
+        pDatabaseDest->transaction();
+
+        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)")
+                                .arg(s_sql_symbolTableName));
+
+        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
+                                    "VALUES (?, ?, ?)")
+                                .arg(s_sql_symbolTableName));
+
+        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
+            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
+            queryWrite.bindValue(2, queryRead.value(2).toString());
+
+            querySQL(&queryWrite);
+        }
+
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        bResult = querySQL(&queryWrite, QString("VACUUM"));
+    }
+
+    return bResult;
 }
 #endif
 void XInfoDB::testFunction()

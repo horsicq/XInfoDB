@@ -52,17 +52,18 @@ void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QString sFileName,
 
 void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
 {
+    // TODO if FT_UNKNOWN show a dialog with options
     setWindowTitle(tr("Analyze"));
 
     g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_ANALYZE, pDevice, fileType, getPdStruct());
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::clear(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::clear(XInfoDB *pXInfoDB)
 {
     setWindowTitle(tr("Clear"));
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_CLEAR, pDevice, fileType, getPdStruct());
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_CLEAR, getPdStruct());
     g_pThread->start();
 }
 
@@ -70,6 +71,14 @@ void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileNa
 {
     setWindowTitle(tr("Export"));
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_EXPORT, sFileName, XBinary::FT_UNKNOWN, getPdStruct());
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_EXPORT, sFileName, getPdStruct());
+    g_pThread->start();
+}
+
+void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName)
+{
+    setWindowTitle(tr("Import"));
+
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, sFileName, getPdStruct());
     g_pThread->start();
 }
