@@ -334,6 +334,7 @@ public:
     void setFileType(XBinary::FT fileType);
     XBinary::FT getFileType();
     void setDisasmMode(XBinary::DM disasmMode);
+    XBinary::DM getDisasmMode();
     void reload(bool bReloadData);
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
     void _createTableNames();
@@ -347,6 +348,7 @@ public:
     QString read_unicodeString(XADDR nAddress,
                                quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
+    XCapstone::DISASM_RESULT disasm(XADDR nAddress);
 #else
     quint32 read_uint32(qint64 nOffset, bool bIsBigEndian = false);
     quint64 read_uint64(qint64 nOffset, bool bIsBigEndian = false);
@@ -380,8 +382,10 @@ public:
     void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
+    void updateThreadsList();
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
+    QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
     bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, QString sInfo = QString(),
                        QString sGUID = QString());
     bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
@@ -635,6 +639,7 @@ signals:
     void reloadSignal(bool bReloadData);
     void memoryRegionsListChanged();
     void modulesListChanged();
+    void threadsListChanged();
     void registersListChanged();
 //    void analyzeStateChanged();
 
@@ -649,7 +654,9 @@ private:
         quint32 nMemoryRegionsHash;
         QList<XProcess::MEMORY_REGION> listMemoryRegions;
         quint32 nModulesHash;
+        quint32 nThreadsHash;
         QList<XProcess::MODULE> listModules;
+        QList<XProcess::THREAD_INFO> listThreads;
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);

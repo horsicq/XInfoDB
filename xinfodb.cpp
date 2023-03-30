@@ -158,6 +158,11 @@ void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
     _createTableNames();
 }
 
+XBinary::DM XInfoDB::getDisasmMode()
+{
+    return g_disasmMode;
+}
+
 void XInfoDB::reload(bool bReloadData)
 {
     emit reloadSignal(bReloadData);
@@ -284,6 +289,14 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
     sResult = XProcess::read_utf8String(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
     return sResult;
+}
+#endif
+#ifdef USE_XPROCESS
+XCapstone::DISASM_RESULT XInfoDB::disasm(XADDR nAddress)
+{
+    QByteArray baArray = read_array(nAddress, 16);
+
+    return XCapstone::disasm_ex(g_handle, getDisasmMode(), baArray.data(), baArray.size(), nAddress);
 }
 #endif
 #ifndef USE_XPROCESS
@@ -1294,7 +1307,6 @@ void XInfoDB::updateMemoryRegionsList()
 #ifdef USE_XPROCESS
 void XInfoDB::updateModulesList()
 {
-    // TODO Hash
     // mb TODO function for compare 2 lists
     //    g_statusPrev.listModules = g_statusCurrent.listModules;
     quint32 nModulesHash = XProcess::getModulesListHash(g_processInfo.nProcessID);
@@ -1304,6 +1316,21 @@ void XInfoDB::updateModulesList()
         g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
 
         emit modulesListChanged();
+    }
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::updateThreadsList()
+{
+    // mb TODO function for compare 2 lists
+    //    g_statusPrev.listModules = g_statusCurrent.listModules;
+    quint32 nThreadsHash = XProcess::getThreadsListHash(g_processInfo.nProcessID);
+
+    if (g_statusCurrent.nThreadsHash != nThreadsHash) {
+        g_statusCurrent.nThreadsHash = nThreadsHash;
+        g_statusCurrent.listThreads = XProcess::getThreadsList(g_processInfo.nProcessID);
+
+        emit threadsListChanged();
     }
 }
 #endif
@@ -1487,6 +1514,12 @@ QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
 QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList()
 {
     return &(g_statusCurrent.listModules);
+}
+#endif
+#ifdef USE_XPROCESS
+QList<XProcess::THREAD_INFO> *XInfoDB::getCurrentThreadsList()
+{
+    return &(g_statusCurrent.listThreads);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -3031,7 +3064,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-    XBinary::DM disasmMode = XBinary::getDisasmMode(pMemoryMap);
+    XBinary::DM disasmMode = getDisasmMode();
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
