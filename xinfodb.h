@@ -378,6 +378,10 @@ public:
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
+    void setCurrentThreadById(X_ID nThreadId);
+    void setCurrentThreadByHandle(X_HANDLE hThread);
+    X_ID getCurrentThreadById();
+    X_HANDLE getCurrentThreadByHandle();
     void updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions);
     void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
@@ -648,7 +652,7 @@ private:
     struct STATUS {
         quint32 nRegistersHash;
         QMap<XREG, XBinary::XVARIANT> mapRegs;
-        QMap<XREG, XBinary::XVARIANT> mapRegsPrev;
+        QMap<XREG, XBinary::XVARIANT> mapRegsPrev; // mb TODO move to prev
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
