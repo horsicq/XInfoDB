@@ -423,26 +423,27 @@ QList<QString> XInfoDB::loadStrDB(QString sPath, STRDB strDB)
 
     return listResult;
 }
+
 #ifdef USE_XPROCESS
-void XInfoDB::setCurrentThreadById(X_ID nThreadId)
+void XInfoDB::setCurrentThreadId(X_ID nThreadId)
 {
     g_statusCurrent.nThreadId = nThreadId;
 }
 #endif
 #ifdef USE_XPROCESS
-void XInfoDB::setCurrentThreadByHandle(X_HANDLE hThread)
+void XInfoDB::setCurrentThreadHandle(X_HANDLE hThread)
 {
     g_statusCurrent.hThread = hThread;
 }
 #endif
 #ifdef USE_XPROCESS
-X_ID XInfoDB::getCurrentThreadById()
+X_ID XInfoDB::getCurrentThreadId()
 {
     return g_statusCurrent.nThreadId;
 }
 #endif
 #ifdef USE_XPROCESS
-X_HANDLE XInfoDB::getCurrentThreadByHandle()
+X_HANDLE XInfoDB::getCurrentThreadHandle()
 {
     return g_statusCurrent.hThread;
 }

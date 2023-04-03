@@ -209,7 +209,8 @@ public:
         BPI_STEPINTO,
         BPI_STEPOVER,
         BPI_TRACEINTO,
-        BPI_TRACEOVER
+        BPI_TRACEOVER,
+        BPI_STEPINTO_RESTOREBP
     };
 
     struct BREAKPOINT {
@@ -378,10 +379,10 @@ public:
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
-    void setCurrentThreadById(X_ID nThreadId);
-    void setCurrentThreadByHandle(X_HANDLE hThread);
-    X_ID getCurrentThreadById();
-    X_HANDLE getCurrentThreadByHandle();
+    void setCurrentThreadId(X_ID nThreadId);
+    void setCurrentThreadHandle(X_HANDLE hThread);
+    X_ID getCurrentThreadId();
+    X_HANDLE getCurrentThreadHandle();
     void updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions);
     void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
