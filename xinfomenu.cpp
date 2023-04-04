@@ -65,7 +65,7 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB, QIODevice *pDevice)
     g_pDevice = pDevice;
 
     if (g_pXInfoDB) {
-//        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
+        //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
     }
 
     updateMenu();
@@ -92,15 +92,12 @@ void XInfoMenu::actionAnalyze()
 
 void XInfoMenu::actionLoad()
 {
-
 }
 
 void XInfoMenu::actionSave()
 {
-
 }
 
 void XInfoMenu::actionClear()
 {
-
 }

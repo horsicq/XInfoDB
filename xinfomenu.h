@@ -25,8 +25,7 @@
 #include <QMenu>
 #include "dialogxinfodbtransferprocess.h"
 
-class XInfoMenu : public QObject
-{
+class XInfoMenu : public QObject {
     Q_OBJECT
 public:
     explicit XInfoMenu();
@@ -52,4 +51,4 @@ private:
     QIODevice *g_pDevice;
 };
 
-#endif // XINFOMENU_H
+#endif  // XINFOMENU_H

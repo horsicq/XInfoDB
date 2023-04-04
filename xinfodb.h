@@ -549,7 +549,7 @@ public:
     QList<SYMBOL> getAllSymbols();
     QMap<quint32, QString> getSymbolModules();
 
-//    QList<XADDR> getSymbolAddresses(ST symbolType);
+    //    QList<XADDR> getSymbolAddresses(ST symbolType);
 
     void addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
     bool _addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
@@ -560,8 +560,8 @@ public:
     bool _addImportSymbol(XADDR nAddress, QString sSymbol);
     bool _addTLSSymbol(XADDR nAddress, QString sSymbol);
 
-//    static QString symbolSourceIdToString(SS symbolSource);
-//    static QString symbolTypeIdToString(ST symbolType);
+    //    static QString symbolSourceIdToString(SS symbolSource);
+    //    static QString symbolTypeIdToString(ST symbolType);
 
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
@@ -646,14 +646,14 @@ signals:
     void modulesListChanged();
     void threadsListChanged();
     void registersListChanged();
-//    void analyzeStateChanged();
+    //    void analyzeStateChanged();
 
 private:
 #ifdef USE_XPROCESS
     struct STATUS {
         quint32 nRegistersHash;
         QMap<XREG, XBinary::XVARIANT> mapRegs;
-        QMap<XREG, XBinary::XVARIANT> mapRegsPrev; // mb TODO move to prev
+        QMap<XREG, XBinary::XVARIANT> mapRegsPrev;  // mb TODO move to prev
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;

@@ -95,7 +95,7 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_dataBase.setDatabaseName(":memory:");
 #else
 #ifdef Q_OS_WIN
-//    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
+    //    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
     g_dataBase.setDatabaseName(":memory:");
 #else
     g_dataBase.setDatabaseName(":memory:");
@@ -1148,12 +1148,12 @@ void XInfoDB::updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions)
 //    __extension__ unsigned long long int orig_rax;
 //    __extension__ unsigned long long int fs_base;
 //    __extension__ unsigned long long int gs_base;
-#endif 
+#endif
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
-{ 
+{
     g_statusCurrent.hThread = hThread;
 
 #ifdef Q_OS_WIN
@@ -1172,7 +1172,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             g_statusCurrent.mapRegs.clear();
 
             if (regOptions.bGeneral) {
-    #ifdef Q_PROCESSOR_X86_32
+#ifdef Q_PROCESSOR_X86_32
                 g_statusCurrent.mapRegs.insert(XREG_EAX, XBinary::getXVariant((quint32)(context.Eax)));
                 g_statusCurrent.mapRegs.insert(XREG_EBX, XBinary::getXVariant((quint32)(context.Ebx)));
                 g_statusCurrent.mapRegs.insert(XREG_ECX, XBinary::getXVariant((quint32)(context.Ecx)));
@@ -1181,8 +1181,8 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
                 g_statusCurrent.mapRegs.insert(XREG_ESP, XBinary::getXVariant((quint32)(context.Esp)));
                 g_statusCurrent.mapRegs.insert(XREG_ESI, XBinary::getXVariant((quint32)(context.Esi)));
                 g_statusCurrent.mapRegs.insert(XREG_EDI, XBinary::getXVariant((quint32)(context.Edi)));
-    #endif
-    #ifdef Q_PROCESSOR_X86_64
+#endif
+#ifdef Q_PROCESSOR_X86_64
                 g_statusCurrent.mapRegs.insert(XREG_RAX, XBinary::getXVariant((quint64)(context.Rax)));
                 g_statusCurrent.mapRegs.insert(XREG_RBX, XBinary::getXVariant((quint64)(context.Rbx)));
                 g_statusCurrent.mapRegs.insert(XREG_RCX, XBinary::getXVariant((quint64)(context.Rcx)));
@@ -1199,26 +1199,26 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
                 g_statusCurrent.mapRegs.insert(XREG_R13, XBinary::getXVariant((quint64)(context.R13)));
                 g_statusCurrent.mapRegs.insert(XREG_R14, XBinary::getXVariant((quint64)(context.R14)));
                 g_statusCurrent.mapRegs.insert(XREG_R15, XBinary::getXVariant((quint64)(context.R15)));
-    #endif
+#endif
             }
 
             if (regOptions.bIP) {
-    #ifdef Q_PROCESSOR_X86_32
+#ifdef Q_PROCESSOR_X86_32
                 g_statusCurrent.mapRegs.insert(XREG_EIP, XBinary::getXVariant((quint32)(context.Eip)));
-    #endif
-    #ifdef Q_PROCESSOR_X86_64
+#endif
+#ifdef Q_PROCESSOR_X86_64
                 g_statusCurrent.mapRegs.insert(XREG_RIP, XBinary::getXVariant((quint64)(context.Rip)));
-    #endif
+#endif
             }
 
             if (regOptions.bFlags) {
-    #ifdef Q_PROCESSOR_X86_32
+#ifdef Q_PROCESSOR_X86_32
                 g_statusCurrent.mapRegs.insert(XREG_EFLAGS, XBinary::getXVariant((quint32)(context.EFlags)));
-    #endif
-    #ifdef Q_PROCESSOR_X86_64
+#endif
+#ifdef Q_PROCESSOR_X86_64
                 g_statusCurrent.mapRegs.insert(XREG_RFLAGS,
                                                XBinary::getXVariant((quint64)(context.EFlags)));  // TODO !!!
-    #endif
+#endif
             }
 
             if (regOptions.bSegments) {
@@ -1231,45 +1231,45 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             }
 
             if (regOptions.bDebug) {
-    #ifdef Q_PROCESSOR_X86_32
+#ifdef Q_PROCESSOR_X86_32
                 g_statusCurrent.mapRegs.insert(XREG_DR0, XBinary::getXVariant((quint32)(context.Dr0)));
                 g_statusCurrent.mapRegs.insert(XREG_DR1, XBinary::getXVariant((quint32)(context.Dr1)));
                 g_statusCurrent.mapRegs.insert(XREG_DR2, XBinary::getXVariant((quint32)(context.Dr2)));
                 g_statusCurrent.mapRegs.insert(XREG_DR3, XBinary::getXVariant((quint32)(context.Dr3)));
                 g_statusCurrent.mapRegs.insert(XREG_DR6, XBinary::getXVariant((quint32)(context.Dr6)));
                 g_statusCurrent.mapRegs.insert(XREG_DR7, XBinary::getXVariant((quint32)(context.Dr7)));
-    #endif
-    #ifdef Q_PROCESSOR_X86_64
+#endif
+#ifdef Q_PROCESSOR_X86_64
                 g_statusCurrent.mapRegs.insert(XREG_DR0, XBinary::getXVariant((quint64)(context.Dr0)));
                 g_statusCurrent.mapRegs.insert(XREG_DR1, XBinary::getXVariant((quint64)(context.Dr1)));
                 g_statusCurrent.mapRegs.insert(XREG_DR2, XBinary::getXVariant((quint64)(context.Dr2)));
                 g_statusCurrent.mapRegs.insert(XREG_DR3, XBinary::getXVariant((quint64)(context.Dr3)));
                 g_statusCurrent.mapRegs.insert(XREG_DR6, XBinary::getXVariant((quint64)(context.Dr6)));
                 g_statusCurrent.mapRegs.insert(XREG_DR7, XBinary::getXVariant((quint64)(context.Dr7)));
-    #endif
+#endif
             }
 
             if (regOptions.bFloat) {
-    #if defined(Q_PROCESSOR_X86_64)
+#if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 8; i++) {
-                    g_statusCurrent.mapRegs.insert(XREG(XREG_ST0 + i),
-                                                   XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
+                    g_statusCurrent.mapRegs.insert(
+                        XREG(XREG_ST0 + i), XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
                 }
-    #endif
+#endif
             }
 
             if (regOptions.bXMM) {
-    #if defined(Q_PROCESSOR_X86_64)
+#if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 16; i++) {
                     g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i),
                                                    XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
                 }
-    #endif
+#endif
                 //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
             }
 
-    #ifdef QT_DEBUG
-    #if defined(Q_PROCESSOR_X86_64)
+#ifdef QT_DEBUG
+#if defined(Q_PROCESSOR_X86_64)
             //        qDebug("P1Home
             //        %s",XBinary::valueToHex((quint64)(context.P1Home)).toLatin1().data());
             //        qDebug("P2Home
@@ -1297,9 +1297,9 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             //        %s",XBinary::valueToHex((quint64)(context.LastExceptionToRip)).toLatin1().data());
             //        qDebug("LastExceptionFromRip
             //        %s",XBinary::valueToHex((quint64)(context.LastExceptionFromRip)).toLatin1().data());
-    #endif
-    #endif
-            emit registersListChanged(); // TODO mb hash
+#endif
+#endif
+            emit registersListChanged();  // TODO mb hash
         }
     }
 #endif
@@ -2521,11 +2521,11 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
     return g_mapSymbolModules;
 }
 
-//QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
+// QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
 //{
-//    QList<XADDR> listResult;
-//#ifdef QT_SQL_LIB
-//    QSqlQuery query(g_dataBase);
+//     QList<XADDR> listResult;
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
 //    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE SYMTYPE = '%2'").arg(s_sql_symbolTableName, QString::number(symbolType)));
 
@@ -2534,7 +2534,7 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
 
 //        listResult.append(nAddress);
 //    }
-//#endif
+// #endif
 //    return listResult;
 //}
 
@@ -2674,9 +2674,9 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, QString sSymbol)
     return bResult;
 }
 
-//QString XInfoDB::symbolSourceIdToString(SS symbolSource)
+// QString XInfoDB::symbolSourceIdToString(SS symbolSource)
 //{
-//    QString sResult = tr("Unknown");
+//     QString sResult = tr("Unknown");
 
 //    if (symbolSource == SS_FILE)
 //        sResult = tr("File");
@@ -2686,9 +2686,9 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, QString sSymbol)
 //    return sResult;
 //}
 
-//QString XInfoDB::symbolTypeIdToString(ST symbolType)
+// QString XInfoDB::symbolTypeIdToString(ST symbolType)
 //{
-//    QString sResult = tr("Unknown");
+//     QString sResult = tr("Unknown");
 
 //    if (symbolType == ST_LABEL)
 //        sResult = tr("Label");
@@ -2717,8 +2717,7 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
     if (g_bIsAnalyzed) {
         QSqlQuery query(g_dataBase);
 
-        querySQL(&query,
-                 QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
+        querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_symbolTableName, QString::number(nAddress)));
 
         if (query.next()) {
             result.nAddress = query.value(0).toULongLong();
@@ -2838,7 +2837,6 @@ void XInfoDB::initDb(QSqlDatabase *pDatabase)
                          .arg(s_sql_bookmarksTableName));
     // TODO PDB
     // TODO DWARF
-
 
     clearRecordInfoCache();
     // TODO
@@ -2965,20 +2963,20 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                             if ((nType == 0) || (nType == 1) || (nType == 2))  // NOTYPE,OBJECT,FUNC
                                                                                // TODO consts
                             {
-//                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
+                                //                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
 
-//                                if (nType == 0)
-//                                    symbolType = XInfoDB::ST_LABEL;
-//                                else if (nType == 1)
-//                                    symbolType = XInfoDB::ST_OBJECT;
-//                                else if (nType == 2)
-//                                    symbolType = XInfoDB::ST_FUNCTION;
+                                //                                if (nType == 0)
+                                //                                    symbolType = XInfoDB::ST_LABEL;
+                                //                                else if (nType == 1)
+                                //                                    symbolType = XInfoDB::ST_OBJECT;
+                                //                                else if (nType == 2)
+                                //                                    symbolType = XInfoDB::ST_FUNCTION;
 
                                 QString sSymbolName = elf.getStringFromIndex(nStringTableOffset, nStringTableSize, record.st_name);
 
                                 if (XBinary::isAddressValid(&memoryMap, nSymbolAddress)) {
                                     if (!isSymbolPresent(nSymbolAddress)) {
-//                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
+                                        //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
                                         _addSymbol(nSymbolAddress, 0, sSymbolName);
                                     }
                                 } else {
@@ -3010,7 +3008,6 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                 qint32 nNumberOfRecords = _export.listPositions.count();
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-
                     XADDR nAddress = _export.listPositions.at(i).nAddress;
 
                     if (!stAddresses.contains(nAddress)) {
@@ -3022,7 +3019,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                         _addSymbol(nAddress, 0, sFunctionName);
                         stAddresses.insert(nAddress);
 
-                        _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName); // TODO ordinals
+                        _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
                     }
                 }
             }
@@ -3039,7 +3036,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                         _addSymbol(nAddress, 0, sFunctionName);
                         stAddresses.insert(nAddress);
 
-                        _addImportSymbol(nAddress, listImportRecords.at(i).sFunction); // TODO ordinals
+                        _addImportSymbol(nAddress, listImportRecords.at(i).sFunction);  // TODO ordinals
                     }
                 }
             }
@@ -4167,11 +4164,11 @@ bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
 void XInfoDB::setAnalyzed(bool bState)
 {
     g_bIsAnalyzed = bState;
-//    if (g_bIsAnalyzed != bState) {
-//        g_bIsAnalyzed = bState;
+    //    if (g_bIsAnalyzed != bState) {
+    //        g_bIsAnalyzed = bState;
 
-//        emit analyzeStateChanged();
-//    }
+    //        emit analyzeStateChanged();
+    //    }
 }
 
 bool XInfoDB::isAnalyzed()
@@ -4349,12 +4346,11 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
     if (!(pPdStruct->bIsStop)) {
         pDatabaseDest->transaction();
 
-        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)")
-                                .arg(s_sql_symbolTableName));
+        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_symbolTableName));
 
         queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
-                                    "VALUES (?, ?, ?)")
-                                .arg(s_sql_symbolTableName));
+                                   "VALUES (?, ?, ?)")
+                               .arg(s_sql_symbolTableName));
 
         while (queryRead.next() && (!(pPdStruct->bIsStop))) {
             queryWrite.bindValue(0, queryRead.value(0).toULongLong());
