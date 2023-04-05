@@ -95,8 +95,8 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_dataBase.setDatabaseName(":memory:");
 #else
 #ifdef Q_OS_WIN
-    //    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbX.db");
-    g_dataBase.setDatabaseName(":memory:");
+        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+//    g_dataBase.setDatabaseName(":memory:");
 #else
     g_dataBase.setDatabaseName(":memory:");
 #endif
@@ -2828,11 +2828,12 @@ void XInfoDB::initDb(QSqlDatabase *pDatabase)
                          .arg(s_sql_tlsTableName));
 
     querySQL(&query, QString("CREATE TABLE %1 ("
-                             "ADDRESS INTEGER PRIMARY KEY,"
+                             "LOCATION INTEGER,"
                              "SIZE INTEGER,"
+                             "COLTEXT INTEGER,"
+                             "COLBACKGROUND INTEGER,"
                              "NAME TEXT,"
-                             "COLOR INTEGER,"
-                             "DESCRIPTION TEXT"
+                             "COMMENT TEXT"
                              ")")
                          .arg(s_sql_bookmarksTableName));
     // TODO PDB
@@ -3714,6 +3715,30 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
     QSqlQuery query(g_dataBase);
 
     bResult = querySQL(&query, QString("UPDATE %1 SET REFFROM=REFFROM+1 WHERE ADDRESS=%2").arg(s_sql_recordTableName, QString::number(nAddress)));
+#endif
+
+    return bResult;
+}
+
+bool XInfoDB::_addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    query.prepare(QString("INSERT INTO %1 (LOCATION, SIZE, COLTEXT, COLBACKGROUND, NAME, COMMENT) "
+                          "VALUES (?, ?, ?, ?, ?, ?)")
+                      .arg(s_sql_bookmarksTableName));
+
+    query.bindValue(0, nLocation);
+    query.bindValue(1, nSize);
+    query.bindValue(2, colText.name());
+    query.bindValue(3, colBackground.name());
+    query.bindValue(4, sName);
+    query.bindValue(5, sComment);
+
+    bResult = querySQL(&query);
 #endif
 
     return bResult;

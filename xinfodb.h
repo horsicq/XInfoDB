@@ -582,6 +582,7 @@ public:
     void _addRelRecords(QList<RELRECORD> *pListRecords);
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
+    bool _addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment);
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
