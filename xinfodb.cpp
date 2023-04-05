@@ -95,7 +95,7 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_dataBase.setDatabaseName(":memory:");
 #else
 #ifdef Q_OS_WIN
-        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
 //    g_dataBase.setDatabaseName(":memory:");
 #else
     g_dataBase.setDatabaseName(":memory:");
