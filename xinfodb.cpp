@@ -2479,6 +2479,7 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
 
 bool XInfoDB::isSymbolsPresent()
 {
+    // TODO Check count
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
@@ -2486,6 +2487,7 @@ bool XInfoDB::isSymbolsPresent()
     querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_symbolTableName));
 
     bResult = query.next();
+
 #else
     bResult = !(g_listSymbols.isEmpty());
 #endif
