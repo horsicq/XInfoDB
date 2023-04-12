@@ -104,7 +104,7 @@ bool XInfoDBTransfer::process()
                 // TODO sort records
             }
 
-            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isSymbolsPresent()); // TODO Check ShowRecords
+            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
 
             if (bFile && pDevice) {
                 QFile *pFile = static_cast<QFile *>(pDevice);
@@ -117,7 +117,7 @@ bool XInfoDBTransfer::process()
             // TODO
         } else if (g_transferType == TT_CLEAR) {
             g_pXInfoDB->clearDb();
-            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isSymbolsPresent()); // TODO Check ShowRecords
+            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
         }
     }
 

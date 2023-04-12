@@ -583,6 +583,7 @@ public:
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment);
+    bool isShowRecordsPresent();
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
@@ -707,7 +708,7 @@ private:
 #ifdef QT_SQL_LIB
     QSqlDatabase g_dataBase;
     QString s_sql_symbolTableName;
-    QString s_sql_recordTableName;
+    QString s_sql_showRecordsTableName;
     QString s_sql_relativeTableName;
     QString s_sql_importTableName;
     QString s_sql_exportTableName;
