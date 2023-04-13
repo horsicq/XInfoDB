@@ -545,6 +545,15 @@ public:
         qint32 nMemorySize;
     };
 
+    struct BOOKMARKRECORD {
+        quint64 nLocation;
+        qint64 nSize;
+        QColor colText;
+        QColor colBackground;
+        QString sName;
+        QString sComment;
+    };
+
     bool isSymbolsPresent();
     QList<SYMBOL> getAllSymbols();
     QMap<quint32, QString> getSymbolModules();
@@ -582,7 +591,10 @@ public:
     void _addRelRecords(QList<RELRECORD> *pListRecords);
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
-    bool _addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment);
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment);
+    QList<BOOKMARKRECORD> getBookmarkRecords();
+    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
+
     bool isShowRecordsPresent();
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress);
@@ -633,6 +645,9 @@ public:
 
     void setDebuggerState(bool bState);
     bool isDebugger();
+
+    static QColor stringToColor(QString sCode);
+    static QString colorToString(QColor color);
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);

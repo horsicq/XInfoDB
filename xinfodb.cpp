@@ -3721,7 +3721,7 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
     return bResult;
 }
 
-bool XInfoDB::_addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment)
+bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment)
 {
     bool bResult = false;
 
@@ -3734,8 +3734,8 @@ bool XInfoDB::_addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QCol
 
     query.bindValue(0, nLocation);
     query.bindValue(1, nSize);
-    query.bindValue(2, colText.name());
-    query.bindValue(3, colBackground.name());
+    query.bindValue(2, colorToString(colText));
+    query.bindValue(3, colorToString(colBackground));
     query.bindValue(4, sName);
     query.bindValue(5, sComment);
 
@@ -3743,6 +3743,60 @@ bool XInfoDB::_addBookmark(quint64 nLocation, qint64 nSize, QColor colText, QCol
 #endif
 
     return bResult;
+}
+
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
+{
+    QList<XInfoDB::BOOKMARKRECORD> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT LOCATION, SIZE, COLTEXT, COLBACKGROUND, NAME, COMMENT FROM %1").arg(s_sql_bookmarksTableName));
+
+    while (query.next()) {
+        BOOKMARKRECORD record = {};
+
+        record.nLocation = query.value(0).toULongLong();
+        record.nSize = query.value(1).toLongLong();
+        record.colText = stringToColor(query.value(2).toString());
+        record.colBackground = stringToColor(query.value(3).toString());
+        record.sName = query.value(4).toString();
+        record.sComment = query.value(5).toString();
+
+        listResult.append(record);
+    }
+
+#endif
+
+    return listResult;
+}
+
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qint64 nSize)
+{
+    QList<XInfoDB::BOOKMARKRECORD> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT LOCATION, SIZE, COLTEXT, COLBACKGROUND, NAME, COMMENT FROM %1 "
+                             "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
+                             "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3)))")
+                         .arg(s_sql_bookmarksTableName, QString::number(nLocation), QString::number(nSize)));
+
+    while (query.next()) {
+        BOOKMARKRECORD record = {};
+
+        record.nLocation = query.value(0).toULongLong();
+        record.nSize = query.value(1).toLongLong();
+        record.colText = stringToColor(query.value(2).toString());
+        record.colBackground = stringToColor(query.value(3).toString());
+        record.sName = query.value(4).toString();
+        record.sComment = query.value(5).toString();
+
+        listResult.append(record);
+    }
+#endif
+
+    return listResult;
 }
 
 bool XInfoDB::isShowRecordsPresent()
@@ -4442,6 +4496,19 @@ void XInfoDB::setDebuggerState(bool bState)
 bool XInfoDB::isDebugger()
 {
     return g_bIsDebugger;
+}
+
+QColor XInfoDB::stringToColor(QString sCode)
+{
+    QColor color;
+    color.setNamedColor(sCode);
+
+    return color;
+}
+
+QString XInfoDB::colorToString(QColor color)
+{
+    return color.name();
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
