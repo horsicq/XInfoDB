@@ -35,18 +35,18 @@ public:
 
 private slots:
     void updateMenu();
-    void actionAnalyze();
-    void actionLoad();
+//    void actionAnalyze();
+    void actionOpen();
     void actionSave();
-    void actionClear();
+//    void actionClear();
 
 private:
     QWidget *g_pParent;
     QMenu *g_pMenu;
-    QAction *g_pActionAnalyze;
-    QAction *g_pActionLoad;
+//    QAction *g_pActionAnalyze;
+    QAction *g_pActionOpen;
     QAction *g_pActionSave;
-    QAction *g_pActionClear;
+//    QAction *g_pActionClear;
     XInfoDB *g_pXInfoDB;
     QIODevice *g_pDevice;
 };

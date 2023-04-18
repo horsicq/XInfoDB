@@ -165,7 +165,13 @@ XBinary::DM XInfoDB::getDisasmMode()
 
 void XInfoDB::reload(bool bReloadData)
 {
+    // TODO Check
     emit reloadSignal(bReloadData);
+}
+
+void XInfoDB::reloadView()
+{
+    emit reloadViewSignal();
 }
 
 void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
@@ -2777,20 +2783,20 @@ void XInfoDB::initDb(QSqlDatabase *pDatabase)
 
     QSqlQuery query(*pDatabase);
 
-    querySQL(&query, QString("PRAGMA writable_schema = 1"));
-    querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"));
-    querySQL(&query, QString("PRAGMA writable_schema = 0"));
+//    querySQL(&query, QString("PRAGMA writable_schema = 1"));
+//    querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"));
+//    querySQL(&query, QString("PRAGMA writable_schema = 0"));
 
-    querySQL(&query, QString("VACUUM"));
-    querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
+//    querySQL(&query, QString("VACUUM"));
+//    querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"));
 
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "MODULE INTEGER,"
                              "SYMTEXT TEXT"
                              ")")
                          .arg(s_sql_symbolTableName));
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "ROFFSET INTEGER,"
                              "SIZE INTEGER,"
@@ -2802,7 +2808,7 @@ void XInfoDB::initDb(QSqlDatabase *pDatabase)
                              "REFFROM INTEGER"
                              ")")
                          .arg(s_sql_showRecordsTableName));
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "RELTYPE INTEGER,"
                              "XREFTORELATIVE INTEGER,"
@@ -2812,23 +2818,23 @@ void XInfoDB::initDb(QSqlDatabase *pDatabase)
                              ")")
                          .arg(s_sql_relativeTableName));
     // TODO more
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "ORIGNAME TEXT"
                              ")")
                          .arg(s_sql_importTableName));
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "ORIGNAME TEXT"
                              ")")
                          .arg(s_sql_exportTableName));
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "ADDRESS INTEGER PRIMARY KEY,"
                              "ORIGNAME TEXT"
                              ")")
                          .arg(s_sql_tlsTableName));
 
-    querySQL(&query, QString("CREATE TABLE %1 ("
+    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                              "LOCATION INTEGER,"
                              "SIZE INTEGER,"
                              "COLTEXT INTEGER,"

@@ -337,6 +337,7 @@ public:
     void setDisasmMode(XBinary::DM disasmMode);
     XBinary::DM getDisasmMode();
     void reload(bool bReloadData);
+    void reloadView();
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
     void _createTableNames();
 #ifdef USE_XPROCESS
@@ -658,7 +659,8 @@ private:
 
 signals:
     void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
-    void reloadSignal(bool bReloadData);
+    void reloadSignal(bool bReloadData); // TODO Check mb remove
+    void reloadViewSignal();
     void memoryRegionsListChanged();
     void modulesListChanged();
     void threadsListChanged();
