@@ -332,6 +332,7 @@ public:
 
     void setDevice(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
     QIODevice *getDevice();
+    void initDB();
     void setFileType(XBinary::FT fileType);
     XBinary::FT getFileType();
     void setDisasmMode(XBinary::DM disasmMode);

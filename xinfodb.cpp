@@ -81,7 +81,18 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
     g_mode = MODE_DEVICE;
 
     g_binary.setDevice(pDevice);  // TODO read/write signals
+    setFileType(fileType);
 
+    initDB();
+}
+
+QIODevice *XInfoDB::getDevice()
+{
+    return g_pDevice;
+}
+
+void XInfoDB::initDB()
+{
 #ifdef QT_SQL_LIB
     if (g_dataBase.isOpen()) {
         g_dataBase.close();
@@ -107,20 +118,13 @@ void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
         g_dataBase.exec("PRAGMA synchronous = OFF");
         g_dataBase.exec("PRAGMA journal_mode = MEMORY");
 
-        // setAnalyzed(isSymbolsPresent());
+                // setAnalyzed(isSymbolsPresent());
     } else {
 #ifdef QT_DEBUG
         qDebug("Cannot open sqlite database");
 #endif
     }
 #endif
-
-    setFileType(fileType);
-}
-
-QIODevice *XInfoDB::getDevice()
-{
-    return g_pDevice;
 }
 
 void XInfoDB::setFileType(XBinary::FT fileType)
@@ -4497,6 +4501,7 @@ void XInfoDB::testFunction()
 void XInfoDB::setDebuggerState(bool bState)
 {
     g_bIsDebugger = bState;
+    initDB();
 }
 
 bool XInfoDB::isDebugger()
