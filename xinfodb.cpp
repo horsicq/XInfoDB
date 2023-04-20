@@ -180,6 +180,8 @@ void XInfoDB::reloadView()
 
 void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 {
+    Q_UNUSED(nDeviceOffset)
+    Q_UNUSED(nDeviceSize)
     // TODO
 }
 
