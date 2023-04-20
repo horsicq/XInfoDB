@@ -94,7 +94,7 @@ bool XInfoDBTransfer::process()
             }
 
             if (pDevice) {
-                g_pXInfoDB->initDb();  // TODO Check
+                g_pXInfoDB->initDisasmDb();  // TODO Check
 
                 g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
 

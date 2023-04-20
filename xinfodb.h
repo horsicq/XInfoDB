@@ -327,6 +327,19 @@ public:
     };
 #endif
 
+#ifdef QT_SQL_LIB
+    enum DBTABLE {
+        DBTABLE_SYMBOLS = 0,
+        DBTABLE_SHOWRECORDS,
+        DBTABLE_RELATIVS,
+        DBTABLE_IMPORT,
+        DBTABLE_EXPORT,
+        DBTABLE_TLS,
+        DBTABLE_BOOKMARKS,
+        __DBTABLE_SIZE
+    };
+#endif
+
     explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
 
@@ -550,7 +563,6 @@ public:
     struct BOOKMARKRECORD {
         quint64 nLocation;
         qint64 nSize;
-        QColor colText;
         QColor colBackground;
         QString sName;
         QString sComment;
@@ -577,9 +589,11 @@ public:
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
-    void initDb();
+    void initDisasmDb();
+    void initHexDb();
 #ifdef QT_SQL_LIB
-    void initDb(QSqlDatabase *pDatabase);
+    bool isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
 #endif
     void clearDb();
     void vacuumDb();
@@ -593,7 +607,7 @@ public:
     void _addRelRecords(QList<RELRECORD> *pListRecords);
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colText, QColor colBackground, QString sName, QString sComment);
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
 
@@ -725,13 +739,7 @@ private:
     QMap<quint32, QMutex *> g_mapIds;
 #ifdef QT_SQL_LIB
     QSqlDatabase g_dataBase;
-    QString s_sql_symbolTableName;
-    QString s_sql_showRecordsTableName;
-    QString s_sql_relativeTableName;
-    QString s_sql_importTableName;
-    QString s_sql_exportTableName;
-    QString s_sql_tlsTableName;
-    QString s_sql_bookmarksTableName;
+    QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
     bool g_bIsAnalyzed;
     bool g_bIsAnalyzeInProgress;
