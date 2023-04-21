@@ -610,6 +610,7 @@ public:
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
+    void updateBookmarkRecord(quint64 nLocation);
 
     bool isShowRecordsPresent();
 

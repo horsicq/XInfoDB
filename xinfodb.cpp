@@ -2797,7 +2797,11 @@ void XInfoDB::initHexDb()
 #ifdef QT_SQL_LIB
 bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 {
-    return false;
+    QSqlQuery query(*pDatabase);
+
+    querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_tableName[dbTable]));
+
+    return query.next();
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -3819,17 +3823,18 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
     return listResult;
 }
 
+void XInfoDB::updateBookmarkRecord(quint64 nLocation)
+{
+#ifdef QT_SQL_LIB
+    // TODO
+#endif
+}
+
 bool XInfoDB::isShowRecordsPresent()
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-
-    querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-
-    bResult = query.next();
-
-    if (bResult) {
+    if (isTablePresent(&g_dataBase, DBTABLE_SHOWRECORDS)) {
         bResult = getShowRecordsCount();
     }
 #endif
