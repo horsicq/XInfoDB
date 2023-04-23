@@ -24,10 +24,10 @@ XInfoMenu::XInfoMenu()
 {
     g_pParent = nullptr;
     g_pMenu = nullptr;
-//    g_pActionAnalyze = nullptr;
+    //    g_pActionAnalyze = nullptr;
     g_pActionOpen = nullptr;
     g_pActionSave = nullptr;
-//    g_pActionClear = nullptr;
+    //    g_pActionClear = nullptr;
     g_pXInfoDB = nullptr;
     g_pDevice = nullptr;
 }
@@ -38,21 +38,21 @@ QMenu *XInfoMenu::createMenu(QWidget *pParent)
 
     g_pMenu = new QMenu(tr("Database"), pParent);
 
-//    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
+    //    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
     g_pActionOpen = new QAction(tr("Open"), pParent);
     g_pActionSave = new QAction(tr("Save"), pParent);
-//    g_pActionClear = new QAction(tr("Clear"), pParent);
+    //    g_pActionClear = new QAction(tr("Clear"), pParent);
 
-//    g_pMenu->addAction(g_pActionAnalyze);
+    //    g_pMenu->addAction(g_pActionAnalyze);
     g_pMenu->addAction(g_pActionOpen);
     g_pMenu->addAction(g_pActionSave);
     g_pMenu->addSeparator();
-//    g_pMenu->addAction(g_pActionClear);
+    //    g_pMenu->addAction(g_pActionClear);
 
-//    connect(g_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
+    //    connect(g_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
     connect(g_pActionOpen, SIGNAL(triggered()), this, SLOT(actionOpen()));
     connect(g_pActionSave, SIGNAL(triggered()), this, SLOT(actionSave()));
-//    connect(g_pActionClear, SIGNAL(triggered()), this, SLOT(actionClear()));
+    //    connect(g_pActionClear, SIGNAL(triggered()), this, SLOT(actionClear()));
 
     updateMenu();
 
@@ -83,12 +83,12 @@ void XInfoMenu::updateMenu()
 #endif
 }
 
-//void XInfoMenu::actionAnalyze()
+// void XInfoMenu::actionAnalyze()
 //{
-//#ifdef QT_MENU
-//    qDebug("void XInfoMenu::actionAnalyze()");
-//#endif
-//}
+// #ifdef QT_MENU
+//     qDebug("void XInfoMenu::actionAnalyze()");
+// #endif
+// }
 
 void XInfoMenu::actionOpen()
 {
@@ -96,9 +96,8 @@ void XInfoMenu::actionOpen()
 
 void XInfoMenu::actionSave()
 {
-
 }
 
-//void XInfoMenu::actionClear()
+// void XInfoMenu::actionClear()
 //{
-//}
+// }

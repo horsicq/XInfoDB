@@ -118,7 +118,7 @@ void XInfoDB::initDB()
         g_dataBase.exec("PRAGMA synchronous = OFF");
         g_dataBase.exec("PRAGMA journal_mode = MEMORY");
 
-                // setAnalyzed(isSymbolsPresent());
+        // setAnalyzed(isSymbolsPresent());
     } else {
 #ifdef QT_DEBUG
         qDebug("Cannot open sqlite database");
@@ -189,8 +189,10 @@ void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
     s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_SHOWRECORDS] =
+        convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_RELATIVS] =
+        convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_IMPORT] = convertStringSQL(QString("%1_%2_IMPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_EXPORT] = convertStringSQL(QString("%1_%2_EXPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_TLS] = convertStringSQL(QString("%1_%2_TLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
@@ -2857,7 +2859,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                                  "ORIGNAME TEXT"
                                  ")")
                              .arg(s_sql_tableName[DBTABLE_TLS]));
-    } else if (dbTable == DBTABLE_BOOKMARKS) {    querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
+    } else if (dbTable == DBTABLE_BOOKMARKS) {
+        querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                                  "LOCATION INTEGER,"
                                  "SIZE INTEGER,"
                                  "COLBACKGROUND INTEGER,"
@@ -4089,7 +4092,8 @@ void XInfoDB::updateShowRecordLine(XADDR nAddress, qint64 nLine)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nAddress)));
+    querySQL(&query,
+             QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nAddress)));
 #endif
 }
 
@@ -4259,8 +4263,9 @@ bool XInfoDB::isAddressHasRefFrom(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)));
+    querySQL(
+        &query,
+        QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)));
 
     if (query.next()) {
         bResult = true;
@@ -4458,7 +4463,7 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
         pPdStruct = &pdStructEmpty;
     }
 
-    //initDb(pDatabaseDest); // TODO replace to is Table exists ->
+    // initDb(pDatabaseDest); // TODO replace to is Table exists ->
 
     QSqlQuery queryRead(*pDatabaseSource);
     QSqlQuery queryWrite(*pDatabaseDest);

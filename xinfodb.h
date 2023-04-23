@@ -675,7 +675,7 @@ private:
 
 signals:
     void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
-    void reloadSignal(bool bReloadData); // TODO Check mb remove
+    void reloadSignal(bool bReloadData);  // TODO Check mb remove
     void reloadViewSignal();
     void memoryRegionsListChanged();
     void modulesListChanged();
