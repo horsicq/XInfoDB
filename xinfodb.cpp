@@ -3828,6 +3828,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
 
 void XInfoDB::updateBookmarkRecord(quint64 nLocation)
 {
+    Q_UNUSED(nLocation)
 #ifdef QT_SQL_LIB
     // TODO
 #endif
