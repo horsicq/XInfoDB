@@ -4561,6 +4561,11 @@ void XInfoDB::writeDataSlot(quint64 nOffset, char *pData, qint64 nSize)
 
 void XInfoDB::replaceMemory(quint64 nOffset, char *pData, qint64 nSize)
 {
+#ifndef USE_XPROCESS
+    Q_UNUSED(nOffset)
+    Q_UNUSED(pData)
+    Q_UNUSED(nSize)
+#endif
 #ifdef USE_XPROCESS
     qint32 nNumberOfBreakPoints = g_listBreakpoints.count();
 
