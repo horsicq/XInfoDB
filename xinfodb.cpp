@@ -2984,7 +2984,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                     }
 
                     XADDR nSymbolAddress = record.st_value;
-                    quint64 nSymbolSize = record.st_size;
+//                    quint64 nSymbolSize = record.st_size;
 
                     qint32 nBind = S_ELF64_ST_BIND(record.st_info);
                     qint32 nType = S_ELF64_ST_TYPE(record.st_info);
@@ -3010,6 +3010,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                                     if (!isSymbolPresent(nSymbolAddress)) {
                                         //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
                                         _addSymbol(nSymbolAddress, 0, sSymbolName);
+                                        // TODO Add symbol ranges;
                                     }
                                 } else {
 #ifdef QT_DEBUG
@@ -3780,7 +3781,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT LOCATION, SIZE, COLBACKGROUND, NAME, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+    querySQL(&query, QString("SELECT LOCATION, SIZE, COLBACKGROUND, NAME, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
 
     while (query.next()) {
         BOOKMARKRECORD record = {};
@@ -3807,7 +3808,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
 
     querySQL(&query, QString("SELECT LOCATION, SIZE, COLBACKGROUND, NAME, COMMENT FROM %1 "
                              "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
-                             "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3)))")
+                             "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3)))  ORDER BY LOCATION")
                          .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize)));
 
     while (query.next()) {
