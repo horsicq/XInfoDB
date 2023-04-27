@@ -343,12 +343,10 @@ public:
     explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
 
-    void setDevice(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN);
+    void setData(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::DM disasmMode = XBinary::DM_UNKNOWN);
     QIODevice *getDevice();
     void initDB();
-    void setFileType(XBinary::FT fileType);
     XBinary::FT getFileType();
-    void setDisasmMode(XBinary::DM disasmMode);
     XBinary::DM getDisasmMode();
     void reload(bool bReloadData);
     void reloadView();
@@ -540,6 +538,7 @@ public:
     };
 
     struct SHOWRECORD {
+        bool bValid;
         XADDR nAddress;
         qint64 nOffset;
         qint64 nSize;
@@ -614,9 +613,12 @@ public:
 
     bool isShowRecordsPresent();
 
-    SHOWRECORD getShowRecordByAddress(XADDR nAddress);
+    SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bAprox = false);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
+    SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);
+    SHOWRECORD getPrevShowRecordByOffset(qint64 nOffset);
+
     SHOWRECORD getShowRecordByLine(qint64 nLine);
     SHOWRECORD getShowRecordByOffset(qint64 nOffset);
     qint64 getShowRecordOffsetByAddress(XADDR nAddress);

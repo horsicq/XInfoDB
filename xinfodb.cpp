@@ -47,17 +47,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_bIsAnalyzed = false;
     g_bIsAnalyzeInProgress = false;
     g_bIsDebugger = false;
-    XBinary::DM disasmMode = XBinary::DM_UNKNOWN;
-
-#ifdef USE_XPROCESS
-#ifdef Q_PROCESSOR_X86_32
-    disasmMode = XBinary::DM_X86_32;
-#endif
-#ifdef Q_PROCESSOR_X86_64
-    disasmMode = XBinary::DM_X86_64;
-#endif
-#endif
-    setDisasmMode(disasmMode);
+    g_disasmMode = XBinary::DM_UNKNOWN;
 }
 
 XInfoDB::~XInfoDB()
@@ -75,15 +65,40 @@ XInfoDB::~XInfoDB()
 #endif
 }
 
-void XInfoDB::setDevice(QIODevice *pDevice, XBinary::FT fileType)
+void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode)
 {
     g_pDevice = pDevice;
     g_mode = MODE_DEVICE;
+    g_fileType = fileType;
 
     g_binary.setDevice(pDevice);  // TODO read/write signals
-    setFileType(fileType);
+
+    if (fileType == XBinary::FT_UNKNOWN) {
+        g_fileType = XBinary::getPrefFileType(g_pDevice);
+    }
+
+    g_disasmMode = disasmMode;
+
+    if (disasmMode == XBinary::DM_UNKNOWN) {
+        g_disasmMode = XBinary::getDisasmMode(XFormats::getOsInfo(g_fileType, g_pDevice));
+    }
+
+    XCapstone::closeHandle(&g_handle);
+    XCapstone::openHandle(disasmMode, &g_handle, true);
+
+    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, g_pDevice);
+
+    g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
+    g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
+
+    g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
+
+    _createTableNames();
 
     initDB();
+
+    initHexDb();
+    initDisasmDb(); // TODO Check
 }
 
 QIODevice *XInfoDB::getDevice()
@@ -127,39 +142,9 @@ void XInfoDB::initDB()
 #endif
 }
 
-void XInfoDB::setFileType(XBinary::FT fileType)
-{
-    g_fileType = fileType;
-
-    if (fileType == XBinary::FT_UNKNOWN) {
-        g_fileType = XBinary::getPrefFileType(g_pDevice);
-    }
-
-    setDisasmMode(XBinary::getDisasmMode(XFormats::getOsInfo(g_fileType, g_pDevice)));
-
-    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, g_pDevice);
-
-    g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
-    g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
-
-    g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
-
-    _createTableNames();
-}
-
 XBinary::FT XInfoDB::getFileType()
 {
     return g_fileType;
-}
-
-void XInfoDB::setDisasmMode(XBinary::DM disasmMode)
-{
-    g_disasmMode = disasmMode;
-
-    XCapstone::closeHandle(&g_handle);
-    XCapstone::openHandle(disasmMode, &g_handle, true);
-
-    _createTableNames();
 }
 
 XBinary::DM XInfoDB::getDisasmMode()
@@ -188,14 +173,14 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
-    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQL(QString("%1_%2_SYMBOLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQL(QString("%1_SYMBOLS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_SHOWRECORDS] =
-        convertStringSQL(QString("%1_%2_SHOWRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+        convertStringSQL(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_RELATIVS] =
-        convertStringSQL(QString("%1_%2_RELRECORDS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQL(QString("%1_%2_IMPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQL(QString("%1_%2_EXPORT").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_TLS] = convertStringSQL(QString("%1_%2_TLS").arg(XBinary::fileTypeIdToString(g_fileType), XBinary::disasmIdToString(g_disasmMode)));
+        convertStringSQL(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQL(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQL(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_TLS] = convertStringSQL(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQL(QString("BOOKMARKS"));
 #endif
 }
@@ -1095,6 +1080,14 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
     g_sMainModuleName = g_processInfo.sBaseFileName;
     // g_MainModuleMemoryMap=XFormats::getMemoryMap(XBinary::FT_REGION,0,true,)
     // // TODO getRegionMemoryMap
+#ifdef USE_XPROCESS
+#ifdef Q_PROCESSOR_X86_32
+    g_disasmMode = XBinary::DM_X86_32;
+#endif
+#ifdef Q_PROCESSOR_X86_64
+    g_disasmMode = XBinary::DM_X86_64;
+#endif
+#endif
 }
 #endif
 #ifdef USE_XPROCESS
@@ -3202,6 +3195,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                                     }
 
                                     SHOWRECORD showRecord = {};
+                                    showRecord.bValid = true;
                                     showRecord.nAddress = disasmResult.nAddress;
                                     showRecord.nOffset = nOffset;
                                     showRecord.nSize = disasmResult.nSize;
@@ -3846,17 +3840,23 @@ bool XInfoDB::isShowRecordsPresent()
     return bResult;
 }
 
-XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress)
+XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
 {
     XInfoDB::SHOWRECORD result = {};
 
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS = '%2'")
-                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    if (!bAprox) {
+        querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS = %2")
+                             .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    } else {
+        querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
+                             .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    }
 
     if (query.next()) {
+        result.bValid = true;
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
         result.nSize = query.value(2).toLongLong();
@@ -3880,10 +3880,11 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' LIMIT 1")
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
                          .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
+        result.bValid = true;
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
         result.nSize = query.value(2).toLongLong();
@@ -3907,10 +3908,67 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' LIMIT 1")
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
                          .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
+        result.bValid = true;
+        result.nAddress = query.value(0).toULongLong();
+        result.nOffset = query.value(1).toLongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
+        result.nLineNumber = query.value(6).toULongLong();
+        result.nRefTo = query.value(7).toULongLong();
+        result.nRefFrom = query.value(8).toULongLong();
+    }
+
+#endif
+
+    return result;
+}
+
+XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
+{
+    XInfoDB::SHOWRECORD result = {};
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+
+    if (query.next()) {
+        result.bValid = true;
+        result.nAddress = query.value(0).toULongLong();
+        result.nOffset = query.value(1).toLongLong();
+        result.nSize = query.value(2).toLongLong();
+        result.sRecText1 = query.value(3).toString();
+        result.sRecText2 = query.value(4).toString();
+        result.recordType = (RT)query.value(5).toULongLong();
+        result.nLineNumber = query.value(6).toULongLong();
+        result.nRefTo = query.value(7).toULongLong();
+        result.nRefFrom = query.value(8).toULongLong();
+    }
+
+#endif
+
+    return result;
+}
+
+XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
+{
+    XInfoDB::SHOWRECORD result = {};
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+
+    if (query.next()) {
+        result.bValid = true;
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
         result.nSize = query.value(2).toLongLong();
@@ -3938,6 +3996,7 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByLine(qint64 nNumber)
                          .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nNumber)));
 
     if (query.next()) {
+        result.bValid = true;
         result.nAddress = query.value(0).toULongLong();
         result.nOffset = query.value(1).toLongLong();
         result.nSize = query.value(2).toLongLong();
@@ -4111,7 +4170,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
 
     while (query.next()) {
         SHOWRECORD record = {};
-
+        record.bValid = true;
         record.nAddress = query.value(0).toULongLong();
         record.nOffset = query.value(1).toLongLong();
         record.nSize = query.value(2).toLongLong();
@@ -4406,7 +4465,7 @@ bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, QString sSQL)
     //     #endif
     bool bResult = pSqlQuery->exec(sSQL);
 
-    //    qDebug("%s", pSqlQuery->lastQuery().toLatin1().data());
+    // qDebug("%s", pSqlQuery->lastQuery().toLatin1().data());
 
 #ifdef QT_DEBUG
     if ((pSqlQuery->lastError().text() != " ") && (pSqlQuery->lastError().text() != "")) {
