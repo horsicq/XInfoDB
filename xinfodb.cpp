@@ -98,7 +98,7 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
     initDB();
 
     initHexDb();
-    initDisasmDb(); // TODO Check
+    initDisasmDb();  // TODO Check
 }
 
 QIODevice *XInfoDB::getDevice()
@@ -174,10 +174,8 @@ void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
     s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQL(QString("%1_SYMBOLS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_SHOWRECORDS] =
-        convertStringSQL(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_RELATIVS] =
-        convertStringSQL(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQL(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQL(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_IMPORT] = convertStringSQL(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_EXPORT] = convertStringSQL(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_TLS] = convertStringSQL(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
@@ -2977,7 +2975,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                     }
 
                     XADDR nSymbolAddress = record.st_value;
-//                    quint64 nSymbolSize = record.st_size;
+                    //                    quint64 nSymbolSize = record.st_size;
 
                     qint32 nBind = S_ELF64_ST_BIND(record.st_info);
                     qint32 nType = S_ELF64_ST_TYPE(record.st_info);
@@ -3854,8 +3852,10 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
         querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS = %2")
                              .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
     } else {
-        querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
-                             .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+        querySQL(
+            &query,
+            QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
+                .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
     }
 
     if (query.next()) {
@@ -3883,8 +3883,9 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
-                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    querySQL(&query,
+             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
         result.bValid = true;
@@ -3911,8 +3912,9 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
-                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    querySQL(&query,
+             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
         result.bValid = true;
@@ -3939,8 +3941,9 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
-                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+    querySQL(&query,
+             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
 
     if (query.next()) {
         result.bValid = true;
@@ -3967,8 +3970,9 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
-                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+    querySQL(&query,
+             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
 
     if (query.next()) {
         result.bValid = true;
