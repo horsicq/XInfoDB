@@ -22,7 +22,9 @@
 #define XINFODB_H
 
 #include <QMutex>
-
+#ifdef QT_GUI_LIB
+#include <QColor>
+#endif
 #include "xcapstone.h"
 #include "xformats.h"
 #ifdef USE_XPROCESS
@@ -558,7 +560,7 @@ public:
         XADDR nXrefToMemory;
         qint32 nMemorySize;
     };
-
+#ifdef QT_GUI_LIB
     struct BOOKMARKRECORD {
         quint64 nLocation;
         qint64 nSize;
@@ -566,6 +568,7 @@ public:
         QString sName;
         QString sComment;
     };
+#endif
 
     bool isSymbolsPresent();
     QList<SYMBOL> getAllSymbols();
@@ -606,10 +609,12 @@ public:
     void _addRelRecords(QList<RELRECORD> *pListRecords);
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
+#ifdef QT_GUI_LIB
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
     void updateBookmarkRecord(quint64 nLocation);
+#endif
 
     bool isShowRecordsPresent();
 
@@ -664,10 +669,10 @@ public:
 
     void setDebuggerState(bool bState);
     bool isDebugger();
-
+#ifdef QT_GUI_LIB
     static QColor stringToColor(QString sCode);
     static QString colorToString(QColor color);
-
+#endif
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
     void writeDataSlot(quint64 nOffset, char *pData, qint64 nSize);

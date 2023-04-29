@@ -805,7 +805,7 @@ bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 
     if (hThread) {
 #ifdef Q_OS_WIN
-        CONTEXT context = {0};
+        CONTEXT context = {};
         context.ContextFlags = CONTEXT_CONTROL;  // EFLAGS
 
         if (GetThreadContext(hThread, &context)) {
@@ -3745,7 +3745,7 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
 
     return bResult;
 }
-
+#ifdef QT_GUI_LIB
 bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment)
 {
     bool bResult = false;
@@ -3768,7 +3768,8 @@ bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBack
 
     return bResult;
 }
-
+#endif
+#ifdef QT_GUI_LIB
 QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
@@ -3793,7 +3794,8 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 
     return listResult;
 }
-
+#endif
+#ifdef QT_GUI_LIB
 QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qint64 nSize)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
@@ -3820,7 +3822,8 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
 
     return listResult;
 }
-
+#endif
+#ifdef QT_GUI_LIB
 void XInfoDB::updateBookmarkRecord(quint64 nLocation)
 {
     Q_UNUSED(nLocation)
@@ -3828,7 +3831,7 @@ void XInfoDB::updateBookmarkRecord(quint64 nLocation)
     // TODO
 #endif
 }
-
+#endif
 bool XInfoDB::isShowRecordsPresent()
 {
     bool bResult = false;
@@ -4589,7 +4592,7 @@ bool XInfoDB::isDebugger()
 {
     return g_bIsDebugger;
 }
-
+#ifdef QT_GUI_LIB
 QColor XInfoDB::stringToColor(QString sCode)
 {
     QColor color;
@@ -4597,12 +4600,13 @@ QColor XInfoDB::stringToColor(QString sCode)
 
     return color;
 }
-
+#endif
+#ifdef QT_GUI_LIB
 QString XInfoDB::colorToString(QColor color)
 {
     return color.name();
 }
-
+#endif
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
 {
     // #ifdef QT_DEBUG
