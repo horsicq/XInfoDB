@@ -993,7 +993,7 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
     FUNCTION_INFO result = {};
 
 #ifdef Q_OS_WIN
-    CONTEXT context = {0};
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_FULL;  // Full
 
     if (GetThreadContext(hThread, &context)) {
