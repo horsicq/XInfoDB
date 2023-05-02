@@ -1162,7 +1162,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
     g_statusCurrent.hThread = hThread;
 
 #ifdef Q_OS_WIN
-    CONTEXT context = {0};
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_ALL;  // All registers TODO Check regOptions
                                          // |CONTEXT_FLOATING_POINT|CONTEXT_EXTENDED_REGISTERS
 
