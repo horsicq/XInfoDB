@@ -562,6 +562,7 @@ public:
     };
 #ifdef QT_GUI_LIB
     struct BOOKMARKRECORD {
+        QString sUUID;
         quint64 nLocation;
         qint64 nSize;
         QColor colBackground;
