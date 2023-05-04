@@ -1694,7 +1694,7 @@ XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread)
 {
     XADDR nResult = 0;
 #ifdef Q_OS_WIN
-    CONTEXT context = {0};
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_CONTROL;  // EIP
 
     if (GetThreadContext(hThread, &context)) {
