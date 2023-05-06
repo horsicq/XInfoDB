@@ -173,13 +173,13 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
-    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQL(QString("%1_SYMBOLS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQL(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQL(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQL(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQL(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_TLS] = convertStringSQL(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQL(QString("BOOKMARKS"));
+    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
 #endif
 }
 
@@ -1795,7 +1795,7 @@ XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
 {
     XADDR nResult = 0;
 #ifdef Q_OS_WIN
-    CONTEXT context = {0};
+    CONTEXT context = {};
     context.ContextFlags = CONTEXT_CONTROL;
 
     if (GetThreadContext(hThread, &context)) {
@@ -3770,6 +3770,23 @@ bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBack
 }
 #endif
 #ifdef QT_GUI_LIB
+bool XInfoDB::_removeBookmarkRecord(QString sUUID)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'")
+                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID));
+
+    bResult = querySQL(&query);
+#endif
+
+    return bResult;
+}
+#endif
+#ifdef QT_GUI_LIB
 QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
@@ -3826,11 +3843,48 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
 }
 #endif
 #ifdef QT_GUI_LIB
-void XInfoDB::updateBookmarkRecord(quint64 nLocation) // TODO UUID
+void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 {
-    Q_UNUSED(nLocation)
 #ifdef QT_SQL_LIB
-    // TODO
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query,
+             QString("UPDATE %1 SET LOCATION = '%2', SIZE = '%3', COLBACKGROUND = '%4', NAME = '%5', COMMENT = '%6' WHERE UUID = '%7'").
+             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
+                 QString::number(record.nLocation),
+                 QString::number(record.nSize),
+                 colorToString(record.colBackground),
+                 record.sName,
+                 record.sComment,
+                 record.sUUID));
+#endif
+}
+#endif
+#ifdef QT_GUI_LIB
+void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground)
+{
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query,
+             QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").
+             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
+                 colorToString(colBackground),
+                 sUUID));
+#endif
+}
+#endif
+#ifdef QT_GUI_LIB
+void XInfoDB::updateBookmarkRecordName(const QString &sUUID, const QString &sName)
+{
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query,
+             QString("UPDATE %1 SET NAME = '%2' WHERE UUID = '%3'").
+             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
+                 convertStringSQLValue(sName),
+                 sUUID));
 #endif
 }
 #endif
@@ -4516,12 +4570,24 @@ bool XInfoDB::querySQL(QSqlQuery *pSqlQuery)
 }
 #endif
 #ifdef QT_SQL_LIB
-QString XInfoDB::convertStringSQL(QString sSQL)
+QString XInfoDB::convertStringSQLTableName(const QString &sSQL)
 {
     QString sResult;
 
     sResult = sSQL;
     sResult = sResult.replace("-", "_");
+    sResult = sResult.replace("'", "''");
+
+    return sResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+QString XInfoDB::convertStringSQLValue(const QString &sSQL)
+{
+    QString sResult;
+
+    sResult = sSQL;
+    sResult = sResult.replace("'", "''");
 
     return sResult;
 }

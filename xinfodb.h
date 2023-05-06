@@ -611,10 +611,13 @@ public:
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment); // mb TODO return UUID
+    bool _removeBookmarkRecord(QString sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
-    void updateBookmarkRecord(quint64 nLocation);
+    void updateBookmarkRecord(BOOKMARKRECORD &record);
+    void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
+    void updateBookmarkRecordName(const QString &sUUID, const QString &sName);
 #endif
 
     bool isShowRecordsPresent();
@@ -663,7 +666,8 @@ public:
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
     bool querySQL(QSqlQuery *pSqlQuery);
-    QString convertStringSQL(QString sSQL);
+    QString convertStringSQLTableName(const QString &sSQL);
+    QString convertStringSQLValue(const QString &sSQL);
     bool copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct);
 #endif
     void testFunction();
