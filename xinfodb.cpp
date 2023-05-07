@@ -3777,8 +3777,7 @@ bool XInfoDB::_removeBookmarkRecord(QString sUUID)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'")
-                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID));
+    querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID));
 
     bResult = querySQL(&query);
 #endif
@@ -3848,15 +3847,9 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET LOCATION = '%2', SIZE = '%3', COLBACKGROUND = '%4', NAME = '%5', COMMENT = '%6' WHERE UUID = '%7'").
-             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
-                 QString::number(record.nLocation),
-                 QString::number(record.nSize),
-                 colorToString(record.colBackground),
-                 record.sName,
-                 record.sComment,
-                 record.sUUID));
+    querySQL(&query, QString("UPDATE %1 SET LOCATION = '%2', SIZE = '%3', COLBACKGROUND = '%4', NAME = '%5', COMMENT = '%6' WHERE UUID = '%7'")
+                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.nSize), colorToString(record.colBackground),
+                              record.sName, record.sComment, record.sUUID));
 #endif
 }
 #endif
@@ -3866,11 +3859,7 @@ void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colB
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").
-             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
-                 colorToString(colBackground),
-                 sUUID));
+    querySQL(&query, QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], colorToString(colBackground), sUUID));
 #endif
 }
 #endif
@@ -3880,11 +3869,7 @@ void XInfoDB::updateBookmarkRecordName(const QString &sUUID, const QString &sNam
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET NAME = '%2' WHERE UUID = '%3'").
-             arg(s_sql_tableName[DBTABLE_BOOKMARKS],
-                 convertStringSQLValue(sName),
-                 sUUID));
+    querySQL(&query, QString("UPDATE %1 SET NAME = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sName), sUUID));
 #endif
 }
 #endif

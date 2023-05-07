@@ -611,7 +611,7 @@ public:
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment); // mb TODO return UUID
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(QString sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
