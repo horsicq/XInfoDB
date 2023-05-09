@@ -592,11 +592,13 @@ public:
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
+    void initSymbolsDb();
     void initDisasmDb();
     void initHexDb();
 #ifdef QT_SQL_LIB
     bool isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    void removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
 #endif
     void clearDb();
     void vacuumDb();
@@ -653,9 +655,9 @@ public:
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 
-    void setAnalyzed(bool bState);
-    bool isAnalyzed();
-    bool isAnalyzeInProgress();
+    void setAnalyzed(bool bState); // TODO remove
+    bool isAnalyzed(); // TODO remove
+    bool isAnalyzeInProgress(); // TODO remove
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
@@ -750,6 +752,7 @@ private:
     quint64 g_nMainModuleSize;
     QString g_sMainModuleName;
     QMap<quint32, QMutex *> g_mapIds;
+    QMutex *g_pMutexSQL;
 #ifdef QT_SQL_LIB
     QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];

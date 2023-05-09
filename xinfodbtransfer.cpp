@@ -64,6 +64,9 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, XBinary::PDSTR
 
 bool XInfoDBTransfer::process()
 {
+#ifdef QT_DEBUG
+    qDebug("bool XInfoDBTransfer::process()");
+#endif
     // TODO get string are not in code
     bool bResult = false;
 
@@ -74,7 +77,7 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if (g_transferType == TT_ANALYZE) {
+        if ((g_transferType == TT_ANALYZE) || (g_transferType == TT_SYMBOLS)) {
             QIODevice *pDevice = g_pDevice;
 
             bool bFile = false;
@@ -93,18 +96,25 @@ bool XInfoDBTransfer::process()
                 }
             }
 
-            if (pDevice) {
-                g_pXInfoDB->initDisasmDb();  // TODO Check
+            if (g_transferType == TT_ANALYZE) {
+                if (pDevice) {
+                    g_pXInfoDB->initDisasmDb();
 
-                g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
+                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
 
-                XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
+                    g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
+                    // TODO sort records
+                }
 
-                g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
-                // TODO sort records
+                g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
+            } else if (g_transferType == TT_SYMBOLS) {
+                if (pDevice) {
+//                    g_pXInfoDB->clearDb();
+                    g_pXInfoDB->initSymbolsDb();
+
+                    g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
+                }
             }
-
-            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
 
             if (bFile && pDevice) {
                 QFile *pFile = static_cast<QFile *>(pDevice);

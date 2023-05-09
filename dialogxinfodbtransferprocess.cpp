@@ -59,6 +59,22 @@ void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice
     g_pThread->start();
 }
 
+void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+{
+    setWindowTitle(tr("Symbols"));
+
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_SYMBOLS, sFileName, fileType, getPdStruct());
+    g_pThread->start();
+}
+
+void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
+{
+    setWindowTitle(tr("Symbols"));
+
+    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_SYMBOLS, pDevice, fileType, getPdStruct());
+    g_pThread->start();
+}
+
 void DialogXInfoDBTransferProcess::clear(XInfoDB *pXInfoDB)
 {
     setWindowTitle(tr("Clear"));
