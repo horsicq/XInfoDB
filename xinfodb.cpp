@@ -2719,16 +2719,14 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
     SYMBOL result = {};
 #ifdef QT_SQL_LIB
-    if (g_bIsAnalyzed) {
-        QSqlQuery query(g_dataBase);
+    QSqlQuery query(g_dataBase);
 
-        querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)));
 
-        if (query.next()) {
-            result.nAddress = query.value(0).toULongLong();
-            result.nModule = query.value(1).toULongLong();
-            result.sSymbol = query.value(2).toString();
-        }
+    if (query.next()) {
+        result.nAddress = query.value(0).toULongLong();
+        result.nModule = query.value(1).toULongLong();
+        result.sSymbol = query.value(2).toString();
     }
 #else
     qint32 nNumberOfSymbols = g_listSymbols.count();
