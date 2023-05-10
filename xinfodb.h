@@ -657,7 +657,6 @@ public:
 
     void setAnalyzed(bool bState); // TODO remove
     bool isAnalyzed(); // TODO remove
-    bool isAnalyzeInProgress(); // TODO remove
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
@@ -758,7 +757,6 @@ private:
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
     bool g_bIsAnalyzed;
-    bool g_bIsAnalyzeInProgress;
     bool g_bIsDebugger;
 };
 

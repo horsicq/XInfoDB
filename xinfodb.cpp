@@ -45,7 +45,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_nMainModuleAddress = 0;
     g_nMainModuleSize = 0;
     g_bIsAnalyzed = false;
-    g_bIsAnalyzeInProgress = false;
     g_bIsDebugger = false;
     g_disasmMode = XBinary::DM_UNKNOWN;
     g_pMutexSQL = new QMutex;
@@ -86,7 +85,7 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
     }
 
     XCapstone::closeHandle(&g_handle);
-    XCapstone::openHandle(disasmMode, &g_handle, true);
+    XCapstone::openHandle(g_disasmMode, &g_handle, true);
 
     g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, g_pDevice);
 
@@ -2577,7 +2576,7 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    g_pMutexSQL->lock();
+
     query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
                           "VALUES (?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
@@ -2587,7 +2586,6 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
     query.bindValue(2, sSymbol);
 
     bResult = querySQL(&query);
-    g_pMutexSQL->unlock();
 #else
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
@@ -2635,7 +2633,6 @@ bool XInfoDB::_addExportSymbol(XADDR nAddress, QString sSymbol)
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
-    g_pMutexSQL->lock();
     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                           "VALUES (?, ?)")
                       .arg(s_sql_tableName[DBTABLE_EXPORT]));
@@ -2644,7 +2641,6 @@ bool XInfoDB::_addExportSymbol(XADDR nAddress, QString sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
-    g_pMutexSQL->unlock();
 #endif
     return bResult;
 }
@@ -2654,7 +2650,6 @@ bool XInfoDB::_addImportSymbol(XADDR nAddress, QString sSymbol)
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
-    g_pMutexSQL->lock();
     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                           "VALUES (?, ?)")
                       .arg(s_sql_tableName[DBTABLE_IMPORT]));
@@ -2663,7 +2658,6 @@ bool XInfoDB::_addImportSymbol(XADDR nAddress, QString sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
-    g_pMutexSQL->unlock();
 #endif
     return bResult;
 }
@@ -2673,7 +2667,6 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, QString sSymbol)
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
-    g_pMutexSQL->lock();
     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                           "VALUES (?, ?)")
                       .arg(s_sql_tableName[DBTABLE_TLS]));
@@ -2682,7 +2675,6 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, QString sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
-    g_pMutexSQL->unlock();
 #endif
     return bResult;
 }
@@ -2922,6 +2914,8 @@ void XInfoDB::vacuumDb()
 
 void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
+    g_pMutexSQL->lock();
+
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
     if (!pPdStruct) {
@@ -3125,12 +3119,12 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
     _sortSymbols();
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
+    g_pMutexSQL->unlock();
 }
 
 void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct)
 {
-    g_bIsAnalyzeInProgress = true;
-
+    g_pMutexSQL->lock();
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
     if (!pPdStruct) {
@@ -3142,6 +3136,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
 
     XBinary::DM disasmMode = getDisasmMode();
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
+    XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
 
@@ -3155,7 +3150,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     if (bIsInit) {
         QList<XADDR> listFunctionAddresses;
         listFunctionAddresses.append(getExportSymbolAddresses());
-        listFunctionAddresses.append(getImportSymbolAddresses());
+        //listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
         listFunctionAddresses.append(getTLSSymbolAddresses());
 
         qint32 nNumberOfRecords = listFunctionAddresses.count();
@@ -3400,6 +3395,46 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
         }
     }
 
+    // Import table
+    if (bIsInit) {
+        if (!(pPdStruct->bIsStop)) {
+#ifdef QT_SQL_LIB
+            g_dataBase.transaction();
+#endif
+            QList<XADDR> listImportAddresses = getImportSymbolAddresses();
+            qint32 nNumberOfRecords = listImportAddresses.count();
+            qint32 nSize = 4;
+            QString sVarName = "db";
+            if (mode == XBinary::MODE_16) {
+                nSize = 2;
+                sVarName = "word";
+            } else if (mode == XBinary::MODE_32) {
+                nSize = 4;
+                sVarName = "dword";
+            } else if (mode == XBinary::MODE_64) {
+                nSize = 8;
+                sVarName = "qword";
+            }
+
+            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+                XADDR nAddress = listImportAddresses.at(i);
+                if (!_isShowRecordPresent(nAddress, nSize)) {
+                    qint64 nOffset = XBinary::addressToOffset(pMemoryMap, nAddress);
+                    _addShowRecord(nAddress, nOffset, nSize, sVarName, QString(), RT_DATA, 0, 0, 0);
+                }
+            }
+
+#ifdef QT_SQL_LIB
+            g_dataBase.commit();
+#endif
+        }
+        // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
+        if (!(pPdStruct->bIsStop)) {
+            vacuumDb();
+        }
+    }
+
+
     // Variables
     if (bIsInit) {
         if (!(pPdStruct->bIsStop)) {
@@ -3413,25 +3448,27 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
                 XBinary::ADDRESSSIZE record = listVariables.at(i);
 
                 // TODO if size = 0 check if it is a string
+                QString sVarName = "db";
                 if (record.nSize == 0) {
                     record.nSize = 1;
+                } else if (record.nSize == 2) {
+                    sVarName = "word";
+                } else if (record.nSize == 4) {
+                    sVarName = "dword";
+                } else if (record.nSize == 8) {
+                    sVarName = "qword";
                 }
 
                 bool bAdd = false;
 
                 if (!_isShowRecordPresent(record.nAddress, record.nSize)) {
                     bAdd = true;
-                } else if (record.nSize != 1) {
-                    if (!_isShowRecordPresent(record.nAddress, record.nSize)) {
-                        record.nSize = 1;
-                        bAdd = true;
-                    }
                 }
 
                 if (bAdd) {
                     if (XBinary::isAddressValid(pMemoryMap, record.nAddress)) {
                         qint64 nOffset = XBinary::addressToOffset(pMemoryMap, record.nAddress);
-                        _addShowRecord(record.nAddress, nOffset, record.nSize, "db", QString(), RT_DATA, 0, 0, 0);
+                        _addShowRecord(record.nAddress, nOffset, record.nSize, sVarName, QString(), RT_DATA, 0, 0, 0);
                     }
                 } else {
                     record.nSize = 0;
@@ -3604,8 +3641,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     // mb TODO Overlay
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
-
-    g_bIsAnalyzeInProgress = false;
+    g_pMutexSQL->unlock();
 }
 
 bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo,
@@ -4441,11 +4477,6 @@ void XInfoDB::setAnalyzed(bool bState)
 bool XInfoDB::isAnalyzed()
 {
     return g_bIsAnalyzed;
-}
-
-bool XInfoDB::isAnalyzeInProgress()
-{
-    return g_bIsAnalyzeInProgress;
 }
 
 void XInfoDB::disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult)
