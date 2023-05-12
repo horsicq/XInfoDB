@@ -1087,6 +1087,13 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
     g_disasmMode = XBinary::DM_X86_64;
 #endif
 #endif
+
+    _createTableNames();
+
+    initDB();
+
+    initHexDb();
+    initDisasmDb();  // TODO Check
 }
 #endif
 #ifdef USE_XPROCESS
