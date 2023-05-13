@@ -42,7 +42,7 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, const QString &sFileName, XBinary::FT fileType)
 {
     setWindowTitle(tr("Analyze"));
 
