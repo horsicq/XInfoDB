@@ -2583,7 +2583,6 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-
     query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
                           "VALUES (?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
@@ -3155,7 +3154,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
     if (bIsInit) {
         QList<XADDR> listFunctionAddresses;
         listFunctionAddresses.append(getExportSymbolAddresses());
-        //listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
+        // listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
         listFunctionAddresses.append(getTLSSymbolAddresses());
 
         qint32 nNumberOfRecords = listFunctionAddresses.count();
@@ -3439,7 +3438,6 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
         }
     }
 
-
     // Variables
     if (bIsInit) {
         if (!(pPdStruct->bIsStop)) {
@@ -3542,106 +3540,108 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
         }
     }
 
-//    if (bIsInit) {
-//        if (!(pPdStruct->bIsStop)) {
-//#ifdef QT_SQL_LIB
-//            g_dataBase.transaction();
-//#endif
+    //    if (bIsInit) {
+    //        if (!(pPdStruct->bIsStop)) {
+    // #ifdef QT_SQL_LIB
+    //            g_dataBase.transaction();
+    // #endif
 
-//            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
-//            XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, pMemoryMap->nImageSize);
+    //            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
+    //            XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, pMemoryMap->nImageSize);
 
-//            // updateShowRecordLine
-//            quint64 nLineNumber = 0;
+    //            // updateShowRecordLine
+    //            quint64 nLineNumber = 0;
 
-//            for (XADDR nCurrentAddress = pMemoryMap->nModuleAddress;
-//                 (!(pPdStruct->bIsStop)) && (nCurrentAddress < (pMemoryMap->nModuleAddress + pMemoryMap->nImageSize));) {
-//                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nCurrentAddress)));
+    //            for (XADDR nCurrentAddress = pMemoryMap->nModuleAddress;
+    //                 (!(pPdStruct->bIsStop)) && (nCurrentAddress < (pMemoryMap->nModuleAddress + pMemoryMap->nImageSize));) {
+    //                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nCurrentAddress)));
 
-//                SHOWRECORD showRecord = getShowRecordByAddress(nCurrentAddress);
+    //                SHOWRECORD showRecord = getShowRecordByAddress(nCurrentAddress);
 
-//                qint64 nRecordSize = showRecord.nSize;
+    //                qint64 nRecordSize = showRecord.nSize;
 
-//                if (nRecordSize) {
-//                    updateShowRecordLine(nCurrentAddress, nLineNumber++);
-//                } else {
-//                    // TODO LoadSections limits
-//                    SHOWRECORD showRecordNext = getNextShowRecordByAddress(nCurrentAddress);
+    //                if (nRecordSize) {
+    //                    updateShowRecordLine(nCurrentAddress, nLineNumber++);
+    //                } else {
+    //                    // TODO LoadSections limits
+    //                    SHOWRECORD showRecordNext = getNextShowRecordByAddress(nCurrentAddress);
 
-//                    if (showRecordNext.nSize) {
-//                        nRecordSize = showRecordNext.nAddress - nCurrentAddress;
-//                    } else {
-//                        // TODO end of Image
-//                        nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
-//                    }
+    //                    if (showRecordNext.nSize) {
+    //                        nRecordSize = showRecordNext.nAddress - nCurrentAddress;
+    //                    } else {
+    //                        // TODO end of Image
+    //                        nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
+    //                    }
 
-//                    for (XADDR _nCurrentAddress = nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
-//                        XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
+    //                    for (XADDR _nCurrentAddress = nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
+    //                        XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
 
-//                        if (mr.nSize == 0) {
-//                            break;
-//                        }
+    //                        if (mr.nSize == 0) {
+    //                            break;
+    //                        }
 
-//                        qint64 _nRecordSize = qMin((qint64)((mr.nAddress + mr.nSize) - _nCurrentAddress), (qint64)((nCurrentAddress + nRecordSize) - _nCurrentAddress));
-//                        qint64 _nOffset = XBinary::addressToOffset(pMemoryMap, _nCurrentAddress);
+    //                        qint64 _nRecordSize = qMin((qint64)((mr.nAddress + mr.nSize) - _nCurrentAddress), (qint64)((nCurrentAddress + nRecordSize) -
+    //                        _nCurrentAddress)); qint64 _nOffset = XBinary::addressToOffset(pMemoryMap, _nCurrentAddress);
 
-//                        if (_nOffset == -1) {
-//                            QString sDataName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
-//                            _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDataName, RT_DATA, nLineNumber++, 0, 0);
-//                        } else {
-//                            for (XADDR _nCurrentAddressData = _nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddressData < _nCurrentAddress + _nRecordSize);) {
-//                                qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
+    //                        if (_nOffset == -1) {
+    //                            QString sDataName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
+    //                            _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDataName, RT_DATA, nLineNumber++, 0, 0);
+    //                        } else {
+    //                            for (XADDR _nCurrentAddressData = _nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddressData < _nCurrentAddress +
+    //                            _nRecordSize);) {
+    //                                qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
-//                                qint64 _nRecordSizeData = 0;
-//                                QString sOpcodeName = "db";
-//                                QString sDataName;
+    //                                qint64 _nRecordSizeData = 0;
+    //                                QString sOpcodeName = "db";
+    //                                QString sDataName;
 
-//                                //                            XBinary::REGION_FILL regionFill = {};
+    //                                //                            XBinary::REGION_FILL regionFill = {};
 
-//                                //                            regionFill = binary.getRegionFill(_nOffsetData, 16, 16);
+    //                                //                            regionFill = binary.getRegionFill(_nOffsetData, 16, 16);
 
-//                                //                            if (regionFill.nSize) {
-//                                //                                _nRecordSizeData = regionFill.nSize;
-//                                //                                sDataName = QString("0x%1 dup (0x%2)").arg(QString::number(_nRecordSizeData, 16),
-//                                //                                QString::number(regionFill.nByte, 16));
-//                                //                            } else {
-//                                //                                _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData));
-//                                //                                // TODO consts
-//                                //                            }
-//                                _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData));  // TODO consts
+    //                                //                            if (regionFill.nSize) {
+    //                                //                                _nRecordSizeData = regionFill.nSize;
+    //                                //                                sDataName = QString("0x%1 dup (0x%2)").arg(QString::number(_nRecordSizeData, 16),
+    //                                //                                QString::number(regionFill.nByte, 16));
+    //                                //                            } else {
+    //                                //                                _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) -
+    //                                _nCurrentAddressData));
+    //                                //                                // TODO consts
+    //                                //                            }
+    //                                _nRecordSizeData = qMin((qint64)16, (qint64)((_nCurrentAddress + _nRecordSize) - _nCurrentAddressData));  // TODO consts
 
-//                                _addShowRecord(_nCurrentAddressData, _nOffsetData, _nRecordSizeData, sOpcodeName, sDataName, RT_DATA, nLineNumber++, 0, 0);
+    //                                _addShowRecord(_nCurrentAddressData, _nOffsetData, _nRecordSizeData, sOpcodeName, sDataName, RT_DATA, nLineNumber++, 0, 0);
 
-//                                _nCurrentAddressData += _nRecordSizeData;
+    //                                _nCurrentAddressData += _nRecordSizeData;
 
-//                                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, _nCurrentAddressData - pMemoryMap->nModuleAddress);
-//                            }
-//                        }
+    //                                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, _nCurrentAddressData - pMemoryMap->nModuleAddress);
+    //                            }
+    //                        }
 
-//                        _nCurrentAddress += _nRecordSize;
+    //                        _nCurrentAddress += _nRecordSize;
 
-//                        XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, _nCurrentAddress - pMemoryMap->nModuleAddress);
-//                    }
-//                }
+    //                        XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, _nCurrentAddress - pMemoryMap->nModuleAddress);
+    //                    }
+    //                }
 
-//                if (nRecordSize == 0) {
-//                    break;
-//                }
+    //                if (nRecordSize == 0) {
+    //                    break;
+    //                }
 
-//                nCurrentAddress += nRecordSize;
+    //                nCurrentAddress += nRecordSize;
 
-//                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, nCurrentAddress - pMemoryMap->nModuleAddress);
-//            }
+    //                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, nCurrentAddress - pMemoryMap->nModuleAddress);
+    //            }
 
-//#ifdef QT_SQL_LIB
-//            g_dataBase.commit();
-//            // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
-//            if (!(pPdStruct->bIsStop)) {
-//                vacuumDb();
-//            }
-//#endif
-//        }
-//    }
+    // #ifdef QT_SQL_LIB
+    //             g_dataBase.commit();
+    //             // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
+    //             if (!(pPdStruct->bIsStop)) {
+    //                 vacuumDb();
+    //             }
+    // #endif
+    //         }
+    //     }
 
     // mb TODO Overlay
 

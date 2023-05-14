@@ -655,8 +655,8 @@ public:
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 
-    void setAnalyzed(bool bState); // TODO remove
-    bool isAnalyzed(); // TODO remove
+    void setAnalyzed(bool bState);  // TODO remove
+    bool isAnalyzed();              // TODO remove
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);

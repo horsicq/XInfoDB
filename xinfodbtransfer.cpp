@@ -109,7 +109,7 @@ bool XInfoDBTransfer::process()
                 g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
             } else if (g_transferType == TT_SYMBOLS) {
                 if (pDevice) {
-//                    g_pXInfoDB->clearDb();
+                    //                    g_pXInfoDB->clearDb();
                     g_pXInfoDB->initSymbolsDb();
 
                     g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
