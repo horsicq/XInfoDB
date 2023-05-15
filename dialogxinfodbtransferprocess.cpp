@@ -59,7 +59,7 @@ void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, QString sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, const QString &sFileName, XBinary::FT fileType)
 {
     setWindowTitle(tr("Symbols"));
 
