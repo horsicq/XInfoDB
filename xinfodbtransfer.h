@@ -29,18 +29,24 @@ class XInfoDBTransfer : public QObject {
 public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
-    enum TT {
-        TT_ANALYZE = 0,
-        TT_SYMBOLS,
-        TT_CLEAR,  // TODO CLEAR_SYMBOLS, CLEAR_ANALYZE
-        TT_EXPORT,
-        TT_IMPORT
+    enum COMMAND {
+        COMMAND_ANALYZE = 0,
+        COMMAND_SYMBOLS,
+        COMMAND_REMOVE,
+        COMMAND_CLEAR,  // TODO CLEAR_SYMBOLS, CLEAR_ANALYZE
+        COMMAND_EXPORT,
+        COMMAND_IMPORT
     };
 
-    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::PDSTRUCT *pPdStruct);
-    void setData(XInfoDB *pXInfoDB, TT transferType, XBinary::PDSTRUCT *pPdStruct);
+    struct OPTIONS {
+        XBinary::FT fileType;
+        QString sFileName;
+        QIODevice *pDevice;
+        XADDR nAddress;
+        qint64 nSize;
+    };
+
+    void setData(XInfoDB *pXInfoDB, COMMAND transferType, OPTIONS options, XBinary::PDSTRUCT *pPdStruct);
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:
@@ -52,10 +58,8 @@ signals:
 
 private:
     XInfoDB *g_pXInfoDB;
-    TT g_transferType;
-    QString g_sFileName;
-    QIODevice *g_pDevice;
-    XBinary::FT g_fileType;
+    COMMAND g_transferType;
+    OPTIONS g_options;
     XBinary::PDSTRUCT *g_pPdStruct;
 };
 

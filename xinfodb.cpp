@@ -44,7 +44,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_fileType = XBinary::FT_UNKNOWN;
     g_nMainModuleAddress = 0;
     g_nMainModuleSize = 0;
-    g_bIsAnalyzed = false;
     g_bIsDebugger = false;
     g_disasmMode = XBinary::DM_UNKNOWN;
     g_pMutexSQL = new QMutex;
@@ -1087,6 +1086,9 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
     g_disasmMode = XBinary::DM_X86_64;
 #endif
 #endif
+
+    XCapstone::closeHandle(&g_handle);
+    XCapstone::openHandle(g_disasmMode, &g_handle, true);
 
     _createTableNames();
 
@@ -3126,7 +3128,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
     g_pMutexSQL->unlock();
 }
 
-void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pMutexSQL->lock();
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
@@ -3515,6 +3517,7 @@ void XInfoDB::_disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMa
             g_dataBase.transaction();
 #endif
             QList<RELRECORD> listRelRecords = getRelRecords();  // TODO optimize
+            // TODO reset counters!!!
 
             qint32 nNumberOfRecords = listRelRecords.count();
 
@@ -3810,6 +3813,32 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
     QSqlQuery query(g_dataBase);
 
     bResult = querySQL(&query, QString("UPDATE %1 SET REFFROM=REFFROM+1 WHERE ADDRESS=%2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+#endif
+
+    return bResult;
+}
+
+bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    bResult = querySQL(&query, QString("DELETE FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)));
+
+    // TODO REMOVE XREFS
+#endif
+
+    return bResult;
+}
+
+bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    // TODO
 #endif
 
     return bResult;
@@ -4467,21 +4496,6 @@ bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
     bResult = query.next();
 #endif
     return bResult;
-}
-
-void XInfoDB::setAnalyzed(bool bState)
-{
-    g_bIsAnalyzed = bState;
-    //    if (g_bIsAnalyzed != bState) {
-    //        g_bIsAnalyzed = bState;
-
-    //        emit analyzeStateChanged();
-    //    }
-}
-
-bool XInfoDB::isAnalyzed()
-{
-    return g_bIsAnalyzed;
 }
 
 void XInfoDB::disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult)

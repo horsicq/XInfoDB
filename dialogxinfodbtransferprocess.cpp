@@ -42,59 +42,27 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, const QString &sFileName, XBinary::FT fileType)
+void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, XInfoDBTransfer::OPTIONS options)
 {
-    setWindowTitle(tr("Analyze"));
+    QString sTitle;
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_ANALYZE, sFileName, fileType, getPdStruct());
-    g_pThread->start();
-}
+    if (command == XInfoDBTransfer::COMMAND_ANALYZE) {
+        // TODO if FT_UNKNOWN show a dialog with options
+        sTitle = tr("Analyze");
+    } else if (command == XInfoDBTransfer::COMMAND_SYMBOLS) {
+        sTitle = tr("Symbols");
+    } else if (command == XInfoDBTransfer::COMMAND_CLEAR) {
+        sTitle = tr("Clear");
+    } else if (command == XInfoDBTransfer::COMMAND_REMOVE) {
+        sTitle = tr("Remove");
+    } else if (command == XInfoDBTransfer::COMMAND_EXPORT) {
+        sTitle = tr("Export");
+    } else if (command == XInfoDBTransfer::COMMAND_IMPORT) {
+        sTitle = tr("Import");
+    }
 
-void DialogXInfoDBTransferProcess::analyze(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
-{
-    // TODO if FT_UNKNOWN show a dialog with options
-    setWindowTitle(tr("Analyze"));
+    setWindowTitle(sTitle);
 
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_ANALYZE, pDevice, fileType, getPdStruct());
-    g_pThread->start();
-}
-
-void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, const QString &sFileName, XBinary::FT fileType)
-{
-    setWindowTitle(tr("Symbols"));
-
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_SYMBOLS, sFileName, fileType, getPdStruct());
-    g_pThread->start();
-}
-
-void DialogXInfoDBTransferProcess::symbols(XInfoDB *pXInfoDB, QIODevice *pDevice, XBinary::FT fileType)
-{
-    setWindowTitle(tr("Symbols"));
-
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_SYMBOLS, pDevice, fileType, getPdStruct());
-    g_pThread->start();
-}
-
-void DialogXInfoDBTransferProcess::clear(XInfoDB *pXInfoDB)
-{
-    setWindowTitle(tr("Clear"));
-
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_CLEAR, getPdStruct());
-    g_pThread->start();
-}
-
-void DialogXInfoDBTransferProcess::exportData(XInfoDB *pXInfoDB, QString sFileName)
-{
-    setWindowTitle(tr("Export"));
-
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_EXPORT, sFileName, getPdStruct());
-    g_pThread->start();
-}
-
-void DialogXInfoDBTransferProcess::importData(XInfoDB *pXInfoDB, QString sFileName)
-{
-    setWindowTitle(tr("Import"));
-
-    g_pTransfer->setData(pXInfoDB, XInfoDBTransfer::TT_IMPORT, sFileName, getPdStruct());
+    g_pTransfer->setData(pXInfoDB, command, options, getPdStruct());
     g_pThread->start();
 }

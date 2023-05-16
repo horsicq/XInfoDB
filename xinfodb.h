@@ -603,7 +603,7 @@ public:
     void clearDb();
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    void _disasmAnalyze(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr); // TODO options
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, QString sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo,
                         quint64 nRefFrom);
     bool _isShowRecordPresent(XADDR nAddress, qint64 nSize);
@@ -612,6 +612,8 @@ public:
     void _addRelRecords(QList<RELRECORD> *pListRecords);
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
+    bool _removeAnalysis(XADDR nAddress, qint64 nSize);
+    bool _setArray(XADDR nAddress, qint64 nSize);
 #ifdef QT_GUI_LIB
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(QString sUUID);
@@ -654,9 +656,6 @@ public:
     bool isAddressHasRefFrom(XADDR nAddress);
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
-
-    void setAnalyzed(bool bState);  // TODO remove
-    bool isAnalyzed();              // TODO remove
 
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
@@ -756,7 +755,6 @@ private:
     QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
-    bool g_bIsAnalyzed;
     bool g_bIsDebugger;
 };
 

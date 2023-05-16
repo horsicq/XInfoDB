@@ -23,42 +23,16 @@
 XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
 {
     g_pXInfoDB = nullptr;
-    g_transferType = TT_ANALYZE;
-    g_fileType = XBinary::FT_UNKNOWN;
-    g_pDevice = nullptr;
+    g_transferType = COMMAND_ANALYZE;
+    g_options = {};
     g_pPdStruct = nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, OPTIONS options, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
-    g_sFileName = sFileName;
-    g_fileType = fileType;
-    g_pPdStruct = pPdStruct;
-}
-
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
-{
-    g_pXInfoDB = pXInfoDB;
-    g_transferType = transferType;
-    g_pDevice = pDevice;
-    g_fileType = fileType;
-    g_pPdStruct = pPdStruct;
-}
-
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, QString sFileName, XBinary::PDSTRUCT *pPdStruct)
-{
-    g_pXInfoDB = pXInfoDB;
-    g_transferType = transferType;
-    g_sFileName = sFileName;
-    g_pPdStruct = pPdStruct;
-}
-
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, TT transferType, XBinary::PDSTRUCT *pPdStruct)
-{
-    g_pXInfoDB = pXInfoDB;
-    g_transferType = transferType;
+    g_options = options;
     g_pPdStruct = pPdStruct;
 }
 
@@ -77,17 +51,17 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if ((g_transferType == TT_ANALYZE) || (g_transferType == TT_SYMBOLS)) {
-            QIODevice *pDevice = g_pDevice;
+        if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS)) {
+            QIODevice *pDevice = g_options.pDevice;
 
             bool bFile = false;
 
-            if ((!pDevice) && (g_sFileName != "")) {
+            if ((!pDevice) && (g_options.sFileName != "")) {
                 bFile = true;
 
                 QFile *pFile = new QFile;
 
-                pFile->setFileName(g_sFileName);
+                pFile->setFileName(g_options.sFileName);
 
                 if (pFile->open(QIODevice::ReadOnly)) {
                     pDevice = pFile;
@@ -96,23 +70,22 @@ bool XInfoDBTransfer::process()
                 }
             }
 
-            if (g_transferType == TT_ANALYZE) {
+            if (g_transferType == COMMAND_ANALYZE) {
                 if (pDevice) {
                     g_pXInfoDB->initDisasmDb();
 
-                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_fileType, pDevice);
+                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, pDevice);
 
-                    g_pXInfoDB->_disasmAnalyze(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
+                    g_pXInfoDB->_analyzeCode(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
                     // TODO sort records
                 }
 
-                g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
-            } else if (g_transferType == TT_SYMBOLS) {
+            } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
                     g_pXInfoDB->initSymbolsDb();
 
-                    g_pXInfoDB->_addSymbols(pDevice, g_fileType, g_pPdStruct);
+                    g_pXInfoDB->_addSymbols(pDevice, g_options.fileType, g_pPdStruct);
                 }
             }
 
@@ -123,11 +96,13 @@ bool XInfoDBTransfer::process()
 
                 delete pFile;
             }
-        } else if (g_transferType == TT_EXPORT) {
+        } else if (g_transferType == COMMAND_EXPORT) {
             // TODO
-        } else if (g_transferType == TT_CLEAR) {
+        } else if (g_transferType == COMMAND_CLEAR) {
+            // TODO rewrite
             g_pXInfoDB->clearDb();
-            g_pXInfoDB->setAnalyzed(g_pXInfoDB->isShowRecordsPresent());
+        } else if (g_transferType == COMMAND_REMOVE) {
+            g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
         }
     }
 
