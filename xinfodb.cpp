@@ -3825,7 +3825,8 @@ bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    bResult = querySQL(&query, QString("DELETE FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)));
+    bResult = querySQL(&query, QString("DELETE FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3")
+                                   .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)));
 
     // TODO REMOVE XREFS
 #endif
