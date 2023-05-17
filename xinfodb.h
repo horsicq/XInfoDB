@@ -381,7 +381,7 @@ public:
         STRDB_PESECTIONS
     };
 
-    static QList<QString> getStringsFromFile(QString sFileName);
+    static QList<QString> getStringsFromFile(const QString &sFileName);
 
     struct STRRECORD {
         QString sString;

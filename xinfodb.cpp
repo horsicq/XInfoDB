@@ -344,7 +344,7 @@ QString XInfoDB::read_utf8String(qint64 nOffset, quint64 nMaxSize)
     return g_binary.read_utf8String(nOffset, nMaxSize);
 }
 #endif
-QList<QString> XInfoDB::getStringsFromFile(QString sFileName)
+QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName)
 {
     QList<QString> listResult;
 
