@@ -363,7 +363,7 @@ QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName)
     return listResult;
 }
 
-XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, QString sString, bool bIsMulti)
+XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti)
 {
     STRRECORD result = {};
 

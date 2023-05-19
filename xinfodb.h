@@ -389,7 +389,7 @@ public:
         QString sDescription;
     };
 
-    static STRRECORD handleStringDB(QList<QString> *pListStrings, QString sString, bool bIsMulti);
+    static STRRECORD handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti);
     static QList<QString> loadStrDB(QString sPath, STRDB strDB);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
