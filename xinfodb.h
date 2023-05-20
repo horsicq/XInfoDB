@@ -390,7 +390,7 @@ public:
     };
 
     static STRRECORD handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti);
-    static QList<QString> loadStrDB(QString sPath, STRDB strDB);
+    static QList<QString> loadStrDB(const QString &sPath, STRDB strDB);
 #ifdef USE_XPROCESS
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();

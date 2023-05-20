@@ -404,7 +404,7 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, const Q
     return result;
 }
 
-QList<QString> XInfoDB::loadStrDB(QString sPath, STRDB strDB)
+QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
 {
     QList<QString> listResult;
 
