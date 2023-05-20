@@ -2554,7 +2554,7 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
 //    return listResult;
 //}
 
-void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
+void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
 {
 #ifdef QT_SQL_LIB
     _addSymbol(nAddress, nModule, sSymbol);
