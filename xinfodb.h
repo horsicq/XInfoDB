@@ -578,7 +578,7 @@ public:
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
 
     void addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol);
-    bool _addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol);
+    bool _addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 

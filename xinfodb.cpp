@@ -2579,7 +2579,7 @@ void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
 #endif
 }
 
-bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, QString sSymbol)
+bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
