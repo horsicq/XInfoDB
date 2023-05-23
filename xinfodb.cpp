@@ -3845,7 +3845,7 @@ bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
     return bResult;
 }
 #ifdef QT_GUI_LIB
-bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, QString sComment)
+bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, const QString &sComment)
 {
     bool bResult = false;
 
