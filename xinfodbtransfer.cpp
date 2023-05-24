@@ -103,6 +103,8 @@ bool XInfoDBTransfer::process()
             g_pXInfoDB->clearDb();
         } else if (g_transferType == COMMAND_REMOVE) {
             g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
+        } else if (g_transferType == COMMAND_DISASM) {
+            // TODO
         }
     }
 

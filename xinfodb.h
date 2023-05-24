@@ -675,7 +675,7 @@ public:
     void setDebuggerState(bool bState);
     bool isDebugger();
 #ifdef QT_GUI_LIB
-    static QColor stringToColor(QString sCode);
+    static QColor stringToColor(const QString &sCode);
     static QString colorToString(QColor color);
 #endif
 public slots:

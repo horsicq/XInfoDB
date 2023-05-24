@@ -4735,7 +4735,7 @@ bool XInfoDB::isDebugger()
     return g_bIsDebugger;
 }
 #ifdef QT_GUI_LIB
-QColor XInfoDB::stringToColor(QString sCode)
+QColor XInfoDB::stringToColor(const QString &sCode)
 {
     QColor color;
     color.setNamedColor(sCode);
