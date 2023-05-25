@@ -338,6 +338,7 @@ public:
         DBTABLE_EXPORT,
         DBTABLE_TLS,
         DBTABLE_BOOKMARKS,
+        DBTABLE_FUNCTIONS,
         __DBTABLE_SIZE
     };
 #endif
@@ -614,6 +615,7 @@ public:
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _removeAnalysis(XADDR nAddress, qint64 nSize);
     bool _setArray(XADDR nAddress, qint64 nSize);
+    bool _addFunction(XADDR nAddress, qint64 nSize, QString sName);
 #ifdef QT_GUI_LIB
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(QString sUUID);
@@ -664,7 +666,7 @@ public:
     bool saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
 #ifdef QT_SQL_LIB
-    bool querySQL(QSqlQuery *pSqlQuery, QString sSQL);
+    bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL);
     bool querySQL(QSqlQuery *pSqlQuery);
     QString convertStringSQLTableName(const QString &sSQL);
     QString convertStringSQLValue(const QString &sSQL);

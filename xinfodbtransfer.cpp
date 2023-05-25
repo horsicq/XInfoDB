@@ -72,11 +72,16 @@ bool XInfoDBTransfer::process()
 
             if (g_transferType == COMMAND_ANALYZE) {
                 if (pDevice) {
+                    if (!(g_pXInfoDB->isSymbolsPresent())) {
+                        g_pXInfoDB->initSymbolsDb();
+                        g_pXInfoDB->_addSymbols(pDevice, g_options.fileType, g_pPdStruct);
+                    }
+
                     g_pXInfoDB->initDisasmDb();
 
                     XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, pDevice);
 
-                    g_pXInfoDB->_analyzeCode(pDevice, &memoryMap, memoryMap.nEntryPointAddress, true, g_pPdStruct);
+                    g_pXInfoDB->_analyzeCode(pDevice, &memoryMap, -1, true, g_pPdStruct);
                     // TODO sort records
                 }
 
@@ -84,7 +89,6 @@ bool XInfoDBTransfer::process()
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
                     g_pXInfoDB->initSymbolsDb();
-
                     g_pXInfoDB->_addSymbols(pDevice, g_options.fileType, g_pPdStruct);
                 }
             }

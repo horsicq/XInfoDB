@@ -179,6 +179,7 @@ void XInfoDB::_createTableNames()
     s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
 #endif
 }
@@ -2797,6 +2798,7 @@ void XInfoDB::initDisasmDb()
     createTable(&g_dataBase, DBTABLE_IMPORT);
     createTable(&g_dataBase, DBTABLE_EXPORT);
     createTable(&g_dataBase, DBTABLE_TLS);
+    createTable(&g_dataBase, DBTABLE_FUNCTIONS);
 #endif
 }
 
@@ -2879,6 +2881,13 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                                  "COMMENT TEXT"
                                  ")")
                              .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+    } else if (dbTable == DBTABLE_FUNCTIONS) {
+        querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
+                                 "ADDRESS INTEGER PRIMARY KEY,"
+                                 "SIZE INTEGER,"
+                                 "NAME TEXT"
+                                 ")")
+                             .arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
     }
 
     // TODO PDB
@@ -3005,7 +3014,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                     }
 
                     XADDR nSymbolAddress = record.st_value;
-                    //                    quint64 nSymbolSize = record.st_size;
+                    quint64 nSymbolSize = record.st_size;
 
                     qint32 nBind = S_ELF64_ST_BIND(record.st_info);
                     qint32 nType = S_ELF64_ST_TYPE(record.st_info);
@@ -3032,6 +3041,10 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                                         //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
                                         _addSymbol(nSymbolAddress, 0, sSymbolName);
                                         // TODO Add symbol ranges;
+                                    }
+
+                                    if (nType == 2) {
+                                        _addFunction(nSymbolAddress, nSymbolSize, sSymbolName);
                                     }
                                 } else {
 #ifdef QT_DEBUG
@@ -3151,26 +3164,40 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
     qint64 nTotalSize = pDevice->size();
 
     QSet<XADDR> stEntries;
-    stEntries.insert(nStartAddress);
+
+    if (nStartAddress != -1) {
+        stEntries.insert(nStartAddress);
+    }
 
     if (bIsInit) {
-        QList<XADDR> listFunctionAddresses;
-        listFunctionAddresses.append(getExportSymbolAddresses());
-        // listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
-        listFunctionAddresses.append(getTLSSymbolAddresses());
+        if ((pMemoryMap->fileType == XBinary::FT_PE32) || (pMemoryMap->fileType == XBinary::FT_PE64)) {
+            // TODO Check res dll
+            stEntries.insert(pMemoryMap->nEntryPointAddress);
 
-        qint32 nNumberOfRecords = listFunctionAddresses.count();
+            QList<XADDR> listFunctionAddresses;
+            listFunctionAddresses.append(getExportSymbolAddresses());
+            // listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
+            listFunctionAddresses.append(getTLSSymbolAddresses());
 
-        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
-            stEntries.insert(listFunctionAddresses.at(i));
+            qint32 nNumberOfRecords = listFunctionAddresses.count();
+
+            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+                stEntries.insert(listFunctionAddresses.at(i));
+            }
+        } else if ((pMemoryMap->fileType == XBinary::FT_ELF32) || (pMemoryMap->fileType == XBinary::FT_ELF64)) {
+            if (pMemoryMap->nEntryPointAddress) {
+                stEntries.insert(pMemoryMap->nEntryPointAddress);
+            }
         }
 
         // Start of code section
         // mb optional
-        XBinary::_MEMORY_RECORD memoryRecord = XBinary::getMemoryRecordByAddress(pMemoryMap, nStartAddress);
-        stEntries.insert(memoryRecord.nAddress);
+        if (nStartAddress != -1) {
+            XBinary::_MEMORY_RECORD memoryRecord = XBinary::getMemoryRecordByAddress(pMemoryMap, nStartAddress);
+            stEntries.insert(memoryRecord.nAddress);
+        }
 
-        XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, memoryRecord.nSize);
+        XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, pMemoryMap->nImageSize);
     }
 
     qint64 nMaxTotal = stEntries.count();
@@ -3840,6 +3867,27 @@ bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
 
 #ifdef QT_SQL_LIB
     // TODO
+#endif
+
+    return bResult;
+}
+
+bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, QString sName)
+{
+    bool bResult = false;
+
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) "
+                          "VALUES (?, ?, ?)")
+                      .arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+
+    query.bindValue(0, nAddress);
+    query.bindValue(1, nSize);
+    query.bindValue(2, sName);
+
+    bResult = querySQL(&query);
 #endif
 
     return bResult;
@@ -4587,7 +4635,7 @@ bool XInfoDB::saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
     return bResult;
 }
 #ifdef QT_SQL_LIB
-bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, QString sSQL)
+bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, const QString &sSQL)
 {
     //     #ifdef QT_DEBUG
     //         QElapsedTimer timer;
