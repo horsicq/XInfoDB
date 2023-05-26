@@ -655,7 +655,7 @@ QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(QString sName)
+XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(const QString &sName)
 {
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
