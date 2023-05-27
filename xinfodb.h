@@ -663,7 +663,7 @@ public:
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
 
     bool loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL);

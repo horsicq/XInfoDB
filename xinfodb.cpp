@@ -4615,7 +4615,7 @@ bool XInfoDB::loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
     return bResult;
 }
 
-bool XInfoDB::saveDbToFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct)
 {
     bool bResult = false;
 
