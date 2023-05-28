@@ -662,7 +662,7 @@ public:
     void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
     XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
 
-    bool loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
 #ifdef QT_SQL_LIB

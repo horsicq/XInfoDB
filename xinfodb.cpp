@@ -4595,7 +4595,7 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
     return result;
 }
 
-bool XInfoDB::loadDbFromFile(QString sDBFileName, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct)
 {
     bool bResult = false;
 
