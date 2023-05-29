@@ -3918,7 +3918,7 @@ bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBack
 }
 #endif
 #ifdef QT_GUI_LIB
-bool XInfoDB::_removeBookmarkRecord(QString sUUID)
+bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 {
     bool bResult = false;
 

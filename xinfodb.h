@@ -618,7 +618,7 @@ public:
     bool _addFunction(XADDR nAddress, qint64 nSize, QString sName);
 #ifdef QT_GUI_LIB
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, const QString &sComment);  // mb TODO return UUID
-    bool _removeBookmarkRecord(QString sUUID);
+    bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
