@@ -3087,6 +3087,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                         stAddresses.insert(nAddress);
 
                         _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
+                        _addFunction(nAddress, 0, _export.listPositions.at(i).sFunctionName);
                     }
                 }
             }
@@ -3104,6 +3105,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                         stAddresses.insert(nAddress);
 
                         _addImportSymbol(nAddress, listImportRecords.at(i).sFunction);  // TODO ordinals
+                        _addFunction(nAddress, 0, listImportRecords.at(i).sFunction);
                     }
                 }
             }
@@ -3121,6 +3123,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                         stAddresses.insert(nAddress);
 
                         _addTLSSymbol(nAddress, sFunctionName);
+                        _addFunction(nAddress, 0, sFunctionName);
                     }
                 }
             }
@@ -3173,21 +3176,20 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
         if ((pMemoryMap->fileType == XBinary::FT_PE32) || (pMemoryMap->fileType == XBinary::FT_PE64)) {
             // TODO Check res dll
             stEntries.insert(pMemoryMap->nEntryPointAddress);
-
-            QList<XADDR> listFunctionAddresses;
-            listFunctionAddresses.append(getExportSymbolAddresses());
-            // listFunctionAddresses.append(getImportSymbolAddresses()); // TODO CheckRemove
-            listFunctionAddresses.append(getTLSSymbolAddresses());
-
-            qint32 nNumberOfRecords = listFunctionAddresses.count();
-
-            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
-                stEntries.insert(listFunctionAddresses.at(i));
-            }
         } else if ((pMemoryMap->fileType == XBinary::FT_ELF32) || (pMemoryMap->fileType == XBinary::FT_ELF64)) {
             if (pMemoryMap->nEntryPointAddress) {
                 stEntries.insert(pMemoryMap->nEntryPointAddress);
             }
+        }
+
+        QList<XADDR> listFunctionAddresses;
+
+        listFunctionAddresses.append(getFunctionAddresses());
+
+        qint32 nNumberOfRecords = listFunctionAddresses.count();
+
+        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+            stEntries.insert(listFunctionAddresses.at(i));
         }
 
         // Start of code section
@@ -3893,7 +3895,7 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, QString sName)
     return bResult;
 }
 #ifdef QT_GUI_LIB
-bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, const QString &sComment)
+bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sName, const QString &sComment)
 {
     bool bResult = false;
 
@@ -4480,6 +4482,25 @@ QList<XADDR> XInfoDB::getTLSSymbolAddresses()
     QSqlQuery query(g_dataBase);
 
     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_TLS]);
+
+    querySQL(&query, sSQL);
+
+    while (query.next()) {
+        XADDR nAddress = query.value(0).toULongLong();
+
+        listResult.append(nAddress);
+    }
+#endif
+    return listResult;
+}
+
+QList<XADDR> XInfoDB::getFunctionAddresses()
+{
+    QList<XADDR> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]);
 
     querySQL(&query, sSQL);
 

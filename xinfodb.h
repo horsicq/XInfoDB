@@ -617,7 +617,7 @@ public:
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, QString sName);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, QString sName, const QString &sComment);  // mb TODO return UUID
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sName, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
@@ -653,6 +653,7 @@ public:
     QList<XADDR> getExportSymbolAddresses();
     QList<XADDR> getImportSymbolAddresses();
     QList<XADDR> getTLSSymbolAddresses();
+    QList<XADDR> getFunctionAddresses();
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);
