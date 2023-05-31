@@ -615,7 +615,7 @@ public:
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _removeAnalysis(XADDR nAddress, qint64 nSize);
     bool _setArray(XADDR nAddress, qint64 nSize);
-    bool _addFunction(XADDR nAddress, qint64 nSize, QString sName);
+    bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
 #ifdef QT_GUI_LIB
     bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sName, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);

@@ -3874,7 +3874,7 @@ bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
     return bResult;
 }
 
-bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, QString sName)
+bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 {
     bool bResult = false;
 
