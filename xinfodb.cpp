@@ -3681,7 +3681,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
     g_pMutexSQL->unlock();
 }
 
-bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, QString sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo,
+bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, const QString &sRecText2, RT recordType, qint64 nLineNumber, quint64 nRefTo,
                              quint64 nRefFrom)
 {
     bool bResult = false;
