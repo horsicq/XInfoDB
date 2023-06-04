@@ -2671,7 +2671,7 @@ bool XInfoDB::_addImportSymbol(XADDR nAddress, QString sSymbol)
     return bResult;
 }
 
-bool XInfoDB::_addTLSSymbol(XADDR nAddress, QString sSymbol)
+bool XInfoDB::_addTLSSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB

@@ -585,7 +585,7 @@ public:
 
     bool _addExportSymbol(XADDR nAddress, QString sSymbol);
     bool _addImportSymbol(XADDR nAddress, QString sSymbol);
-    bool _addTLSSymbol(XADDR nAddress, QString sSymbol);
+    bool _addTLSSymbol(XADDR nAddress, const QString &sSymbol);
 
     //    static QString symbolSourceIdToString(SS symbolSource);
     //    static QString symbolTypeIdToString(ST symbolType);
