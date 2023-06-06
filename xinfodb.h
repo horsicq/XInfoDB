@@ -429,7 +429,7 @@ public:
     void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
     void removeThreadInfo(X_ID nThreadID);
 
-    bool setFunctionHook(QString sFunctionName);
+    bool setFunctionHook(const QString &sFunctionName);
     bool removeFunctionHook(QString sFunctionName);
 
     QMap<XADDR, SHAREDOBJECT_INFO> *getSharedObjectInfos();

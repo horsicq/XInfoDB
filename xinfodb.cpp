@@ -591,7 +591,7 @@ void XInfoDB::removeThreadInfo(X_ID nThreadID)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setFunctionHook(QString sFunctionName)
+bool XInfoDB::setFunctionHook(const QString &sFunctionName)
 {
     bool bResult = false;
 
