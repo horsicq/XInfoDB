@@ -2654,7 +2654,7 @@ bool XInfoDB::_addExportSymbol(XADDR nAddress, QString sSymbol)
     return bResult;
 }
 
-bool XInfoDB::_addImportSymbol(XADDR nAddress, QString sSymbol)
+bool XInfoDB::_addImportSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
@@ -2778,10 +2778,10 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
 void XInfoDB::initSymbolsDb()
 {
 #ifdef QT_SQL_LIB
-    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
-    removeTable(&g_dataBase, DBTABLE_IMPORT);
-    removeTable(&g_dataBase, DBTABLE_EXPORT);
-    removeTable(&g_dataBase, DBTABLE_TLS);
+//    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
+//    removeTable(&g_dataBase, DBTABLE_IMPORT);
+//    removeTable(&g_dataBase, DBTABLE_EXPORT);
+//    removeTable(&g_dataBase, DBTABLE_TLS);
     createTable(&g_dataBase, DBTABLE_SYMBOLS);
     createTable(&g_dataBase, DBTABLE_IMPORT);
     createTable(&g_dataBase, DBTABLE_EXPORT);
@@ -3180,6 +3180,10 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
             if (pMemoryMap->nEntryPointAddress) {
                 stEntries.insert(pMemoryMap->nEntryPointAddress);
             }
+        } else if ((pMemoryMap->fileType == XBinary::FT_MACHO32) || (pMemoryMap->fileType == XBinary::FT_MACHO64)) {
+            if (pMemoryMap->nEntryPointAddress) {
+                stEntries.insert(pMemoryMap->nEntryPointAddress);
+            }
         }
 
         QList<XADDR> listFunctionAddresses;
@@ -3208,6 +3212,8 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
     QList<RELRECORD> listRelRecords;
     QSet<XADDR> stShowRecords;
 
+    QSqlQuery query(g_dataBase);
+
     while (!(pPdStruct->bIsStop)) {
         if (!stEntries.isEmpty()) {
             XADDR nEntryAddress = *stEntries.begin();
@@ -3217,7 +3223,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
             XADDR nCurrentAddress = nEntryAddress;
 
             while (!(pPdStruct->bIsStop)) {
-                if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent(nCurrentAddress, 1))) {
+                if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent(&query, nCurrentAddress, 1))) {
                     qint64 nOffset = XBinary::addressToOffset(pMemoryMap, nCurrentAddress);
 
                     if (nOffset != -1) {
@@ -3349,8 +3355,8 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
                 g_dataBase.transaction();
 #endif
                 // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr("Save"));
-                _addShowRecords(&listShowRecords);
-                _addRelRecords(&listRelRecords);
+                _addShowRecords(&query, &listShowRecords);
+                _addRelRecords(&query, &listRelRecords);
 #ifdef QT_SQL_LIB
                 g_dataBase.commit();
 #endif
@@ -3436,6 +3442,8 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 #ifdef QT_SQL_LIB
             g_dataBase.transaction();
 #endif
+            QSqlQuery query(g_dataBase);
+
             QList<XADDR> listImportAddresses = getImportSymbolAddresses();
             qint32 nNumberOfRecords = listImportAddresses.count();
             qint32 nSize = 4;
@@ -3453,7 +3461,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
             for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
                 XADDR nAddress = listImportAddresses.at(i);
-                if (!_isShowRecordPresent(nAddress, nSize)) {
+                if (!_isShowRecordPresent(&query, nAddress, nSize)) {
                     qint64 nOffset = XBinary::addressToOffset(pMemoryMap, nAddress);
                     _addShowRecord(nAddress, nOffset, nSize, sVarName, QString(), RT_DATA, 0, 0, 0);
                 }
@@ -3475,6 +3483,8 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 #ifdef QT_SQL_LIB
             g_dataBase.transaction();
 #endif
+            QSqlQuery query(g_dataBase);
+
             QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables();
             qint32 nNumberOfVariables = listVariables.count();
 
@@ -3495,7 +3505,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
                 bool bAdd = false;
 
-                if (!_isShowRecordPresent(record.nAddress, record.nSize)) {
+                if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
                     bAdd = true;
                 }
 
@@ -3708,31 +3718,27 @@ bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const
 
     return bResult;
 }
-
-bool XInfoDB::_isShowRecordPresent(XADDR nAddress, qint64 nSize)
+#ifdef QT_SQL_LIB
+bool XInfoDB::_isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-
     if (nSize <= 1) {
-        query.prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-        query.bindValue(0, nAddress);
+        pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+        pQuery->bindValue(0, nAddress);
     } else {
-        query.prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-        query.bindValue(0, nAddress);
-        query.bindValue(1, nAddress + nSize);
+        pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+        pQuery->bindValue(0, nAddress);
+        pQuery->bindValue(1, nAddress + nSize);
     }
 
-    if (querySQL(&query)) {
-        bResult = query.next();
+    if (querySQL(pQuery)) {
+        bResult = pQuery->next();
     }
-#endif
 
     return bResult;
 }
-
+#endif
 bool XInfoDB::_addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize)
 {
     bool bResult = false;
@@ -3756,58 +3762,51 @@ bool XInfoDB::_addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nX
 
     return bResult;
 }
-
-void XInfoDB::_addShowRecords(QList<SHOWRECORD> *pListRecords)
-{
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
+void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
+{
+    pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
 
     qint32 nNumberOfRecords = pListRecords->count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        query.bindValue(0, pListRecords->at(i).nAddress);
-        query.bindValue(1, pListRecords->at(i).nOffset);
-        query.bindValue(2, pListRecords->at(i).nSize);
-        query.bindValue(3, pListRecords->at(i).sRecText1);
-        query.bindValue(4, pListRecords->at(i).sRecText2);
-        query.bindValue(5, pListRecords->at(i).recordType);
-        query.bindValue(6, pListRecords->at(i).nLineNumber);
-        query.bindValue(7, pListRecords->at(i).nRefTo);
-        query.bindValue(8, pListRecords->at(i).nRefFrom);
+        pQuery->bindValue(0, pListRecords->at(i).nAddress);
+        pQuery->bindValue(1, pListRecords->at(i).nOffset);
+        pQuery->bindValue(2, pListRecords->at(i).nSize);
+        pQuery->bindValue(3, pListRecords->at(i).sRecText1);
+        pQuery->bindValue(4, pListRecords->at(i).sRecText2);
+        pQuery->bindValue(5, pListRecords->at(i).recordType);
+        pQuery->bindValue(6, pListRecords->at(i).nLineNumber);
+        pQuery->bindValue(7, pListRecords->at(i).nRefTo);
+        pQuery->bindValue(8, pListRecords->at(i).nRefFrom);
 
-        querySQL(&query);
+        querySQL(pQuery);
     }
-#endif
 }
-
-void XInfoDB::_addRelRecords(QList<RELRECORD> *pListRecords)
-{
+#endif
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
+void XInfoDB::_addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords)
+{
+    pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
                           "VALUES (?, ?, ?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_RELATIVS]));
 
     qint32 nNumberOfRecords = pListRecords->count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        query.bindValue(0, pListRecords->at(i).nAddress);
-        query.bindValue(1, pListRecords->at(i).relType);
-        query.bindValue(2, pListRecords->at(i).nXrefToRelative);
-        query.bindValue(3, pListRecords->at(i).memType);
-        query.bindValue(4, pListRecords->at(i).nXrefToMemory);
-        query.bindValue(5, pListRecords->at(i).nMemorySize);
+        pQuery->bindValue(0, pListRecords->at(i).nAddress);
+        pQuery->bindValue(1, pListRecords->at(i).relType);
+        pQuery->bindValue(2, pListRecords->at(i).nXrefToRelative);
+        pQuery->bindValue(3, pListRecords->at(i).memType);
+        pQuery->bindValue(4, pListRecords->at(i).nXrefToMemory);
+        pQuery->bindValue(5, pListRecords->at(i).nMemorySize);
 
-        querySQL(&query);
+        querySQL(pQuery);
     }
-#endif
 }
-
+#endif
 QList<XInfoDB::RELRECORD> XInfoDB::getRelRecords()
 {
     QList<XInfoDB::RELRECORD> listResult;

@@ -584,7 +584,7 @@ public:
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
     bool _addExportSymbol(XADDR nAddress, QString sSymbol);
-    bool _addImportSymbol(XADDR nAddress, QString sSymbol);
+    bool _addImportSymbol(XADDR nAddress, const QString &sSymbol);
     bool _addTLSSymbol(XADDR nAddress, const QString &sSymbol);
 
     //    static QString symbolSourceIdToString(SS symbolSource);
@@ -607,10 +607,12 @@ public:
     void _analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);  // TODO options
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, const QString &sRecText2, RT recordType, qint64 nLineNumber,
                         quint64 nRefTo, quint64 nRefFrom);
-    bool _isShowRecordPresent(XADDR nAddress, qint64 nSize);
+    bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
+#ifdef QT_SQL_LIB
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
-    void _addShowRecords(QList<SHOWRECORD> *pListRecords);
-    void _addRelRecords(QList<RELRECORD> *pListRecords);
+    void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
+    void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
+#endif
     QList<RELRECORD> getRelRecords();
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _removeAnalysis(XADDR nAddress, qint64 nSize);
