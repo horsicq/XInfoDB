@@ -461,7 +461,7 @@ public:
     bool resumeOtherThreads(X_ID nThreadId);
     bool suspendAllThreads();
     bool resumeAllThreads();
-    FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, QString sName);
+    FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, const QString &sName);
 
     //    void _lockId(quint32 nId);
     //    void _unlockID(quint32 nId);
@@ -607,9 +607,9 @@ public:
     void _analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);  // TODO options
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, const QString &sRecText2, RT recordType, qint64 nLineNumber,
                         quint64 nRefTo, quint64 nRefFrom);
-    bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
-#ifdef QT_SQL_LIB
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
+#ifdef QT_SQL_LIB
+    bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
     void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
     void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
 #endif

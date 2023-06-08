@@ -989,7 +989,7 @@ bool XInfoDB::resumeAllThreads()
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, QString sName)
+XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, const QString &sName)
 {
     FUNCTION_INFO result = {};
 
@@ -3146,6 +3146,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
 void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct)
 {
+#ifdef QT_SQL_LIB
     g_pMutexSQL->lock();
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
@@ -3689,6 +3690,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     g_pMutexSQL->unlock();
+#endif
 }
 
 bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, const QString &sRecText2, RT recordType, qint64 nLineNumber,
