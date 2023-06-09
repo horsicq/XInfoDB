@@ -739,7 +739,7 @@ quint64 XInfoDB::getFunctionAddress(QString sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setSingleStep(X_HANDLE hThread, QString sInfo)
+bool XInfoDB::setSingleStep(X_HANDLE hThread, const QString &sInfo)
 {
     XInfoDB::BREAKPOINT breakPoint = {};
     breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;

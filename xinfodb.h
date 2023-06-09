@@ -444,7 +444,7 @@ public:
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
 #endif
     quint64 getFunctionAddress(QString sFunctionName);
-    bool setSingleStep(X_HANDLE hThread, QString sInfo = "");  // TODO mb remove
+    bool setSingleStep(X_HANDLE hThread, const QString &sInfo = "");  // TODO mb remove
     //    bool stepInto(XProcess::HANDLEID handleThread);
     //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
