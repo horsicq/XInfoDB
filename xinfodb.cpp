@@ -2637,7 +2637,7 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
     return nResult;
 }
 
-bool XInfoDB::_addExportSymbol(XADDR nAddress, QString sSymbol)
+bool XInfoDB::_addExportSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
