@@ -2778,10 +2778,10 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
 void XInfoDB::initSymbolsDb()
 {
 #ifdef QT_SQL_LIB
-//    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
-//    removeTable(&g_dataBase, DBTABLE_IMPORT);
-//    removeTable(&g_dataBase, DBTABLE_EXPORT);
-//    removeTable(&g_dataBase, DBTABLE_TLS);
+    //    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
+    //    removeTable(&g_dataBase, DBTABLE_IMPORT);
+    //    removeTable(&g_dataBase, DBTABLE_EXPORT);
+    //    removeTable(&g_dataBase, DBTABLE_TLS);
     createTable(&g_dataBase, DBTABLE_SYMBOLS);
     createTable(&g_dataBase, DBTABLE_IMPORT);
     createTable(&g_dataBase, DBTABLE_EXPORT);
@@ -3768,8 +3768,8 @@ bool XInfoDB::_addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nX
 void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
 {
     pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                        .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
 
     qint32 nNumberOfRecords = pListRecords->count();
 
@@ -3792,8 +3792,8 @@ void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords
 void XInfoDB::_addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords)
 {
     pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
-                          "VALUES (?, ?, ?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+                            "VALUES (?, ?, ?, ?, ?, ?)")
+                        .arg(s_sql_tableName[DBTABLE_RELATIVS]));
 
     qint32 nNumberOfRecords = pListRecords->count();
 
