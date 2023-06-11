@@ -611,7 +611,7 @@ bool XInfoDB::setFunctionHook(const QString &sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeFunctionHook(QString sFunctionName)
+bool XInfoDB::removeFunctionHook(const QString &sFunctionName)
 {
     bool bResult = false;
     // TODO Check !!!
