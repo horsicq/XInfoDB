@@ -443,7 +443,7 @@ public:
 #ifdef Q_OS_WIN
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
 #endif
-    quint64 getFunctionAddress(QString sFunctionName);
+    quint64 getFunctionAddress(const QString &sFunctionName);
     bool setSingleStep(X_HANDLE hThread, const QString &sInfo = "");  // TODO mb remove
     //    bool stepInto(XProcess::HANDLEID handleThread);
     //    bool resumeThread(XProcess::HANDLEID handleThread);
