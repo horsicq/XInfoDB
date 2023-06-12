@@ -407,7 +407,7 @@ public:
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
-    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, QString sInfo = QString(),
+    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
                        QString sGUID = QString());
     bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
     bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
