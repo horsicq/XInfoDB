@@ -1564,7 +1564,7 @@ QList<XProcess::THREAD_INFO> *XInfoDB::getCurrentThreadsList()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, const QString &sInfo, QString sGUID)
+bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, const QString &sInfo, const QString &sGUID)
 {
     bool bResult = false;
 

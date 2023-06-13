@@ -408,7 +408,7 @@ public:
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
     bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
-                       QString sGUID = QString());
+                       const QString &sGUID = QString());
     bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
     bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
