@@ -731,7 +731,7 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
 #endif
 #endif
 #ifdef USE_XPROCESS
-quint64 XInfoDB::getFunctionAddress(Qconst String &sFunctionName)
+quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 {
     Q_UNUSED(sFunctionName)
     // TODO
