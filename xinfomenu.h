@@ -30,25 +30,24 @@ class XInfoMenu : public QObject {
 public:
     explicit XInfoMenu();
     QMenu *createMenu(QWidget *pParent);
-    void setData(XInfoDB *pXInfoDB, QIODevice *pDevice);
-    void clear();
+    void setData(XInfoDB *pXInfoDB);
+    void reset();
 
 private slots:
     void updateMenu();
     //    void actionAnalyze();
-    void actionOpen();
-    void actionSave();
-    //    void actionClear();
+    void actionExport();
+    void actionImport();
+    void actionClear();
 
 private:
     QWidget *g_pParent;
     QMenu *g_pMenu;
     //    QAction *g_pActionAnalyze;
-    QAction *g_pActionOpen;
-    QAction *g_pActionSave;
-    //    QAction *g_pActionClear;
+    QAction *g_pActionExport;
+    QAction *g_pActionImport;
+    QAction *g_pActionClear;
     XInfoDB *g_pXInfoDB;
-    QIODevice *g_pDevice;
 };
 
 #endif  // XINFOMENU_H

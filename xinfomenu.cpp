@@ -25,11 +25,10 @@ XInfoMenu::XInfoMenu()
     g_pParent = nullptr;
     g_pMenu = nullptr;
     //    g_pActionAnalyze = nullptr;
-    g_pActionOpen = nullptr;
-    g_pActionSave = nullptr;
-    //    g_pActionClear = nullptr;
+    g_pActionExport = nullptr;
+    g_pActionImport = nullptr;
+    g_pActionClear = nullptr;
     g_pXInfoDB = nullptr;
-    g_pDevice = nullptr;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
@@ -39,41 +38,47 @@ QMenu *XInfoMenu::createMenu(QWidget *pParent)
     g_pMenu = new QMenu(tr("Database"), pParent);
 
     //    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
-    g_pActionOpen = new QAction(tr("Open"), pParent);
-    g_pActionSave = new QAction(tr("Save"), pParent);
+    g_pActionExport = new QAction(tr("Export"), pParent);
+    g_pActionImport = new QAction(tr("Import"), pParent);
     //    g_pActionClear = new QAction(tr("Clear"), pParent);
 
     //    g_pMenu->addAction(g_pActionAnalyze);
-    g_pMenu->addAction(g_pActionOpen);
-    g_pMenu->addAction(g_pActionSave);
+    g_pMenu->addAction(g_pActionExport);
+    g_pMenu->addAction(g_pActionImport);
     g_pMenu->addSeparator();
-    //    g_pMenu->addAction(g_pActionClear);
+    g_pMenu->addAction(g_pActionClear);
 
     //    connect(g_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
-    connect(g_pActionOpen, SIGNAL(triggered()), this, SLOT(actionOpen()));
-    connect(g_pActionSave, SIGNAL(triggered()), this, SLOT(actionSave()));
-    //    connect(g_pActionClear, SIGNAL(triggered()), this, SLOT(actionClear()));
+    connect(g_pActionExport, SIGNAL(triggered()), this, SLOT(actionExport()));
+    connect(g_pActionImport, SIGNAL(triggered()), this, SLOT(actionImport()));
+    connect(g_pActionClear, SIGNAL(triggered()), this, SLOT(actionClear()));
 
     updateMenu();
 
     return g_pMenu;
 }
 
-void XInfoMenu::setData(XInfoDB *pXInfoDB, QIODevice *pDevice)
+void XInfoMenu::setData(XInfoDB *pXInfoDB)
 {
     g_pXInfoDB = pXInfoDB;
-    g_pDevice = pDevice;
 
     if (g_pXInfoDB) {
+        g_pActionImport->setEnabled(true);
+        //        if (g_pXInfoDB->isDB Pesent) {
+
+        //        }
         //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
+    } else {
+        g_pActionExport->setEnabled(false);
+        g_pActionImport->setEnabled(false);
     }
 
     updateMenu();
 }
 
-void XInfoMenu::clear()
+void XInfoMenu::reset()
 {
-    setData(nullptr, nullptr);
+    setData(nullptr);
 }
 
 void XInfoMenu::updateMenu()
@@ -90,14 +95,23 @@ void XInfoMenu::updateMenu()
 // #endif
 // }
 
-void XInfoMenu::actionOpen()
+void XInfoMenu::actionExport()
 {
+    if (g_pXInfoDB) {
+        // TODO
+    }
 }
 
-void XInfoMenu::actionSave()
+void XInfoMenu::actionImport()
 {
+    if (g_pXInfoDB) {
+        // TODO
+    }
 }
 
-// void XInfoMenu::actionClear()
-//{
-// }
+void XInfoMenu::actionClear()
+{
+    if (g_pXInfoDB) {
+        g_pXInfoDB->clearDb();
+    }
+}
