@@ -331,13 +331,13 @@ public:
 
 #ifdef QT_SQL_LIB
     enum DBTABLE {
-        DBTABLE_SYMBOLS = 0,
+        DBTABLE_BOOKMARKS = 0,
         DBTABLE_SHOWRECORDS,
         DBTABLE_RELATIVS,
         DBTABLE_IMPORT,
         DBTABLE_EXPORT,
         DBTABLE_TLS,
-        DBTABLE_BOOKMARKS,
+        DBTABLE_SYMBOLS,
         DBTABLE_FUNCTIONS,
         __DBTABLE_SIZE
     };
@@ -598,8 +598,11 @@ public:
     void initHexDb();
 #ifdef QT_SQL_LIB
     bool isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    bool isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    bool isTablePresentAndNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    bool isDatabasePresent();
 #endif
     void clearDb();
     void vacuumDb();
@@ -627,8 +630,6 @@ public:
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordName(const QString &sUUID, const QString &sName);
 #endif
-
-    bool isShowRecordsPresent();
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bAprox = false);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);

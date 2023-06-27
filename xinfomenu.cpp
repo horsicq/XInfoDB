@@ -38,9 +38,9 @@ QMenu *XInfoMenu::createMenu(QWidget *pParent)
     g_pMenu = new QMenu(tr("Database"), pParent);
 
     //    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
-    g_pActionExport = new QAction(tr("Export"), pParent);
     g_pActionImport = new QAction(tr("Import"), pParent);
-    //    g_pActionClear = new QAction(tr("Clear"), pParent);
+    g_pActionExport = new QAction(tr("Export"), pParent);
+    g_pActionClear = new QAction(tr("Clear"), pParent);
 
     //    g_pMenu->addAction(g_pActionAnalyze);
     g_pMenu->addAction(g_pActionExport);
@@ -62,17 +62,6 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB)
 {
     g_pXInfoDB = pXInfoDB;
 
-    if (g_pXInfoDB) {
-        g_pActionImport->setEnabled(true);
-        //        if (g_pXInfoDB->isDB Pesent) {
-
-        //        }
-        //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
-    } else {
-        g_pActionExport->setEnabled(false);
-        g_pActionImport->setEnabled(false);
-    }
-
     updateMenu();
 }
 
@@ -83,9 +72,18 @@ void XInfoMenu::reset()
 
 void XInfoMenu::updateMenu()
 {
-#ifdef QT_MENU
-    qDebug("void XInfoMenu::updateMenu()");
-#endif
+    if (g_pXInfoDB) {
+        bool bIsDatabasePresent = g_pXInfoDB->isDatabasePresent();
+
+        g_pActionExport->setEnabled(bIsDatabasePresent);
+        g_pActionImport->setEnabled(!bIsDatabasePresent);
+        g_pActionClear->setEnabled(bIsDatabasePresent);
+        //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
+    } else {
+        g_pActionExport->setEnabled(false);
+        g_pActionImport->setEnabled(false);
+        g_pActionClear->setEnabled(false);
+    }
 }
 
 // void XInfoMenu::actionAnalyze()
@@ -98,20 +96,33 @@ void XInfoMenu::updateMenu()
 void XInfoMenu::actionExport()
 {
     if (g_pXInfoDB) {
-        // TODO
+        QString _sFileName = XBinary::getDeviceDirectory(g_pXInfoDB->getDevice()) + QDir::separator() + XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
+        _sFileName = QFileDialog::getSaveFileName(g_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database"), tr("All files")));
+
+        if (!_sFileName.isEmpty()) {
+            // TODO
+        }
     }
 }
 
 void XInfoMenu::actionImport()
 {
     if (g_pXInfoDB) {
-        // TODO
+        QString _sFileName = XBinary::getDeviceDirectory(g_pXInfoDB->getDevice());
+        _sFileName = QFileDialog::getOpenFileName(g_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
+
+        if (!_sFileName.isEmpty()) {
+            // TODO
+        }
     }
 }
 
 void XInfoMenu::actionClear()
 {
     if (g_pXInfoDB) {
-        g_pXInfoDB->clearDb();
+        if (QMessageBox::question(g_pParent, tr("Database"), tr("Are you sure?")) == QMessageBox::Yes) {
+            g_pXInfoDB->clearDb();
+            updateMenu();
+        }
     }
 }

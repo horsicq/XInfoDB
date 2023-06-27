@@ -101,9 +101,10 @@ bool XInfoDBTransfer::process()
                 delete pFile;
             }
         } else if (g_transferType == COMMAND_EXPORT) {
-            // TODO
+            g_pXInfoDB->saveDbToFile(g_options.sFileName, g_pPdStruct);
+        } else if (g_transferType == COMMAND_IMPORT) {
+             g_pXInfoDB->loadDbFromFile(g_options.sFileName, g_pPdStruct);
         } else if (g_transferType == COMMAND_CLEAR) {
-            // TODO rewrite
             g_pXInfoDB->clearDb();
         } else if (g_transferType == COMMAND_REMOVE) {
             g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);

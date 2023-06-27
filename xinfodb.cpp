@@ -2583,6 +2583,27 @@ bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 }
 #endif
 #ifdef QT_SQL_LIB
+bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable)
+{
+    bool bResult = false;
+    QSqlQuery query(*pDatabase);
+
+    querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(s_sql_tableName[dbTable]));
+
+    if(query.next()) {
+        bResult = (query.value(0).toInt() != 0);
+    }
+
+    return bResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::isTablePresentAndNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable)
+{
+    return (isTablePresent(pDatabase, dbTable) && isTableNotEmpty(pDatabase, dbTable));
+}
+#endif
+#ifdef QT_SQL_LIB
 void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
 {
     QSqlQuery query(*pDatabase);
@@ -2664,6 +2685,24 @@ void XInfoDB::removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     QSqlQuery query(*pDatabase);
 
     querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_tableName[dbTable]));
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::isDatabasePresent()
+{
+    bool bResult = false;
+    if (g_dataBase.isOpen()) {
+        bResult =   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) ||
+                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
+    }
+
+    return bResult;
 }
 #endif
 void XInfoDB::clearDb()
@@ -3788,16 +3827,6 @@ void XInfoDB::updateBookmarkRecordName(const QString &sUUID, const QString &sNam
 #endif
 }
 #endif
-bool XInfoDB::isShowRecordsPresent()
-{
-    bool bResult = false;
-#ifdef QT_SQL_LIB
-    if (isTablePresent(&g_dataBase, DBTABLE_SHOWRECORDS)) {
-        bResult = getShowRecordsCount();
-    }
-#endif
-    return bResult;
-}
 
 XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
 {
@@ -4510,25 +4539,81 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     bool bResult = false;
 
+//     = 0,
+//    ,
+//    ,
+//    ,
+//    ,
+//    ,
+//    ,
+
     if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_BOOKMARKS
         pDatabaseDest->transaction();
-
-        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
-
-        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
-                                   "VALUES (?, ?, ?)")
-                               .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
-
-        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
-            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
-            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
-            queryWrite.bindValue(2, queryRead.value(2).toString());
-
-            querySQL(&queryWrite);
-        }
-
         pDatabaseDest->commit();
     }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_SYMBOLS
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_SHOWRECORDS
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_RELATIVS
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_IMPORT
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_EXPORT
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_TLS
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_FUNCTIONS
+        pDatabaseDest->transaction();
+        pDatabaseDest->commit();
+    }
+
+//    if (!(pPdStruct->bIsStop)) {
+//        pDatabaseDest->transaction();
+
+//        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+
+//        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
+//                                   "VALUES (?, ?, ?)")
+//                               .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+
+//        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+//            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
+//            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
+//            queryWrite.bindValue(2, queryRead.value(2).toString());
+
+//            querySQL(&queryWrite);
+//        }
+
+//        pDatabaseDest->commit();
+//    }
 
     if (!(pPdStruct->bIsStop)) {
         bResult = querySQL(&queryWrite, QString("VACUUM"));
