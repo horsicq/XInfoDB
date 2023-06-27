@@ -1400,60 +1400,34 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         bool bUnknownRegister = false;
 
 #ifdef Q_PROCESSOR_X86_32
-        if (reg == XREG_EAX)
-            context.Eax = variant.var.v_uint32;
-        else if (reg == XREG_EBX)
-            context.Ebx = variant.var.v_uint32;
-        else if (reg == XREG_ECX)
-            context.Ecx = variant.var.v_uint32;
-        else if (reg == XREG_EDX)
-            context.Edx = variant.var.v_uint32;
-        else if (reg == XREG_EBP)
-            context.Ebp = variant.var.v_uint32;
-        else if (reg == XREG_ESP)
-            context.Esp = variant.var.v_uint32;
-        else if (reg == XREG_ESI)
-            context.Esi = variant.var.v_uint32;
-        else if (reg == XREG_EDI)
-            context.Edi = variant.var.v_uint32;
-        else
-            bUnknownRegister = true;
+        if (reg == XREG_EAX) context.Eax = variant.var.v_uint32;
+        else if (reg == XREG_EBX) context.Ebx = variant.var.v_uint32;
+        else if (reg == XREG_ECX) context.Ecx = variant.var.v_uint32;
+        else if (reg == XREG_EDX) context.Edx = variant.var.v_uint32;
+        else if (reg == XREG_EBP) context.Ebp = variant.var.v_uint32;
+        else if (reg == XREG_ESP) context.Esp = variant.var.v_uint32;
+        else if (reg == XREG_ESI) context.Esi = variant.var.v_uint32;
+        else if (reg == XREG_EDI) context.Edi = variant.var.v_uint32;
+        else bUnknownRegister = true;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_RAX)
-            context.Rax = variant.var.v_uint64;
-        else if (reg == XREG_RBX)
-            context.Rbx = variant.var.v_uint64;
-        else if (reg == XREG_RCX)
-            context.Rcx = variant.var.v_uint64;
-        else if (reg == XREG_RDX)
-            context.Rdx = variant.var.v_uint64;
-        else if (reg == XREG_RBP)
-            context.Rbp = variant.var.v_uint64;
-        else if (reg == XREG_RSP)
-            context.Rsp = variant.var.v_uint64;
-        else if (reg == XREG_RSI)
-            context.Rsi = variant.var.v_uint64;
-        else if (reg == XREG_RDI)
-            context.Rdi = variant.var.v_uint64;
-        else if (reg == XREG_R8)
-            context.R8 = variant.var.v_uint64;
-        else if (reg == XREG_R9)
-            context.R9 = variant.var.v_uint64;
-        else if (reg == XREG_R10)
-            context.R10 = variant.var.v_uint64;
-        else if (reg == XREG_R11)
-            context.R11 = variant.var.v_uint64;
-        else if (reg == XREG_R12)
-            context.R12 = variant.var.v_uint64;
-        else if (reg == XREG_R13)
-            context.R13 = variant.var.v_uint64;
-        else if (reg == XREG_R14)
-            context.R14 = variant.var.v_uint64;
-        else if (reg == XREG_R15)
-            context.R15 = variant.var.v_uint64;
-        else
-            bUnknownRegister = true;
+        if (reg == XREG_RAX) context.Rax = variant.var.v_uint64;
+        else if (reg == XREG_RBX) context.Rbx = variant.var.v_uint64;
+        else if (reg == XREG_RCX) context.Rcx = variant.var.v_uint64;
+        else if (reg == XREG_RDX) context.Rdx = variant.var.v_uint64;
+        else if (reg == XREG_RBP) context.Rbp = variant.var.v_uint64;
+        else if (reg == XREG_RSP) context.Rsp = variant.var.v_uint64;
+        else if (reg == XREG_RSI) context.Rsi = variant.var.v_uint64;
+        else if (reg == XREG_RDI) context.Rdi = variant.var.v_uint64;
+        else if (reg == XREG_R8) context.R8 = variant.var.v_uint64;
+        else if (reg == XREG_R9) context.R9 = variant.var.v_uint64;
+        else if (reg == XREG_R10) context.R10 = variant.var.v_uint64;
+        else if (reg == XREG_R11) context.R11 = variant.var.v_uint64;
+        else if (reg == XREG_R12) context.R12 = variant.var.v_uint64;
+        else if (reg == XREG_R13) context.R13 = variant.var.v_uint64;
+        else if (reg == XREG_R14) context.R14 = variant.var.v_uint64;
+        else if (reg == XREG_R15) context.R15 = variant.var.v_uint64;
+        else bUnknownRegister = true;
 #endif
         // TODO more
 
@@ -1484,40 +1458,23 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
     if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
         bool bUnknownRegister = false;
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_RAX)
-            regs.rax = variant.var.v_uint64;
-        else if (reg == XREG_RBX)
-            regs.rbx = variant.var.v_uint64;
-        else if (reg == XREG_RCX)
-            regs.rcx = variant.var.v_uint64;
-        else if (reg == XREG_RDX)
-            regs.rdx = variant.var.v_uint64;
-        else if (reg == XREG_RBP)
-            regs.rbp = variant.var.v_uint64;
-        else if (reg == XREG_RSP)
-            regs.rsp = variant.var.v_uint64;
-        else if (reg == XREG_RSI)
-            regs.rsi = variant.var.v_uint64;
-        else if (reg == XREG_RDI)
-            regs.rdi = variant.var.v_uint64;
-        else if (reg == XREG_R8)
-            regs.r8 = variant.var.v_uint64;
-        else if (reg == XREG_R9)
-            regs.r9 = variant.var.v_uint64;
-        else if (reg == XREG_R10)
-            regs.r10 = variant.var.v_uint64;
-        else if (reg == XREG_R11)
-            regs.r11 = variant.var.v_uint64;
-        else if (reg == XREG_R12)
-            regs.r12 = variant.var.v_uint64;
-        else if (reg == XREG_R13)
-            regs.r13 = variant.var.v_uint64;
-        else if (reg == XREG_R14)
-            regs.r14 = variant.var.v_uint64;
-        else if (reg == XREG_R15)
-            regs.r15 = variant.var.v_uint64;
-        else
-            bUnknownRegister = true;
+        if (reg == XREG_RAX) regs.rax = variant.var.v_uint64;
+        else if (reg == XREG_RBX) regs.rbx = variant.var.v_uint64;
+        else if (reg == XREG_RCX) regs.rcx = variant.var.v_uint64;
+        else if (reg == XREG_RDX) regs.rdx = variant.var.v_uint64;
+        else if (reg == XREG_RBP) regs.rbp = variant.var.v_uint64;
+        else if (reg == XREG_RSP) regs.rsp = variant.var.v_uint64;
+        else if (reg == XREG_RSI) regs.rsi = variant.var.v_uint64;
+        else if (reg == XREG_RDI) regs.rdi = variant.var.v_uint64;
+        else if (reg == XREG_R8) regs.r8 = variant.var.v_uint64;
+        else if (reg == XREG_R9) regs.r9 = variant.var.v_uint64;
+        else if (reg == XREG_R10) regs.r10 = variant.var.v_uint64;
+        else if (reg == XREG_R11) regs.r11 = variant.var.v_uint64;
+        else if (reg == XREG_R12) regs.r12 = variant.var.v_uint64;
+        else if (reg == XREG_R13) regs.r13 = variant.var.v_uint64;
+        else if (reg == XREG_R14) regs.r14 = variant.var.v_uint64;
+        else if (reg == XREG_R15) regs.r15 = variant.var.v_uint64;
+        else bUnknownRegister = true;
 #endif
 
         if (!bUnknownRegister) {
@@ -1919,247 +1876,128 @@ QString XInfoDB::regIdToString(XREG reg)
 
     if (reg == XREG_NONE) sResult = QString("");
 #ifdef Q_PROCESSOR_X86
-    else if (reg == XREG_AX)
-        sResult = QString("AX");
-    else if (reg == XREG_CX)
-        sResult = QString("CX");
-    else if (reg == XREG_DX)
-        sResult = QString("DX");
-    else if (reg == XREG_BX)
-        sResult = QString("BX");
-    else if (reg == XREG_SP)
-        sResult = QString("SP");
-    else if (reg == XREG_BP)
-        sResult = QString("BP");
-    else if (reg == XREG_SI)
-        sResult = QString("SI");
-    else if (reg == XREG_DI)
-        sResult = QString("DI");
-    else if (reg == XREG_IP)
-        sResult = QString("IP");
-    else if (reg == XREG_FLAGS)
-        sResult = QString("FLAGS");
-    else if (reg == XREG_EAX)
-        sResult = QString("EAX");
-    else if (reg == XREG_ECX)
-        sResult = QString("ECX");
-    else if (reg == XREG_EDX)
-        sResult = QString("EDX");
-    else if (reg == XREG_EBX)
-        sResult = QString("EBX");
-    else if (reg == XREG_ESP)
-        sResult = QString("ESP");
-    else if (reg == XREG_EBP)
-        sResult = QString("EBP");
-    else if (reg == XREG_ESI)
-        sResult = QString("ESI");
-    else if (reg == XREG_EDI)
-        sResult = QString("EDI");
-    else if (reg == XREG_EIP)
-        sResult = QString("EIP");
-    else if (reg == XREG_EFLAGS)
-        sResult = QString("EFLAGS");
+    else if (reg == XREG_AX) sResult = QString("AX");
+    else if (reg == XREG_CX) sResult = QString("CX");
+    else if (reg == XREG_DX) sResult = QString("DX");
+    else if (reg == XREG_BX) sResult = QString("BX");
+    else if (reg == XREG_SP) sResult = QString("SP");
+    else if (reg == XREG_BP) sResult = QString("BP");
+    else if (reg == XREG_SI) sResult = QString("SI");
+    else if (reg == XREG_DI) sResult = QString("DI");
+    else if (reg == XREG_IP) sResult = QString("IP");
+    else if (reg == XREG_FLAGS) sResult = QString("FLAGS");
+    else if (reg == XREG_EAX) sResult = QString("EAX");
+    else if (reg == XREG_ECX) sResult = QString("ECX");
+    else if (reg == XREG_EDX) sResult = QString("EDX");
+    else if (reg == XREG_EBX) sResult = QString("EBX");
+    else if (reg == XREG_ESP) sResult = QString("ESP");
+    else if (reg == XREG_EBP) sResult = QString("EBP");
+    else if (reg == XREG_ESI) sResult = QString("ESI");
+    else if (reg == XREG_EDI) sResult = QString("EDI");
+    else if (reg == XREG_EIP) sResult = QString("EIP");
+    else if (reg == XREG_EFLAGS) sResult = QString("EFLAGS");
 #ifdef Q_PROCESSOR_X86_64
-    else if (reg == XREG_RAX)
-        sResult = QString("RAX");
-    else if (reg == XREG_RCX)
-        sResult = QString("RCX");
-    else if (reg == XREG_RDX)
-        sResult = QString("RDX");
-    else if (reg == XREG_RBX)
-        sResult = QString("RBX");
-    else if (reg == XREG_RSP)
-        sResult = QString("RSP");
-    else if (reg == XREG_RBP)
-        sResult = QString("RBP");
-    else if (reg == XREG_RSI)
-        sResult = QString("RSI");
-    else if (reg == XREG_RDI)
-        sResult = QString("RDI");
-    else if (reg == XREG_R8)
-        sResult = QString("R8");
-    else if (reg == XREG_R9)
-        sResult = QString("R9");
-    else if (reg == XREG_R10)
-        sResult = QString("R10");
-    else if (reg == XREG_R11)
-        sResult = QString("R11");
-    else if (reg == XREG_R12)
-        sResult = QString("R12");
-    else if (reg == XREG_R13)
-        sResult = QString("R13");
-    else if (reg == XREG_R14)
-        sResult = QString("R14");
-    else if (reg == XREG_R15)
-        sResult = QString("R15");
-    else if (reg == XREG_RIP)
-        sResult = QString("RIP");
-    else if (reg == XREG_RFLAGS)
-        sResult = QString("RFLAGS");
+    else if (reg == XREG_RAX) sResult = QString("RAX");
+    else if (reg == XREG_RCX) sResult = QString("RCX");
+    else if (reg == XREG_RDX) sResult = QString("RDX");
+    else if (reg == XREG_RBX) sResult = QString("RBX");
+    else if (reg == XREG_RSP) sResult = QString("RSP");
+    else if (reg == XREG_RBP) sResult = QString("RBP");
+    else if (reg == XREG_RSI) sResult = QString("RSI");
+    else if (reg == XREG_RDI) sResult = QString("RDI");
+    else if (reg == XREG_R8) sResult = QString("R8");
+    else if (reg == XREG_R9) sResult = QString("R9");
+    else if (reg == XREG_R10) sResult = QString("R10");
+    else if (reg == XREG_R11) sResult = QString("R11");
+    else if (reg == XREG_R12) sResult = QString("R12");
+    else if (reg == XREG_R13) sResult = QString("R13");
+    else if (reg == XREG_R14) sResult = QString("R14");
+    else if (reg == XREG_R15) sResult = QString("R15");
+    else if (reg == XREG_RIP) sResult = QString("RIP");
+    else if (reg == XREG_RFLAGS) sResult = QString("RFLAGS");
 #endif
-    else if (reg == XREG_CS)
-        sResult = QString("CS");
-    else if (reg == XREG_DS)
-        sResult = QString("DS");
-    else if (reg == XREG_ES)
-        sResult = QString("ES");
-    else if (reg == XREG_FS)
-        sResult = QString("FS");
-    else if (reg == XREG_GS)
-        sResult = QString("GS");
-    else if (reg == XREG_SS)
-        sResult = QString("SS");
-    else if (reg == XREG_DR0)
-        sResult = QString("DR0");
-    else if (reg == XREG_DR1)
-        sResult = QString("DR1");
-    else if (reg == XREG_DR2)
-        sResult = QString("DR2");
-    else if (reg == XREG_DR3)
-        sResult = QString("DR3");
-    else if (reg == XREG_DR6)
-        sResult = QString("DR6");
-    else if (reg == XREG_DR7)
-        sResult = QString("DR7");
-    else if (reg == XREG_CF)
-        sResult = QString("CF");
-    else if (reg == XREG_PF)
-        sResult = QString("PF");
-    else if (reg == XREG_AF)
-        sResult = QString("AF");
-    else if (reg == XREG_ZF)
-        sResult = QString("ZF");
-    else if (reg == XREG_SF)
-        sResult = QString("SF");
-    else if (reg == XREG_TF)
-        sResult = QString("TF");
-    else if (reg == XREG_IF)
-        sResult = QString("IF");
-    else if (reg == XREG_DF)
-        sResult = QString("DF");
-    else if (reg == XREG_OF)
-        sResult = QString("OF");
-    else if (reg == XREG_ST0)
-        sResult = QString("ST0");
-    else if (reg == XREG_ST1)
-        sResult = QString("ST1");
-    else if (reg == XREG_ST2)
-        sResult = QString("ST2");
-    else if (reg == XREG_ST3)
-        sResult = QString("ST3");
-    else if (reg == XREG_ST4)
-        sResult = QString("ST4");
-    else if (reg == XREG_ST5)
-        sResult = QString("ST5");
-    else if (reg == XREG_ST6)
-        sResult = QString("ST6");
-    else if (reg == XREG_ST7)
-        sResult = QString("ST7");
-    else if (reg == XREG_XMM0)
-        sResult = QString("XMM0");
-    else if (reg == XREG_XMM1)
-        sResult = QString("XMM1");
-    else if (reg == XREG_XMM2)
-        sResult = QString("XMM2");
-    else if (reg == XREG_XMM3)
-        sResult = QString("XMM3");
-    else if (reg == XREG_XMM4)
-        sResult = QString("XMM4");
-    else if (reg == XREG_XMM5)
-        sResult = QString("XMM5");
-    else if (reg == XREG_XMM6)
-        sResult = QString("XMM6");
-    else if (reg == XREG_XMM7)
-        sResult = QString("XMM7");
-    else if (reg == XREG_XMM8)
-        sResult = QString("XMM8");
-    else if (reg == XREG_XMM9)
-        sResult = QString("XMM9");
-    else if (reg == XREG_XMM10)
-        sResult = QString("XMM10");
-    else if (reg == XREG_XMM11)
-        sResult = QString("XMM11");
-    else if (reg == XREG_XMM12)
-        sResult = QString("XMM12");
-    else if (reg == XREG_XMM13)
-        sResult = QString("XMM13");
-    else if (reg == XREG_XMM14)
-        sResult = QString("XMM14");
-    else if (reg == XREG_XMM15)
-        sResult = QString("XMM15");
-    else if (reg == XREG_AH)
-        sResult = QString("AH");
-    else if (reg == XREG_CH)
-        sResult = QString("CH");
-    else if (reg == XREG_DH)
-        sResult = QString("DH");
-    else if (reg == XREG_BH)
-        sResult = QString("BH");
-    else if (reg == XREG_AL)
-        sResult = QString("AL");
-    else if (reg == XREG_CL)
-        sResult = QString("CL");
-    else if (reg == XREG_DL)
-        sResult = QString("DL");
-    else if (reg == XREG_BL)
-        sResult = QString("BL");
+    else if (reg == XREG_CS) sResult = QString("CS");
+    else if (reg == XREG_DS) sResult = QString("DS");
+    else if (reg == XREG_ES) sResult = QString("ES");
+    else if (reg == XREG_FS) sResult = QString("FS");
+    else if (reg == XREG_GS) sResult = QString("GS");
+    else if (reg == XREG_SS) sResult = QString("SS");
+    else if (reg == XREG_DR0) sResult = QString("DR0");
+    else if (reg == XREG_DR1) sResult = QString("DR1");
+    else if (reg == XREG_DR2) sResult = QString("DR2");
+    else if (reg == XREG_DR3) sResult = QString("DR3");
+    else if (reg == XREG_DR6) sResult = QString("DR6");
+    else if (reg == XREG_DR7) sResult = QString("DR7");
+    else if (reg == XREG_CF) sResult = QString("CF");
+    else if (reg == XREG_PF) sResult = QString("PF");
+    else if (reg == XREG_AF) sResult = QString("AF");
+    else if (reg == XREG_ZF) sResult = QString("ZF");
+    else if (reg == XREG_SF) sResult = QString("SF");
+    else if (reg == XREG_TF) sResult = QString("TF");
+    else if (reg == XREG_IF) sResult = QString("IF");
+    else if (reg == XREG_DF) sResult = QString("DF");
+    else if (reg == XREG_OF) sResult = QString("OF");
+    else if (reg == XREG_ST0) sResult = QString("ST0");
+    else if (reg == XREG_ST1) sResult = QString("ST1");
+    else if (reg == XREG_ST2) sResult = QString("ST2");
+    else if (reg == XREG_ST3) sResult = QString("ST3");
+    else if (reg == XREG_ST4) sResult = QString("ST4");
+    else if (reg == XREG_ST5) sResult = QString("ST5");
+    else if (reg == XREG_ST6) sResult = QString("ST6");
+    else if (reg == XREG_ST7) sResult = QString("ST7");
+    else if (reg == XREG_XMM0) sResult = QString("XMM0");
+    else if (reg == XREG_XMM1) sResult = QString("XMM1");
+    else if (reg == XREG_XMM2) sResult = QString("XMM2");
+    else if (reg == XREG_XMM3) sResult = QString("XMM3");
+    else if (reg == XREG_XMM4) sResult = QString("XMM4");
+    else if (reg == XREG_XMM5) sResult = QString("XMM5");
+    else if (reg == XREG_XMM6) sResult = QString("XMM6");
+    else if (reg == XREG_XMM7) sResult = QString("XMM7");
+    else if (reg == XREG_XMM8) sResult = QString("XMM8");
+    else if (reg == XREG_XMM9) sResult = QString("XMM9");
+    else if (reg == XREG_XMM10) sResult = QString("XMM10");
+    else if (reg == XREG_XMM11) sResult = QString("XMM11");
+    else if (reg == XREG_XMM12) sResult = QString("XMM12");
+    else if (reg == XREG_XMM13) sResult = QString("XMM13");
+    else if (reg == XREG_XMM14) sResult = QString("XMM14");
+    else if (reg == XREG_XMM15) sResult = QString("XMM15");
+    else if (reg == XREG_AH) sResult = QString("AH");
+    else if (reg == XREG_CH) sResult = QString("CH");
+    else if (reg == XREG_DH) sResult = QString("DH");
+    else if (reg == XREG_BH) sResult = QString("BH");
+    else if (reg == XREG_AL) sResult = QString("AL");
+    else if (reg == XREG_CL) sResult = QString("CL");
+    else if (reg == XREG_DL) sResult = QString("DL");
+    else if (reg == XREG_BL) sResult = QString("BL");
 #ifdef Q_PROCESSOR_X86_64
-    else if (reg == XREG_SPL)
-        sResult = QString("SPL");
-    else if (reg == XREG_BPL)
-        sResult = QString("BPL");
-    else if (reg == XREG_SIL)
-        sResult = QString("SIL");
-    else if (reg == XREG_DIL)
-        sResult = QString("DIL");
-    else if (reg == XREG_R8D)
-        sResult = QString("R8D");
-    else if (reg == XREG_R9D)
-        sResult = QString("R9D");
-    else if (reg == XREG_R10D)
-        sResult = QString("R10D");
-    else if (reg == XREG_R11D)
-        sResult = QString("R11D");
-    else if (reg == XREG_R12D)
-        sResult = QString("R12D");
-    else if (reg == XREG_R13D)
-        sResult = QString("R13D");
-    else if (reg == XREG_R14D)
-        sResult = QString("R14D");
-    else if (reg == XREG_R15D)
-        sResult = QString("R15D");
-    else if (reg == XREG_R8W)
-        sResult = QString("R8W");
-    else if (reg == XREG_R9W)
-        sResult = QString("R9W");
-    else if (reg == XREG_R10W)
-        sResult = QString("R10W");
-    else if (reg == XREG_R11W)
-        sResult = QString("R11W");
-    else if (reg == XREG_R12W)
-        sResult = QString("R12W");
-    else if (reg == XREG_R13W)
-        sResult = QString("R13W");
-    else if (reg == XREG_R14W)
-        sResult = QString("R14W");
-    else if (reg == XREG_R15W)
-        sResult = QString("R15W");
-    else if (reg == XREG_R8B)
-        sResult = QString("R8B");
-    else if (reg == XREG_R9B)
-        sResult = QString("R9B");
-    else if (reg == XREG_R10B)
-        sResult = QString("R10B");
-    else if (reg == XREG_R11B)
-        sResult = QString("R11B");
-    else if (reg == XREG_R12B)
-        sResult = QString("R12B");
-    else if (reg == XREG_R13B)
-        sResult = QString("R13B");
-    else if (reg == XREG_R14B)
-        sResult = QString("R14B");
-    else if (reg == XREG_R15B)
-        sResult = QString("R15B");
+    else if (reg == XREG_SPL) sResult = QString("SPL");
+    else if (reg == XREG_BPL) sResult = QString("BPL");
+    else if (reg == XREG_SIL) sResult = QString("SIL");
+    else if (reg == XREG_DIL) sResult = QString("DIL");
+    else if (reg == XREG_R8D) sResult = QString("R8D");
+    else if (reg == XREG_R9D) sResult = QString("R9D");
+    else if (reg == XREG_R10D) sResult = QString("R10D");
+    else if (reg == XREG_R11D) sResult = QString("R11D");
+    else if (reg == XREG_R12D) sResult = QString("R12D");
+    else if (reg == XREG_R13D) sResult = QString("R13D");
+    else if (reg == XREG_R14D) sResult = QString("R14D");
+    else if (reg == XREG_R15D) sResult = QString("R15D");
+    else if (reg == XREG_R8W) sResult = QString("R8W");
+    else if (reg == XREG_R9W) sResult = QString("R9W");
+    else if (reg == XREG_R10W) sResult = QString("R10W");
+    else if (reg == XREG_R11W) sResult = QString("R11W");
+    else if (reg == XREG_R12W) sResult = QString("R12W");
+    else if (reg == XREG_R13W) sResult = QString("R13W");
+    else if (reg == XREG_R14W) sResult = QString("R14W");
+    else if (reg == XREG_R15W) sResult = QString("R15W");
+    else if (reg == XREG_R8B) sResult = QString("R8B");
+    else if (reg == XREG_R9B) sResult = QString("R9B");
+    else if (reg == XREG_R10B) sResult = QString("R10B");
+    else if (reg == XREG_R11B) sResult = QString("R11B");
+    else if (reg == XREG_R12B) sResult = QString("R12B");
+    else if (reg == XREG_R13B) sResult = QString("R13B");
+    else if (reg == XREG_R14B) sResult = QString("R14B");
+    else if (reg == XREG_R15B) sResult = QString("R15B");
 #endif
 #endif
     return sResult;
@@ -2171,42 +2009,24 @@ XInfoDB::XREG XInfoDB::getSubReg32(XREG reg)
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_64
-    if (reg == XREG_RAX)
-        result = XREG_EAX;
-    else if (reg == XREG_RCX)
-        result = XREG_ECX;
-    else if (reg == XREG_RDX)
-        result = XREG_EDX;
-    else if (reg == XREG_RBX)
-        result = XREG_EBX;
-    else if (reg == XREG_RSP)
-        result = XREG_ESP;
-    else if (reg == XREG_RBP)
-        result = XREG_EBP;
-    else if (reg == XREG_RSI)
-        result = XREG_ESI;
-    else if (reg == XREG_RDI)
-        result = XREG_EDI;
-    else if (reg == XREG_R8)
-        result = XREG_R8D;
-    else if (reg == XREG_R9)
-        result = XREG_R9D;
-    else if (reg == XREG_R10)
-        result = XREG_R10D;
-    else if (reg == XREG_R11)
-        result = XREG_R11D;
-    else if (reg == XREG_R12)
-        result = XREG_R12D;
-    else if (reg == XREG_R13)
-        result = XREG_R13D;
-    else if (reg == XREG_R14)
-        result = XREG_R14D;
-    else if (reg == XREG_R15)
-        result = XREG_R15D;
-    else if (reg == XREG_RIP)
-        result = XREG_EIP;
-    else if (reg == XREG_RFLAGS)
-        result = XREG_EFLAGS;
+    if (reg == XREG_RAX) result = XREG_EAX;
+    else if (reg == XREG_RCX) result = XREG_ECX;
+    else if (reg == XREG_RDX) result = XREG_EDX;
+    else if (reg == XREG_RBX) result = XREG_EBX;
+    else if (reg == XREG_RSP) result = XREG_ESP;
+    else if (reg == XREG_RBP) result = XREG_EBP;
+    else if (reg == XREG_RSI) result = XREG_ESI;
+    else if (reg == XREG_RDI) result = XREG_EDI;
+    else if (reg == XREG_R8) result = XREG_R8D;
+    else if (reg == XREG_R9) result = XREG_R9D;
+    else if (reg == XREG_R10) result = XREG_R10D;
+    else if (reg == XREG_R11) result = XREG_R11D;
+    else if (reg == XREG_R12) result = XREG_R12D;
+    else if (reg == XREG_R13) result = XREG_R13D;
+    else if (reg == XREG_R14) result = XREG_R14D;
+    else if (reg == XREG_R15) result = XREG_R15D;
+    else if (reg == XREG_RIP) result = XREG_EIP;
+    else if (reg == XREG_RFLAGS) result = XREG_EFLAGS;
 #endif
 #endif
     return result;
@@ -2218,64 +2038,36 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
-    if (reg == XREG_EAX)
-        result = XREG_AX;
-    else if (reg == XREG_ECX)
-        result = XREG_CX;
-    else if (reg == XREG_EDX)
-        result = XREG_DX;
-    else if (reg == XREG_EBX)
-        result = XREG_BX;
-    else if (reg == XREG_ESP)
-        result = XREG_SP;
-    else if (reg == XREG_EBP)
-        result = XREG_BP;
-    else if (reg == XREG_ESI)
-        result = XREG_SI;
-    else if (reg == XREG_EDI)
-        result = XREG_DI;
-    else if (reg == XREG_EIP)
-        result = XREG_IP;
-    else if (reg == XREG_EFLAGS)
-        result = XREG_FLAGS;
+    if (reg == XREG_EAX) result = XREG_AX;
+    else if (reg == XREG_ECX) result = XREG_CX;
+    else if (reg == XREG_EDX) result = XREG_DX;
+    else if (reg == XREG_EBX) result = XREG_BX;
+    else if (reg == XREG_ESP) result = XREG_SP;
+    else if (reg == XREG_EBP) result = XREG_BP;
+    else if (reg == XREG_ESI) result = XREG_SI;
+    else if (reg == XREG_EDI) result = XREG_DI;
+    else if (reg == XREG_EIP) result = XREG_IP;
+    else if (reg == XREG_EFLAGS) result = XREG_FLAGS;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    if ((reg == XREG_RAX) || (reg == XREG_EAX))
-        result = XREG_AX;
-    else if ((reg == XREG_RCX) || (reg == XREG_ECX))
-        result = XREG_CX;
-    else if ((reg == XREG_RDX) || (reg == XREG_EDX))
-        result = XREG_DX;
-    else if ((reg == XREG_RBX) || (reg == XREG_EBX))
-        result = XREG_BX;
-    else if ((reg == XREG_RSP) || (reg == XREG_ESP))
-        result = XREG_SP;
-    else if ((reg == XREG_RBP) || (reg == XREG_EBP))
-        result = XREG_BP;
-    else if ((reg == XREG_RSI) || (reg == XREG_ESI))
-        result = XREG_SI;
-    else if ((reg == XREG_RDI) || (reg == XREG_EDI))
-        result = XREG_DI;
-    else if ((reg == XREG_R8) || (reg == XREG_R8D))
-        result = XREG_R8W;
-    else if ((reg == XREG_R9) || (reg == XREG_R9D))
-        result = XREG_R9W;
-    else if ((reg == XREG_R10) || (reg == XREG_R10D))
-        result = XREG_R10W;
-    else if ((reg == XREG_R11) || (reg == XREG_R11D))
-        result = XREG_R11W;
-    else if ((reg == XREG_R12) || (reg == XREG_R12D))
-        result = XREG_R12W;
-    else if ((reg == XREG_R13) || (reg == XREG_R13D))
-        result = XREG_R13W;
-    else if ((reg == XREG_R14) || (reg == XREG_R14D))
-        result = XREG_R14W;
-    else if ((reg == XREG_R15) || (reg == XREG_R15D))
-        result = XREG_R15W;
-    else if ((reg == XREG_RIP) || (reg == XREG_EIP))
-        result = XREG_IP;
-    else if ((reg == XREG_RFLAGS) || (reg == XREG_EFLAGS))
-        result = XREG_FLAGS;
+    if ((reg == XREG_RAX) || (reg == XREG_EAX)) result = XREG_AX;
+    else if ((reg == XREG_RCX) || (reg == XREG_ECX)) result = XREG_CX;
+    else if ((reg == XREG_RDX) || (reg == XREG_EDX)) result = XREG_DX;
+    else if ((reg == XREG_RBX) || (reg == XREG_EBX)) result = XREG_BX;
+    else if ((reg == XREG_RSP) || (reg == XREG_ESP)) result = XREG_SP;
+    else if ((reg == XREG_RBP) || (reg == XREG_EBP)) result = XREG_BP;
+    else if ((reg == XREG_RSI) || (reg == XREG_ESI)) result = XREG_SI;
+    else if ((reg == XREG_RDI) || (reg == XREG_EDI)) result = XREG_DI;
+    else if ((reg == XREG_R8) || (reg == XREG_R8D)) result = XREG_R8W;
+    else if ((reg == XREG_R9) || (reg == XREG_R9D)) result = XREG_R9W;
+    else if ((reg == XREG_R10) || (reg == XREG_R10D)) result = XREG_R10W;
+    else if ((reg == XREG_R11) || (reg == XREG_R11D)) result = XREG_R11W;
+    else if ((reg == XREG_R12) || (reg == XREG_R12D)) result = XREG_R12W;
+    else if ((reg == XREG_R13) || (reg == XREG_R13D)) result = XREG_R13W;
+    else if ((reg == XREG_R14) || (reg == XREG_R14D)) result = XREG_R14W;
+    else if ((reg == XREG_R15) || (reg == XREG_R15D)) result = XREG_R15W;
+    else if ((reg == XREG_RIP) || (reg == XREG_EIP)) result = XREG_IP;
+    else if ((reg == XREG_RFLAGS) || (reg == XREG_EFLAGS)) result = XREG_FLAGS;
 #endif
 #endif
 
@@ -2288,24 +2080,16 @@ XInfoDB::XREG XInfoDB::getSubReg8H(XREG reg)
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
-    if ((reg == XREG_EAX) || (reg == XREG_AX))
-        result = XREG_AH;
-    else if ((reg == XREG_ECX) || (reg == XREG_CX))
-        result = XREG_CH;
-    else if ((reg == XREG_EDX) || (reg == XREG_DX))
-        result = XREG_DH;
-    else if ((reg == XREG_EBX) || (reg == XREG_BX))
-        result = XREG_BH;
+    if ((reg == XREG_EAX) || (reg == XREG_AX)) result = XREG_AH;
+    else if ((reg == XREG_ECX) || (reg == XREG_CX)) result = XREG_CH;
+    else if ((reg == XREG_EDX) || (reg == XREG_DX)) result = XREG_DH;
+    else if ((reg == XREG_EBX) || (reg == XREG_BX)) result = XREG_BH;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    if ((reg == XREG_RAX) || (reg == XREG_EAX) || (reg == XREG_AX))
-        result = XREG_AH;
-    else if ((reg == XREG_RCX) || (reg == XREG_ECX) || (reg == XREG_CX))
-        result = XREG_CH;
-    else if ((reg == XREG_RDX) || (reg == XREG_EDX) || (reg == XREG_DX))
-        result = XREG_DH;
-    else if ((reg == XREG_RBX) || (reg == XREG_EBX) || (reg == XREG_BX))
-        result = XREG_BH;
+    if ((reg == XREG_RAX) || (reg == XREG_EAX) || (reg == XREG_AX)) result = XREG_AH;
+    else if ((reg == XREG_RCX) || (reg == XREG_ECX) || (reg == XREG_CX)) result = XREG_CH;
+    else if ((reg == XREG_RDX) || (reg == XREG_EDX) || (reg == XREG_DX)) result = XREG_DH;
+    else if ((reg == XREG_RBX) || (reg == XREG_EBX) || (reg == XREG_BX)) result = XREG_BH;
 #endif
 #endif
 
@@ -2318,48 +2102,28 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
     XREG result = XREG_NONE;
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
-    if ((reg == XREG_EAX) || (reg == XREG_AX))
-        result = XREG_AL;
-    else if ((reg == XREG_ECX) || (reg == XREG_CX))
-        result = XREG_CL;
-    else if ((reg == XREG_EDX) || (reg == XREG_DX))
-        result = XREG_DL;
-    else if ((reg == XREG_EBX) || (reg == XREG_BX))
-        result = XREG_BL;
+    if ((reg == XREG_EAX) || (reg == XREG_AX)) result = XREG_AL;
+    else if ((reg == XREG_ECX) || (reg == XREG_CX)) result = XREG_CL;
+    else if ((reg == XREG_EDX) || (reg == XREG_DX)) result = XREG_DL;
+    else if ((reg == XREG_EBX) || (reg == XREG_BX)) result = XREG_BL;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    if ((reg == XREG_RAX) || (reg == XREG_EAX) || (reg == XREG_AX))
-        result = XREG_AL;
-    else if ((reg == XREG_RCX) || (reg == XREG_ECX) || (reg == XREG_CX))
-        result = XREG_CL;
-    else if ((reg == XREG_RDX) || (reg == XREG_EDX) || (reg == XREG_DX))
-        result = XREG_DL;
-    else if ((reg == XREG_RBX) || (reg == XREG_EBX) || (reg == XREG_BX))
-        result = XREG_BL;
-    else if ((reg == XREG_RSP) || (reg == XREG_ESP) || (reg == XREG_SP))
-        result = XREG_SPL;
-    else if ((reg == XREG_RBP) || (reg == XREG_EBP) || (reg == XREG_BP))
-        result = XREG_BPL;
-    else if ((reg == XREG_RSI) || (reg == XREG_ESI) || (reg == XREG_SI))
-        result = XREG_SIL;
-    else if ((reg == XREG_RDI) || (reg == XREG_EDI) || (reg == XREG_DI))
-        result = XREG_DIL;
-    else if ((reg == XREG_R8) || (reg == XREG_R8D) || (reg == XREG_R8W))
-        result = XREG_R8B;
-    else if ((reg == XREG_R9) || (reg == XREG_R9D) || (reg == XREG_R9W))
-        result = XREG_R9B;
-    else if ((reg == XREG_R10) || (reg == XREG_R10D) || (reg == XREG_R10W))
-        result = XREG_R10B;
-    else if ((reg == XREG_R11) || (reg == XREG_R11D) || (reg == XREG_R11W))
-        result = XREG_R11B;
-    else if ((reg == XREG_R12) || (reg == XREG_R12D) || (reg == XREG_R12W))
-        result = XREG_R12B;
-    else if ((reg == XREG_R13) || (reg == XREG_R13D) || (reg == XREG_R13W))
-        result = XREG_R13B;
-    else if ((reg == XREG_R14) || (reg == XREG_R14D) || (reg == XREG_R14W))
-        result = XREG_R14B;
-    else if ((reg == XREG_R15) || (reg == XREG_R15D) || (reg == XREG_R15W))
-        result = XREG_R15B;
+    if ((reg == XREG_RAX) || (reg == XREG_EAX) || (reg == XREG_AX)) result = XREG_AL;
+    else if ((reg == XREG_RCX) || (reg == XREG_ECX) || (reg == XREG_CX)) result = XREG_CL;
+    else if ((reg == XREG_RDX) || (reg == XREG_EDX) || (reg == XREG_DX)) result = XREG_DL;
+    else if ((reg == XREG_RBX) || (reg == XREG_EBX) || (reg == XREG_BX)) result = XREG_BL;
+    else if ((reg == XREG_RSP) || (reg == XREG_ESP) || (reg == XREG_SP)) result = XREG_SPL;
+    else if ((reg == XREG_RBP) || (reg == XREG_EBP) || (reg == XREG_BP)) result = XREG_BPL;
+    else if ((reg == XREG_RSI) || (reg == XREG_ESI) || (reg == XREG_SI)) result = XREG_SIL;
+    else if ((reg == XREG_RDI) || (reg == XREG_EDI) || (reg == XREG_DI)) result = XREG_DIL;
+    else if ((reg == XREG_R8) || (reg == XREG_R8D) || (reg == XREG_R8W)) result = XREG_R8B;
+    else if ((reg == XREG_R9) || (reg == XREG_R9D) || (reg == XREG_R9W)) result = XREG_R9B;
+    else if ((reg == XREG_R10) || (reg == XREG_R10D) || (reg == XREG_R10W)) result = XREG_R10B;
+    else if ((reg == XREG_R11) || (reg == XREG_R11D) || (reg == XREG_R11W)) result = XREG_R11B;
+    else if ((reg == XREG_R12) || (reg == XREG_R12D) || (reg == XREG_R12W)) result = XREG_R12B;
+    else if ((reg == XREG_R13) || (reg == XREG_R13D) || (reg == XREG_R13W)) result = XREG_R13B;
+    else if ((reg == XREG_R14) || (reg == XREG_R14D) || (reg == XREG_R14W)) result = XREG_R14B;
+    else if ((reg == XREG_R15) || (reg == XREG_R15D) || (reg == XREG_R15W)) result = XREG_R15B;
 #endif
 #endif
 
@@ -4900,24 +4664,15 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 
     if (result.mode != XBinary::MODE_UNKNOWN) {
 #ifdef Q_PROCESSOR_X86
-        if (reg == XREG_CF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0001));
-        else if (reg == XREG_PF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0004));
-        else if (reg == XREG_AF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0010));
-        else if (reg == XREG_ZF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0040));
-        else if (reg == XREG_SF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0080));
-        else if (reg == XREG_TF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0100));
-        else if (reg == XREG_IF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0200));
-        else if (reg == XREG_DF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0400));
-        else if (reg == XREG_OF)
-            result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0800));
+        if (reg == XREG_CF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0001));
+        else if (reg == XREG_PF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0004));
+        else if (reg == XREG_AF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0010));
+        else if (reg == XREG_ZF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0040));
+        else if (reg == XREG_SF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0080));
+        else if (reg == XREG_TF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0100));
+        else if (reg == XREG_IF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0200));
+        else if (reg == XREG_DF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0400));
+        else if (reg == XREG_OF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0800));
 #endif
     }
 
