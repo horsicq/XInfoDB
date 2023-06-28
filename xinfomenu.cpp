@@ -73,7 +73,9 @@ void XInfoMenu::reset()
 void XInfoMenu::updateMenu()
 {
     if (g_pXInfoDB) {
-        bool bIsDatabasePresent = g_pXInfoDB->isDatabasePresent();
+        bool bIsDatabasePresent = false;
+
+        bIsDatabasePresent = g_pXInfoDB->isDbPresent();
 
         g_pActionExport->setEnabled(bIsDatabasePresent);
         g_pActionImport->setEnabled(!bIsDatabasePresent);
