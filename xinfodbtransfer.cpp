@@ -105,7 +105,7 @@ bool XInfoDBTransfer::process()
         } else if (g_transferType == COMMAND_IMPORT) {
              g_pXInfoDB->loadDbFromFile(g_options.sFileName, g_pPdStruct);
         } else if (g_transferType == COMMAND_CLEAR) {
-            g_pXInfoDB->clearDb();
+            g_pXInfoDB->removeAllTables();
         } else if (g_transferType == COMMAND_REMOVE) {
             g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
         } else if (g_transferType == COMMAND_DISASM) {

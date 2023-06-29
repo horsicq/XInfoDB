@@ -2661,7 +2661,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                                  "UUID TEXT PRIMARY KEY,"
                                  "LOCATION INTEGER,"
                                  "SIZE INTEGER,"
-                                 "COLBACKGROUND INTEGER,"
+                                 "COLBACKGROUND TEXT,"
                                  "NAME TEXT,"
                                  "COMMENT TEXT"
                                  ")")
@@ -2687,6 +2687,14 @@ void XInfoDB::removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_tableName[dbTable]));
 }
 #endif
+#ifdef QT_SQL_LIB
+void XInfoDB::clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
+{
+    QSqlQuery query(*pDatabase);
+
+    querySQL(&query, QString("DELETE FROM TABLE %1").arg(s_sql_tableName[dbTable]));
+}
+#endif
 bool XInfoDB::isDbPresent()
 {
     bool bResult = false;
@@ -2703,6 +2711,38 @@ bool XInfoDB::isDbPresent()
     }
 #endif
     return bResult;
+}
+
+void XInfoDB::removeAllTables()
+{
+#ifdef QT_SQL_LIB
+    removeTable(&g_dataBase, DBTABLE_BOOKMARKS);
+    removeTable(&g_dataBase, DBTABLE_SHOWRECORDS);
+    removeTable(&g_dataBase, DBTABLE_RELATIVS);
+    removeTable(&g_dataBase, DBTABLE_IMPORT);
+    removeTable(&g_dataBase, DBTABLE_EXPORT);
+    removeTable(&g_dataBase, DBTABLE_TLS);
+    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
+    removeTable(&g_dataBase, DBTABLE_FUNCTIONS);
+
+    clearRecordInfoCache();
+#endif
+}
+
+void XInfoDB::clearAllTables()
+{
+#ifdef QT_SQL_LIB
+    clearTable(&g_dataBase, DBTABLE_BOOKMARKS);
+    clearTable(&g_dataBase, DBTABLE_SHOWRECORDS);
+    clearTable(&g_dataBase, DBTABLE_RELATIVS);
+    clearTable(&g_dataBase, DBTABLE_IMPORT);
+    clearTable(&g_dataBase, DBTABLE_EXPORT);
+    clearTable(&g_dataBase, DBTABLE_TLS);
+    clearTable(&g_dataBase, DBTABLE_SYMBOLS);
+    clearTable(&g_dataBase, DBTABLE_FUNCTIONS);
+
+    clearRecordInfoCache();
+#endif
 }
 void XInfoDB::clearDb()
 {
@@ -4538,18 +4578,32 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     bool bResult = false;
 
-//     = 0,
-//    ,
-//    ,
-//    ,
-//    ,
-//    ,
-//    ,
-
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_BOOKMARKS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_BOOKMARKS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_BOOKMARKS);
+            createTable(pDatabaseDest, DBTABLE_BOOKMARKS);
+
+            querySQL(&queryRead, QString("SELECT UUID, LOCATION, SIZE, COLBACKGROUND, NAME, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (UUID, LOCATION, SIZE, COLBACKGROUND, NAME, COMMENT) "
+                                       "VALUES (?, ?, ?, ?, ?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0).toString());
+                queryWrite.bindValue(1, queryRead.value(1).toULongLong());
+                queryWrite.bindValue(2, queryRead.value(2).toULongLong());
+                queryWrite.bindValue(3, queryRead.value(3).toString());
+                queryWrite.bindValue(4, queryRead.value(4).toString());
+                queryWrite.bindValue(5, queryRead.value(5).toString());
+
+                querySQL(&queryWrite);
+            }
+
+            pDatabaseDest->commit();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {

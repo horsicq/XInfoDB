@@ -48,6 +48,7 @@ private:
     QAction *g_pActionImport;
     QAction *g_pActionClear;
     XInfoDB *g_pXInfoDB;
+    bool g_bIsDatabasePresent;
 };
 
 #endif  // XINFOMENU_H

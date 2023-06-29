@@ -602,8 +602,11 @@ public:
     bool isTablePresentAndNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
+    void clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
 #endif
     bool isDbPresent();
+    void removeAllTables();
+    void clearAllTables();
     void clearDb();
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
