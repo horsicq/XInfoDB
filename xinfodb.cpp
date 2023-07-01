@@ -1907,6 +1907,9 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
             }
         }
     }
+#else
+    Q_UNUSED(nBase)
+    Q_UNUSED(nSize)
 #endif
     return listResult;
 }
@@ -4254,7 +4257,9 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
 
         listResult.append(record);
     }
-
+#else
+    Q_UNUSED(nLine)
+    Q_UNUSED(nCount)
 #endif
 
     return listResult;
@@ -4435,6 +4440,9 @@ bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
                          .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)));
 
     bResult = query.next();
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
 #endif
     return bResult;
 }
@@ -4460,6 +4468,9 @@ void XInfoDB::disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult)
     }
 
     // TODO
+#else
+    Q_UNUSED(nOffset)
+    Q_UNUSED(disasmResult)
 #endif
 }
 
