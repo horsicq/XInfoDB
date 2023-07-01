@@ -231,7 +231,7 @@ public:
     enum THREAD_STATUS {
         THREAD_STATUS_UNKNOWN = 0,
         THREAD_STATUS_PAUSED,
-        THREAD_STATUS_RUNNING
+        THREAD_STATUS_RUNNING // TODO
     };
 
     struct THREAD_INFO {
@@ -429,6 +429,9 @@ public:
     void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
     void removeThreadInfo(X_ID nThreadID);
 
+    bool setThreadStatus(X_ID nThreadID, THREAD_STATUS status);
+    THREAD_STATUS getThreadStatus(X_ID nThreadID);
+
     bool setFunctionHook(const QString &sFunctionName);
     bool removeFunctionHook(const QString &sFunctionName);
 
@@ -456,6 +459,7 @@ public:
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
     bool suspendThread_Handle(X_HANDLE hThread);
+    bool resumeThread_Id(X_ID nThreadId);
     bool resumeThread_Handle(X_HANDLE hThread);
     bool suspendOtherThreads(X_ID nThreadId);
     bool resumeOtherThreads(X_ID nThreadId);

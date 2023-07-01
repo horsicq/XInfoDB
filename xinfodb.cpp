@@ -456,18 +456,9 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 
     if (nNextAddress != (XADDR)-1) {
         bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
+        // mb TODO
     } else {
-        if (bAddThreadBP) {
-            XInfoDB::BREAKPOINT breakPoint = {};
-            breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
-            breakPoint.bpInfo = bpInfo;
-
-#ifdef Q_OS_WIN
-            getThreadBreakpoints()->insert(hThread, breakPoint);
-#endif
-        }
-
-        bResult = _setStep_Handle(hThread);
+        bResult = stepInto_Handle(hThread, bpInfo, bAddThreadBP);
     }
 
     return bResult;
@@ -482,19 +473,11 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
 
     if (nNextAddress != (XADDR)-1) {
-        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
-    } else {
-        if (bAddThreadBP) {
-            XInfoDB::BREAKPOINT breakPoint = {};
-            breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
-            breakPoint.bpInfo = bpInfo;
-
-#ifdef Q_OS_LINUX
-            getThreadBreakpoints()->insert(nThreadId, breakPoint);
-#endif
+        if(addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1)) {
+            bResult = resumeThread_Id(nThreadId);
         }
-
-        bResult = _setStep_Id(nThreadId);
+    } else {        
+        bResult = stepInto_Id(nThreadId, bpInfo, bAddThreadBP);
     }
 
     return bResult;
@@ -588,6 +571,40 @@ void XInfoDB::removeThreadInfo(X_ID nThreadID)
             break;
         }
     }
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
+{
+    bool bResult = false;
+    qint32 nNumberOfThread = g_listThreadInfos.count();
+
+    for (qint32 i = 0; i < nNumberOfThread; i++) {
+        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
+            g_listThreadInfos[i].threadStatus = status;
+
+            break;
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::THREAD_STATUS XInfoDB::getThreadStatus(X_ID nThreadID)
+{
+    THREAD_STATUS result = THREAD_STATUS_UNKNOWN;
+    qint32 nNumberOfThread = g_listThreadInfos.count();
+
+    for (qint32 i = 0; i < nNumberOfThread; i++) {
+        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
+            result = g_listThreadInfos[i].threadStatus;
+
+            break;
+        }
+    }
+
+    return result;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -770,6 +787,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 #ifdef USE_XPROCESS
 bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 {
+    // TODO Threads statuses
     if (bAddThreadBP) {
         XInfoDB::BREAKPOINT breakPoint = {};
         breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
@@ -785,16 +803,24 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 #ifdef USE_XPROCESS
 bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 {
-    if (bAddThreadBP) {
-        XInfoDB::BREAKPOINT breakPoint = {};
-        breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
-        breakPoint.bpInfo = bpInfo;
-#ifdef Q_OS_LINUX
-        getThreadBreakpoints()->insert(nThreadId, breakPoint);
-#endif
+    bool bResult = false;
+
+    if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
+        if (bAddThreadBP) {
+            XInfoDB::BREAKPOINT breakPoint = {};
+            breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
+            breakPoint.bpInfo = bpInfo;
+    #ifdef Q_OS_LINUX
+            getThreadBreakpoints()->insert(nThreadId, breakPoint);
+    #endif
+        }
+
+        if (_setStep_Id(nThreadId)) {
+            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
+        }
     }
 
-    return _setStep_Id(nThreadId);
+    return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -870,6 +896,22 @@ bool XInfoDB::suspendThread_Handle(X_HANDLE hThread)
 #ifdef QT_DEBUG
 //    qDebug("XInfoDB::suspendThread %X",hThread);
 #endif
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::resumeThread_Id(X_ID nThreadId)
+{
+    bool bResult = false;
+
+    if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
+#ifdef Q_OS_LINUX
+        if (ptrace(PTRACE_CONT, nThreadId, 0, 0)) {
+            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
+        }
+#endif
+    }
 
     return bResult;
 }
@@ -4485,6 +4527,9 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
     dataBase = QSqlDatabase();
     QSqlDatabase::removeDatabase("local_db");
+#else
+    Q_UNUSED(sDBFileName)
+    Q_UNUSED(pPdStruct)
 #endif
     return bResult;
 }
