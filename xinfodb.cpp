@@ -473,10 +473,10 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
 
     if (nNextAddress != (XADDR)-1) {
-        if(addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1)) {
+        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1)) {
             bResult = resumeThread_Id(nThreadId);
         }
-    } else {        
+    } else {
         bResult = stepInto_Id(nThreadId, bpInfo, bAddThreadBP);
     }
 
@@ -810,9 +810,9 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
             XInfoDB::BREAKPOINT breakPoint = {};
             breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
             breakPoint.bpInfo = bpInfo;
-    #ifdef Q_OS_LINUX
+#ifdef Q_OS_LINUX
             getThreadBreakpoints()->insert(nThreadId, breakPoint);
-    #endif
+#endif
         }
 
         if (_setStep_Id(nThreadId)) {
@@ -2632,7 +2632,7 @@ bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable)
 
     querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(s_sql_tableName[dbTable]));
 
-    if(query.next()) {
+    if (query.next()) {
         bResult = (query.value(0).toInt() != 0);
     }
 
@@ -2742,14 +2742,10 @@ bool XInfoDB::isDbPresent()
     bool bResult = false;
 #ifdef QT_SQL_LIB
     if (g_dataBase.isOpen()) {
-        bResult =   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) ||
-                    isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
+        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
     }
 #endif
     return bResult;
@@ -4693,25 +4689,25 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
         pDatabaseDest->commit();
     }
 
-//    if (!(pPdStruct->bIsStop)) {
-//        pDatabaseDest->transaction();
+    //    if (!(pPdStruct->bIsStop)) {
+    //        pDatabaseDest->transaction();
 
-//        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+    //        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
-//        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
-//                                   "VALUES (?, ?, ?)")
-//                               .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+    //        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
+    //                                   "VALUES (?, ?, ?)")
+    //                               .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
-//        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
-//            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
-//            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
-//            queryWrite.bindValue(2, queryRead.value(2).toString());
+    //        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+    //            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
+    //            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
+    //            queryWrite.bindValue(2, queryRead.value(2).toString());
 
-//            querySQL(&queryWrite);
-//        }
+    //            querySQL(&queryWrite);
+    //        }
 
-//        pDatabaseDest->commit();
-//    }
+    //        pDatabaseDest->commit();
+    //    }
 
     if (!(pPdStruct->bIsStop)) {
         bResult = querySQL(&queryWrite, QString("VACUUM"));

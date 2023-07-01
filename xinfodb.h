@@ -231,7 +231,7 @@ public:
     enum THREAD_STATUS {
         THREAD_STATUS_UNKNOWN = 0,
         THREAD_STATUS_PAUSED,
-        THREAD_STATUS_RUNNING // TODO
+        THREAD_STATUS_RUNNING  // TODO
     };
 
     struct THREAD_INFO {
