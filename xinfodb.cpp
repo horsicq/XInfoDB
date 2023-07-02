@@ -3884,6 +3884,8 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
     querySQL(&query, QString("UPDATE %1 SET LOCATION = '%2', SIZE = '%3', COLBACKGROUND = '%4', NAME = '%5', COMMENT = '%6' WHERE UUID = '%7'")
                          .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.nSize), colorToString(record.colBackground),
                               record.sName, record.sComment, record.sUUID));
+#else
+    Q_UNUSED(record)
 #endif
 }
 #endif
@@ -3894,6 +3896,9 @@ void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colB
     QSqlQuery query(g_dataBase);
 
     querySQL(&query, QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], colorToString(colBackground), sUUID));
+#else
+    Q_UNUSED(sUUID)
+    Q_UNUSED(colBackground)
 #endif
 }
 #endif
@@ -3904,6 +3909,9 @@ void XInfoDB::updateBookmarkRecordName(const QString &sUUID, const QString &sNam
     QSqlQuery query(g_dataBase);
 
     querySQL(&query, QString("UPDATE %1 SET NAME = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sName), sUUID));
+#else
+    Q_UNUSED(sUUID)
+    Q_UNUSED(sName)
 #endif
 }
 #endif
@@ -4125,6 +4133,8 @@ qint64 XInfoDB::getShowRecordOffsetByAddress(XADDR nAddress)
     if (query.next()) {
         nResult = query.value(0).toLongLong();
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return nResult;
@@ -4141,6 +4151,8 @@ qint64 XInfoDB::getShowRecordPrevOffsetByAddress(XADDR nAddress)
     if (query.next()) {
         nResult = query.value(0).toLongLong();
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return nResult;
@@ -4212,6 +4224,8 @@ qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
     if (query.next()) {
         nResult = query.value(0).toLongLong();
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return nResult;
@@ -4229,6 +4243,9 @@ void XInfoDB::updateShowRecordLine(XADDR nAddress, qint64 nLine)
 
     querySQL(&query,
              QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nAddress)));
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nLine)
 #endif
 }
 
@@ -4288,6 +4305,8 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType)
 
         listResult.append(nAddress);
     }
+#else
+    Q_UNUSED(relType)
 #endif
     return listResult;
 }
@@ -4407,6 +4426,8 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
         result.nXrefToMemory = query.value(4).toULongLong();
         result.nMemorySize = query.value(5).toLongLong();
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return result;
@@ -4426,6 +4447,8 @@ bool XInfoDB::isAddressHasRefFrom(XADDR nAddress)
     if (query.next()) {
         bResult = true;
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return bResult;
@@ -4494,6 +4517,8 @@ XCapstone::DISASM_RESULT XInfoDB::dbToDisasm(XADDR nAddress)
     result.nXrefToMemory = relRecord.nXrefToMemory;
     result.nMemorySize = relRecord.nMemorySize;
     // TODO
+#else
+    Q_UNUSED(nAddress)
 #endif
     return result;
 }
@@ -4514,6 +4539,9 @@ bool XInfoDB::loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdS
 
     dataBase = QSqlDatabase();
     QSqlDatabase::removeDatabase("local_db");
+#else
+    Q_UNUSED(sDBFileName)
+    Q_UNUSED(pPdStruct)
 #endif
     return bResult;
 }
