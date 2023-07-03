@@ -2396,7 +2396,7 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
 void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
 {
 #ifdef QT_SQL_LIB
-    _addSymbol(nAddress, nModule, sSymbol); 
+    _addSymbol(nAddress, nModule, sSymbol);
 #else
     Q_UNUSED(nAddress)
     Q_UNUSED(nModule)
@@ -2465,19 +2465,19 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
     // For sorted g_listSymbols!
     qint32 nResult = -1;
 #ifndef QT_SQL_LIB
-//    qint32 nNumberOfRecords = g_listSymbols.count();
+    //    qint32 nNumberOfRecords = g_listSymbols.count();
 
-//    for (qint32 i = 0; i < nNumberOfRecords; i++) {
-//        if ((g_listSymbols.at(i).nAddress == nAddress) && (g_listSymbols.at(i).nSize == nSize) && (g_listSymbols.at(i).nModule == nModule)) {
-//            nResult = i;
+    //    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+    //        if ((g_listSymbols.at(i).nAddress == nAddress) && (g_listSymbols.at(i).nSize == nSize) && (g_listSymbols.at(i).nModule == nModule)) {
+    //            nResult = i;
 
-//            break;
-//        } else if (g_listSymbols.at(i).nAddress < nAddress) {
-//            *pnInsertIndex = i;
+    //            break;
+    //        } else if (g_listSymbols.at(i).nAddress < nAddress) {
+    //            *pnInsertIndex = i;
 
-//            break;
-//        }
-//    }
+    //            break;
+    //        }
+    //    }
 
 #endif
     return nResult;
