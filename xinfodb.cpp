@@ -505,6 +505,9 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 #ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType)
 {
+    // TODO bptype
+    Q_UNUSED(bpType)
+
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -892,6 +895,8 @@ bool XInfoDB::suspendThread_Handle(X_HANDLE hThread)
     bool bResult = false;
 #ifdef Q_OS_WIN
     bResult = (SuspendThread(hThread) != ((DWORD)-1));
+#else
+    Q_UNUSED(hThread)
 #endif
 #ifdef QT_DEBUG
 //    qDebug("XInfoDB::suspendThread %X",hThread);
@@ -922,6 +927,8 @@ bool XInfoDB::resumeThread_Handle(X_HANDLE hThread)
     bool bResult = false;
 #ifdef Q_OS_WIN
     bResult = (ResumeThread(hThread) != ((DWORD)-1));
+#else
+    Q_UNUSED(hThread)
 #endif
 #ifdef QT_DEBUG
 //    qDebug("XInfoDB::resumeThread %X",hThread);
@@ -1060,6 +1067,9 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, const QString 
 
         result.sName = sName;
     }
+#else
+    Q_UNUSED(hThread)
+    Q_UNUSED(sName)
 #endif
 
     return result;
@@ -1360,6 +1370,8 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             emit registersListChanged();  // TODO mb hash
         }
     }
+#else
+    Q_UNUSED(regOptions)
 #endif
 }
 #endif
@@ -1483,6 +1495,10 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
 #endif
         }
     }
+#else
+    Q_UNUSED(hThread)
+    Q_UNUSED(reg)
+    Q_UNUSED(variant)
 #endif
     return bResult;
 }
@@ -1715,6 +1731,8 @@ XADDR XInfoDB::getCurrentInstructionPointer_Handle(X_HANDLE hThread)
         nResult = context.Rip;
 #endif
     }
+#else
+    Q_UNUSED(hThread)
 #endif
     return nResult;
 }
@@ -1756,6 +1774,9 @@ bool XInfoDB::setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue)
             bResult = true;
         }
     }
+#else
+    Q_UNUSED(hThread)
+    Q_UNUSED(nValue)
 #endif
     return bResult;
 }
@@ -1783,6 +1804,7 @@ bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue)
 #ifdef USE_XPROCESS
 XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
 {
+    Q_UNUSED(hThread)
     XCapstone::OPCODE_ID result = {};
 
     // TODO
@@ -1793,6 +1815,7 @@ XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId)
 {
+    Q_UNUSED(nThreadId)
     XCapstone::OPCODE_ID result = {};
 
     // TODO
@@ -1816,6 +1839,8 @@ XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
         nResult = (quint64)(context.Rsp);
 #endif
     }
+#else
+    Q_UNUSED(hThread)
 #endif
 
     return nResult;
@@ -1824,6 +1849,7 @@ XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
 {
+    Q_UNUSED(nThreadId)
     XADDR nResult = 0;
 
     // TODO
@@ -1834,6 +1860,9 @@ XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
 #ifdef USE_XPROCESS
 bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue)
 {
+    Q_UNUSED(hThread)
+    Q_UNUSED(nValue)
+
     bool bResult = false;
 
     // TODO
@@ -2367,8 +2396,11 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
 void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
 {
 #ifdef QT_SQL_LIB
-    _addSymbol(nAddress, nModule, sSymbol);
+    _addSymbol(nAddress, nModule, sSymbol); 
 #else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nModule)
+    Q_UNUSED(sSymbol)
 //    qint32 nInsertIndex = 0;
 //    qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
@@ -2426,6 +2458,10 @@ void XInfoDB::_sortSymbols()
 
 qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
 {
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+    Q_UNUSED(nModule)
+    Q_UNUSED(pnInsertIndex)
     // For sorted g_listSymbols!
     qint32 nResult = -1;
 #ifndef QT_SQL_LIB
@@ -2442,6 +2478,7 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
 //            break;
 //        }
 //    }
+
 #endif
     return nResult;
 }
@@ -2459,6 +2496,9 @@ bool XInfoDB::_addExportSymbol(XADDR nAddress, const QString &sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(sSymbol)
 #endif
     return bResult;
 }
@@ -2476,6 +2516,9 @@ bool XInfoDB::_addImportSymbol(XADDR nAddress, const QString &sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(sSymbol)
 #endif
     return bResult;
 }
@@ -2493,6 +2536,9 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, const QString &sSymbol)
     query.bindValue(1, sSymbol);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(sSymbol)
 #endif
     return bResult;
 }
@@ -2568,6 +2614,8 @@ bool XInfoDB::isSymbolPresent(XADDR nAddress)
     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)));
 
     bResult = query.next();
+#else
+    Q_UNUSED(nAddress)
 #endif
     return bResult;
 }
@@ -3052,7 +3100,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
     QSet<XADDR> stEntries;
 
-    if (nStartAddress != -1) {
+    if (nStartAddress != (XADDR)-1) {
         stEntries.insert(nStartAddress);
     }
 
@@ -3082,7 +3130,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
         // Start of code section
         // mb optional
-        if (nStartAddress != -1) {
+        if (nStartAddress != (XADDR)-1) {
             XBinary::_MEMORY_RECORD memoryRecord = XBinary::getMemoryRecordByAddress(pMemoryMap, nStartAddress);
             stEntries.insert(memoryRecord.nAddress);
         }
@@ -3415,7 +3463,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
                         if (!_addSymbol(record.nAddress, 0, sSymbolName)) {
 #ifdef QT_DEBUG
-                            qDebug(XBinary::valueToHex(record.nAddress).toLatin1().data());
+                            qDebug("%s", XBinary::valueToHex(record.nAddress).toLatin1().data());
 #endif
                         }
                         // TODO ST_DATA_ANSISTRING
@@ -3573,6 +3621,12 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     g_pMutexSQL->unlock();
+#else
+    Q_UNUSED(pDevice)
+    Q_UNUSED(pMemoryMap)
+    Q_UNUSED(nStartAddress)
+    Q_UNUSED(bIsInit)
+    Q_UNUSED(pPdStruct)
 #endif
 }
 
@@ -3599,6 +3653,16 @@ bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const
     query.bindValue(8, nRefFrom);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nOffset)
+    Q_UNUSED(nSize)
+    Q_UNUSED(sRecText1)
+    Q_UNUSED(sRecText2)
+    Q_UNUSED(recordType)
+    Q_UNUSED(nLineNumber)
+    Q_UNUSED(nRefTo)
+    Q_UNUSED(nRefFrom)
 #endif
 
     return bResult;
@@ -3643,6 +3707,13 @@ bool XInfoDB::_addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nX
     query.bindValue(5, nMemorySize);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(relType)
+    Q_UNUSED(nXrefToRelative)
+    Q_UNUSED(memType)
+    Q_UNUSED(nXrefToMemory)
+    Q_UNUSED(nMemorySize)
 #endif
 
     return bResult;
@@ -3726,6 +3797,8 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
     QSqlQuery query(g_dataBase);
 
     bResult = querySQL(&query, QString("UPDATE %1 SET REFFROM=REFFROM+1 WHERE ADDRESS=%2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return bResult;
@@ -3742,6 +3815,9 @@ bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
                                    .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)));
 
     // TODO REMOVE XREFS
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
 #endif
 
     return bResult;
@@ -3749,6 +3825,9 @@ bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
 
 bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
 {
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+
     bool bResult = false;
 
 #ifdef QT_SQL_LIB
@@ -3774,6 +3853,10 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
     query.bindValue(2, sName);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+    Q_UNUSED(sName)
 #endif
 
     return bResult;
@@ -3798,6 +3881,12 @@ bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBack
     query.bindValue(5, sComment);
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(nLocation)
+    Q_UNUSED(nSize)
+    Q_UNUSED(colBackground)
+    Q_UNUSED(sName)
+    Q_UNUSED(sComment)
 #endif
 
     return bResult;
@@ -3814,6 +3903,8 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
     querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID));
 
     bResult = querySQL(&query);
+#else
+    Q_UNUSED(sUUID)
 #endif
 
     return bResult;
@@ -3870,6 +3961,9 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qi
 
         listResult.append(record);
     }
+#else
+    Q_UNUSED(nLocation)
+    Q_UNUSED(nSize)
 #endif
 
     return listResult;
@@ -3946,6 +4040,9 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
         result.nRefFrom = query.value(8).toULongLong();
     }
     g_pMutexSQL->unlock();
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(bAprox)
 #endif
 
     return result;
@@ -3974,7 +4071,8 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return result;
@@ -4003,7 +4101,8 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nAddress)
 #endif
 
     return result;
@@ -4032,7 +4131,8 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nOffset)
 #endif
 
     return result;
@@ -4061,7 +4161,8 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nOffset)
 #endif
 
     return result;
@@ -4089,7 +4190,8 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByLine(qint64 nNumber)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nNumber)
 #endif
 
     return result;
@@ -4116,7 +4218,8 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
         result.nRefTo = query.value(7).toULongLong();
         result.nRefFrom = query.value(8).toULongLong();
     }
-
+#else
+    Q_UNUSED(nOffset)
 #endif
 
     return result;
@@ -4174,6 +4277,8 @@ XADDR XInfoDB::getShowRecordAddressByOffset(qint64 nOffset)
     if (query.next()) {
         nResult = query.value(0).toULongLong();
     }
+#else
+    Q_UNUSED(nOffset)
 #endif
 
     return nResult;
@@ -4190,6 +4295,8 @@ XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
     if (query.next()) {
         nResult = query.value(0).toULongLong();
     }
+#else
+    Q_UNUSED(nLine)
 #endif
 
     return nResult;
