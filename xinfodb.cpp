@@ -99,6 +99,8 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
 
     initHexDb();
     initDisasmDb();  // TODO Check
+
+    //reloadView();
 }
 
 QIODevice *XInfoDB::getDevice()
@@ -117,17 +119,19 @@ void XInfoDB::initDB()
 
     g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
-#ifndef QT_DEBUG
     g_dataBase.setDatabaseName(":memory:");
-#else
-#ifdef Q_OS_WIN
-    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+
+//#ifndef QT_DEBUG
 //    g_dataBase.setDatabaseName(":memory:");
-#else
-    g_dataBase.setDatabaseName(":memory:");
-#endif
+//#else
+//#ifdef Q_OS_WIN
+//    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+////    g_dataBase.setDatabaseName(":memory:");
+//#else
 //    g_dataBase.setDatabaseName(":memory:");
-#endif
+//#endif
+////    g_dataBase.setDatabaseName(":memory:");
+//#endif
 
     if (g_dataBase.open()) {
         g_dataBase.exec("PRAGMA synchronous = OFF");
@@ -4779,12 +4783,53 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
                                    .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
-                queryWrite.bindValue(0, queryRead.value(0).toString());
-                queryWrite.bindValue(1, queryRead.value(1).toULongLong());
-                queryWrite.bindValue(2, queryRead.value(2).toULongLong());
-                queryWrite.bindValue(3, queryRead.value(3).toString());
-                queryWrite.bindValue(4, queryRead.value(4).toString());
-                queryWrite.bindValue(5, queryRead.value(5).toString());
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+                queryWrite.bindValue(2, queryRead.value(2));
+                queryWrite.bindValue(3, queryRead.value(3));
+                queryWrite.bindValue(4, queryRead.value(4));
+                queryWrite.bindValue(5, queryRead.value(5));
+
+                querySQL(&queryWrite);
+            }
+
+            pDatabaseDest->commit();
+        }
+    }    
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_SYMBOLS
+        if (isTablePresent(pDatabaseSource, DBTABLE_SYMBOLS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_SYMBOLS);
+            createTable(pDatabaseDest, DBTABLE_SYMBOLS);
+
+            pDatabaseDest->commit();
+        }
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // DBTABLE_SHOWRECORDS
+        if (isTablePresent(pDatabaseSource, DBTABLE_SHOWRECORDS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
+            createTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
+
+            querySQL(&queryRead, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
+                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+                queryWrite.bindValue(2, queryRead.value(2));
+                queryWrite.bindValue(3, queryRead.value(3));
+                queryWrite.bindValue(4, queryRead.value(4));
+                queryWrite.bindValue(5, queryRead.value(5));
+                queryWrite.bindValue(4, queryRead.value(6));
+                queryWrite.bindValue(5, queryRead.value(7));
 
                 querySQL(&queryWrite);
             }
@@ -4794,66 +4839,59 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
     }
 
     if (!(pPdStruct->bIsStop)) {
-        // DBTABLE_SYMBOLS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
-    }
-
-    if (!(pPdStruct->bIsStop)) {
-        // DBTABLE_SHOWRECORDS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
-    }
-
-    if (!(pPdStruct->bIsStop)) {
         // DBTABLE_RELATIVS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_RELATIVS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_RELATIVS);
+            createTable(pDatabaseDest, DBTABLE_RELATIVS);
+
+            pDatabaseDest->commit();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_IMPORT
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_IMPORT)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_IMPORT);
+            createTable(pDatabaseDest, DBTABLE_IMPORT);
+
+            pDatabaseDest->commit();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_EXPORT
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_EXPORT)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_EXPORT);
+            createTable(pDatabaseDest, DBTABLE_EXPORT);
+
+            pDatabaseDest->commit();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_TLS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_TLS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_TLS);
+            createTable(pDatabaseDest, DBTABLE_TLS);
+
+            pDatabaseDest->commit();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_FUNCTIONS
-        pDatabaseDest->transaction();
-        pDatabaseDest->commit();
+        if (isTablePresent(pDatabaseSource, DBTABLE_FUNCTIONS)) {
+            pDatabaseDest->transaction();
+            removeTable(pDatabaseDest, DBTABLE_FUNCTIONS);
+            createTable(pDatabaseDest, DBTABLE_FUNCTIONS);
+
+            pDatabaseDest->commit();
+        }
     }
-
-    //    if (!(pPdStruct->bIsStop)) {
-    //        pDatabaseDest->transaction();
-
-    //        querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1)").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
-
-    //        queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
-    //                                   "VALUES (?, ?, ?)")
-    //                               .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
-
-    //        while (queryRead.next() && (!(pPdStruct->bIsStop))) {
-    //            queryWrite.bindValue(0, queryRead.value(0).toULongLong());
-    //            queryWrite.bindValue(1, queryRead.value(1).toULongLong());
-    //            queryWrite.bindValue(2, queryRead.value(2).toString());
-
-    //            querySQL(&queryWrite);
-    //        }
-
-    //        pDatabaseDest->commit();
-    //    }
 
     if (!(pPdStruct->bIsStop)) {
         bResult = querySQL(&queryWrite, QString("VACUUM"));

@@ -30,6 +30,7 @@ XInfoMenu::XInfoMenu()
     g_pActionClear = nullptr;
     g_pXInfoDB = nullptr;
     g_bIsDatabasePresent = false;
+    g_bIsDataBaseInit = false;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
@@ -79,8 +80,9 @@ void XInfoMenu::updateMenu()
     if (g_pXInfoDB) {
         bool bIsDatabasePresent = g_pXInfoDB->isDbPresent();
 
-        if (g_bIsDatabasePresent != bIsDatabasePresent) {
+        if ((g_bIsDatabasePresent != bIsDatabasePresent) || (!g_bIsDataBaseInit)) {
             g_bIsDatabasePresent = bIsDatabasePresent;
+            g_bIsDataBaseInit = true;
 
             g_pActionExport->setEnabled(bIsDatabasePresent);
             g_pActionImport->setEnabled(!bIsDatabasePresent);
@@ -88,6 +90,7 @@ void XInfoMenu::updateMenu()
         }
         //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
     } else {
+        g_bIsDataBaseInit = false;
         g_pActionExport->setEnabled(false);
         g_pActionImport->setEnabled(false);
         g_pActionClear->setEnabled(false);
@@ -142,7 +145,12 @@ void XInfoMenu::actionClear()
 {
     if (g_pXInfoDB) {
         if (QMessageBox::question(g_pParent, tr("Database"), tr("Are you sure?")) == QMessageBox::Yes) {
-            g_pXInfoDB->removeAllTables();
+            DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+            XInfoDBTransfer::OPTIONS options = {};
+
+            dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_CLEAR, options);
+
+            dialogTransfer.showDialogDelay();
             g_pXInfoDB->reloadView();
         }
     }
