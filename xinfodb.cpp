@@ -4697,7 +4697,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 #endif
     return bResult;
 }
-
+#ifdef USE_XPROCESS
 QString XInfoDB::threadStatusToString(THREAD_STATUS threadStatus)
 {
     QString sResult = tr("Unknown");
@@ -4710,6 +4710,7 @@ QString XInfoDB::threadStatusToString(THREAD_STATUS threadStatus)
 
     return sResult;
 }
+#endif
 #ifdef QT_SQL_LIB
 bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, const QString &sSQL)
 {

@@ -674,9 +674,9 @@ public:
 
     bool loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
-
+#ifdef USE_XPROCESS
     static QString threadStatusToString(THREAD_STATUS threadStatus);
-
+#endif
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL);
     bool querySQL(QSqlQuery *pSqlQuery);
