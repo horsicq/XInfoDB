@@ -47,6 +47,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_bIsDebugger = false;
     g_disasmMode = XBinary::DM_UNKNOWN;
     g_pMutexSQL = new QMutex;
+    g_pMutexThread = new QMutex;
 }
 
 XInfoDB::~XInfoDB()
@@ -63,6 +64,7 @@ XInfoDB::~XInfoDB()
     }
 #endif
     delete g_pMutexSQL;
+    delete g_pMutexThread;
 }
 
 void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode)
@@ -989,6 +991,8 @@ bool XInfoDB::suspendAllThreads()
 {
     bool bResult = false;
 
+    g_pMutexThread->lock();
+
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
 
     qint32 nCount = pListThreads->count();
@@ -996,7 +1000,11 @@ bool XInfoDB::suspendAllThreads()
     // TODO Check if already suspended
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        suspendThread_Handle(pListThreads->at(i).hThread);  // TODO Handle errors
+        if (pListThreads->at(i).threadStatus == THREAD_STATUS_RUNNING) {
+            if (suspendThread_Handle(pListThreads->at(i).hThread)) {
+                setThreadStatus(pListThreads->at(i).nThreadID, THREAD_STATUS_PAUSED);
+            }
+        }
 #endif
 #ifdef Q_OS_LINUX
         if (syscall(SYS_tgkill, g_processInfo.nProcessID, pListThreads->at(i).nThreadID, SIGSTOP) != -1) {
@@ -1013,6 +1021,8 @@ bool XInfoDB::suspendAllThreads()
         bResult = true;
     }
 
+    g_pMutexThread->unlock();
+
     return bResult;
 }
 #endif
@@ -1021,6 +1031,8 @@ bool XInfoDB::resumeAllThreads()
 {
     bool bResult = false;
 
+    g_pMutexThread->lock();
+
     QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
 
     qint32 nCount = pListThreads->count();
@@ -1028,7 +1040,11 @@ bool XInfoDB::resumeAllThreads()
     // Resume all other threads
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        resumeThread_Handle(pListThreads->at(i).hThread);
+        if (pListThreads->at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (resumeThread_Handle(pListThreads->at(i).hThread)) {
+                setThreadStatus(pListThreads->at(i).nThreadID, THREAD_STATUS_RUNNING);
+            }
+        }
 #endif
 #ifdef Q_OS_LINUX
         // TODO
@@ -1037,6 +1053,8 @@ bool XInfoDB::resumeAllThreads()
 
         bResult = true;
     }
+
+    g_pMutexThread->unlock();
 
     return bResult;
 }
@@ -4679,6 +4697,19 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 #endif
     return bResult;
 }
+
+QString XInfoDB::threadStatusToString(THREAD_STATUS threadStatus)
+{
+    QString sResult = tr("Unknown");
+
+    if (threadStatus == THREAD_STATUS_PAUSED) {
+        sResult = tr("Paused");
+    } else if (threadStatus == THREAD_STATUS_RUNNING) {
+        sResult = tr("Running");
+    }
+
+    return sResult;
+}
 #ifdef QT_SQL_LIB
 bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, const QString &sSQL)
 {
@@ -4804,6 +4835,20 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_SYMBOLS);
             createTable(pDatabaseDest, DBTABLE_SYMBOLS);
 
+            querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
+                                       "VALUES (?, ?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+                queryWrite.bindValue(2, queryRead.value(2));
+
+                querySQL(&queryWrite);
+            }
+
             pDatabaseDest->commit();
         }
     }
@@ -4845,6 +4890,23 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_RELATIVS);
             createTable(pDatabaseDest, DBTABLE_RELATIVS);
 
+            querySQL(&queryRead, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
+                                       "VALUES (?, ?, ?, ?, ?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+                queryWrite.bindValue(2, queryRead.value(2));
+                queryWrite.bindValue(3, queryRead.value(3));
+                queryWrite.bindValue(4, queryRead.value(4));
+                queryWrite.bindValue(5, queryRead.value(5));
+
+                querySQL(&queryWrite);
+            }
+
             pDatabaseDest->commit();
         }
     }
@@ -4855,6 +4917,19 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             pDatabaseDest->transaction();
             removeTable(pDatabaseDest, DBTABLE_IMPORT);
             createTable(pDatabaseDest, DBTABLE_IMPORT);
+
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+                                       "VALUES (?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_IMPORT]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+
+                querySQL(&queryWrite);
+            }
 
             pDatabaseDest->commit();
         }
@@ -4867,6 +4942,19 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_EXPORT);
             createTable(pDatabaseDest, DBTABLE_EXPORT);
 
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+                                       "VALUES (?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_EXPORT]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+
+                querySQL(&queryWrite);
+            }
+
             pDatabaseDest->commit();
         }
     }
@@ -4878,6 +4966,19 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_TLS);
             createTable(pDatabaseDest, DBTABLE_TLS);
 
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_TLS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+                                       "VALUES (?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_TLS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+
+                querySQL(&queryWrite);
+            }
+
             pDatabaseDest->commit();
         }
     }
@@ -4888,6 +4989,20 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             pDatabaseDest->transaction();
             removeTable(pDatabaseDest, DBTABLE_FUNCTIONS);
             createTable(pDatabaseDest, DBTABLE_FUNCTIONS);
+
+            querySQL(&queryRead, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) "
+                                       "VALUES (?, ?, ?)")
+                                   .arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+
+            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
+                queryWrite.bindValue(0, queryRead.value(0));
+                queryWrite.bindValue(1, queryRead.value(1));
+                queryWrite.bindValue(2, queryRead.value(2));
+
+                querySQL(&queryWrite);
+            }
 
             pDatabaseDest->commit();
         }

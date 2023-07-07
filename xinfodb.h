@@ -461,8 +461,8 @@ public:
     bool suspendThread_Handle(X_HANDLE hThread);
     bool resumeThread_Id(X_ID nThreadId);
     bool resumeThread_Handle(X_HANDLE hThread);
-    bool suspendOtherThreads(X_ID nThreadId);
-    bool resumeOtherThreads(X_ID nThreadId);
+    bool suspendOtherThreads(X_ID nThreadId); // TODO Check
+    bool resumeOtherThreads(X_ID nThreadId); // TODO Check
     bool suspendAllThreads();
     bool resumeAllThreads();
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, const QString &sName);
@@ -675,6 +675,8 @@ public:
     bool loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
+    static QString threadStatusToString(THREAD_STATUS threadStatus);
+
 #ifdef QT_SQL_LIB
     bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL);
     bool querySQL(QSqlQuery *pSqlQuery);
@@ -763,6 +765,7 @@ private:
     QString g_sMainModuleName;
     QMap<quint32, QMutex *> g_mapIds;
     QMutex *g_pMutexSQL;
+    QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
     QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
