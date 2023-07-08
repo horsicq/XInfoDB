@@ -461,8 +461,8 @@ public:
     bool suspendThread_Handle(X_HANDLE hThread);
     bool resumeThread_Id(X_ID nThreadId);
     bool resumeThread_Handle(X_HANDLE hThread);
-    bool suspendOtherThreads(X_ID nThreadId); // TODO Check
-    bool resumeOtherThreads(X_ID nThreadId); // TODO Check
+    bool suspendOtherThreads(X_ID nThreadId);  // TODO Check
+    bool resumeOtherThreads(X_ID nThreadId);   // TODO Check
     bool suspendAllThreads();
     bool resumeAllThreads();
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, const QString &sName);

@@ -102,7 +102,7 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
     initHexDb();
     initDisasmDb();  // TODO Check
 
-    //reloadView();
+    // reloadView();
 }
 
 QIODevice *XInfoDB::getDevice()
@@ -123,17 +123,17 @@ void XInfoDB::initDB()
 
     g_dataBase.setDatabaseName(":memory:");
 
-//#ifndef QT_DEBUG
-//    g_dataBase.setDatabaseName(":memory:");
-//#else
-//#ifdef Q_OS_WIN
-//    g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
-////    g_dataBase.setDatabaseName(":memory:");
-//#else
-//    g_dataBase.setDatabaseName(":memory:");
-//#endif
-////    g_dataBase.setDatabaseName(":memory:");
-//#endif
+    // #ifndef QT_DEBUG
+    //     g_dataBase.setDatabaseName(":memory:");
+    // #else
+    // #ifdef Q_OS_WIN
+    //     g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+    ////    g_dataBase.setDatabaseName(":memory:");
+    // #else
+    //     g_dataBase.setDatabaseName(":memory:");
+    // #endif
+    ////    g_dataBase.setDatabaseName(":memory:");
+    // #endif
 
     if (g_dataBase.open()) {
         g_dataBase.exec("PRAGMA synchronous = OFF");
@@ -4827,7 +4827,7 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
             pDatabaseDest->commit();
         }
-    }    
+    }
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_SYMBOLS
@@ -4861,7 +4861,8 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
             createTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+            querySQL(&queryRead,
+                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
