@@ -2226,6 +2226,20 @@ XInfoDB::XREG XInfoDB::getSubReg8L(XREG reg)
     return result;
 }
 #endif
+#ifdef USE_XPROCESS
+char *XInfoDB::allocateStringMemory(const QString &sFileName)
+{
+    char *pResult = nullptr;
+
+    qint32 nSize = sFileName.length();
+
+    pResult = new char[nSize + 1];
+    XBinary::_zeroMemory(pResult, nSize + 1);
+    XBinary::_copyMemory(pResult, sFileName.toUtf8().data(), nSize);
+
+    return pResult;
+}
+#endif
 XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
 {
     RECORD_INFO result = {};

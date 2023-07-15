@@ -498,6 +498,8 @@ public:
     static XREG getSubReg16(XREG reg);
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
+
+    char *allocateStringMemory(const QString &sFileName);
 #endif
     struct XSTRING {
         QString sAnsiString;
