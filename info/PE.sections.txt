@@ -283,6 +283,7 @@
 .yzpack|packer|YZPack
 ANAKIN2K|protector|PE-SHiELD
 ANDpakk2|packer|ANDpakk2
+ASMGUARD|protector|ASM Guard
 ASPack|packer|Aspack
 AUTO|demo|
 AZPR0001|protector|AZProtect
