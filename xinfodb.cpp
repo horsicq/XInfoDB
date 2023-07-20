@@ -1474,7 +1474,8 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
 
     if (GetThreadContext(hThread, &context)) {
         bool bUnknownRegister = false;
-
+#ifdef Q_PROCESSOR_X86
+        // TODO flags
 #ifdef Q_PROCESSOR_X86_32
         if (reg == XREG_EAX) context.Eax = variant.var.v_uint32;
         else if (reg == XREG_EBX) context.Ebx = variant.var.v_uint32;
@@ -1503,7 +1504,14 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_R13) context.R13 = variant.var.v_uint64;
         else if (reg == XREG_R14) context.R14 = variant.var.v_uint64;
         else if (reg == XREG_R15) context.R15 = variant.var.v_uint64;
+        else if (reg == XREG_EFLAGS) context.EFlags = variant.var.v_uint64;
+        else if (reg == XREG_RIP) context.Rip = variant.var.v_uint64;
+        else if ((reg == XInfoDB::XREG_CF) || (reg == XInfoDB::XREG_PF) || (reg == XInfoDB::XREG_AF) || (reg == XInfoDB::XREG_ZF) || (reg == XInfoDB::XREG_SF) ||
+                (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
+            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint64;
+        }
         else bUnknownRegister = true;
+#endif
 #endif
         // TODO more
 
@@ -1537,8 +1545,15 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
 
     if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
         bool bUnknownRegister = false;
+#ifdef Q_PROCESSOR_X86
+        if (reg == XREG_CS) regs.gs = variant.var.v_uint16;
+        else if (reg == XREG_DS) regs.ds = variant.var.v_uint16;
+        else if (reg == XREG_ES) regs.es = variant.var.v_uint16;
+        else if (reg == XREG_FS) regs.fs = variant.var.v_uint16;
+        else if (reg == XREG_GS) regs.gs = variant.var.v_uint16;
+        else if (reg == XREG_SS) regs.ss = variant.var.v_uint16;
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_RAX) regs.rax = variant.var.v_uint64;
+        else if (reg == XREG_RAX) regs.rax = variant.var.v_uint64;
         else if (reg == XREG_RBX) regs.rbx = variant.var.v_uint64;
         else if (reg == XREG_RCX) regs.rcx = variant.var.v_uint64;
         else if (reg == XREG_RDX) regs.rdx = variant.var.v_uint64;
@@ -1554,7 +1569,10 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
         else if (reg == XREG_R13) regs.r13 = variant.var.v_uint64;
         else if (reg == XREG_R14) regs.r14 = variant.var.v_uint64;
         else if (reg == XREG_R15) regs.r15 = variant.var.v_uint64;
+        else if (reg == XREG_RIP) regs.rip = variant.var.v_uint64;
+        else if (reg == XREG_EFLAGS) regs.eflags = variant.var.v_uint64;
         else bUnknownRegister = true;
+#endif
 #endif
 
         if (!bUnknownRegister) {
@@ -5158,6 +5176,29 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 
     if (result.mode != XBinary::MODE_UNKNOWN) {
 #ifdef Q_PROCESSOR_X86
+        if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) || (reg == XREG_DF) ||
+            (reg == XREG_OF)) {
+            result = getFlagFromReg(result, reg);
+        }
+#endif
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant)
+{
+    // mb TODO handle flags
+    pMapRegs->insert(reg, variant);
+}
+#endif
+#ifdef USE_XPROCESS
+XBinary::XVARIANT XInfoDB::getFlagFromReg(XBinary::XVARIANT variant, XREG reg)
+{
+    XBinary::XVARIANT result = variant;
+
+    if (variant.mode == XBinary::MODE_32) {
         if (reg == XREG_CF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0001));
         else if (reg == XREG_PF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0004));
         else if (reg == XREG_AF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0010));
@@ -5167,15 +5208,49 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
         else if (reg == XREG_IF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0200));
         else if (reg == XREG_DF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0400));
         else if (reg == XREG_OF) result = XBinary::getXVariant(bool((result.var.v_uint32) & 0x0800));
-#endif
+    } else if (variant.mode == XBinary::MODE_64) {
+        if (reg == XREG_CF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0001));
+        else if (reg == XREG_PF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0004));
+        else if (reg == XREG_AF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0010));
+        else if (reg == XREG_ZF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0040));
+        else if (reg == XREG_SF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0080));
+        else if (reg == XREG_TF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0100));
+        else if (reg == XREG_IF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0200));
+        else if (reg == XREG_DF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0400));
+        else if (reg == XREG_OF) result = XBinary::getXVariant(bool((result.var.v_uint64) & 0x0800));
     }
 
     return result;
 }
-#ifdef USE_XPROCESS
 #endif
-void XInfoDB::_setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant)
+#ifdef USE_XPROCESS
+XBinary::XVARIANT XInfoDB::setFlagToReg(XBinary::XVARIANT variant, XREG reg, bool bValue)
 {
-    pMapRegs->insert(reg, variant);
+    // TODO setBit in Xbinary
+    XBinary::XVARIANT result = variant;
+
+    if (variant.mode == XBinary::MODE_32) {
+        if (reg == XREG_CF) result.var.v_uint32 | 0x0001;
+        else if (reg == XREG_PF) result.var.v_uint32 | 0x0004;
+        else if (reg == XREG_AF) result.var.v_uint32 | 0x0010;
+        else if (reg == XREG_ZF) result.var.v_uint32 | 0x0040;
+        else if (reg == XREG_SF) result.var.v_uint32 | 0x0080;
+        else if (reg == XREG_TF) result.var.v_uint32 | 0x0100;
+        else if (reg == XREG_IF) result.var.v_uint32 | 0x0200;
+        else if (reg == XREG_DF) result.var.v_uint32 | 0x0400;
+        else if (reg == XREG_OF) result.var.v_uint32 | 0x0800;
+    } else if (variant.mode == XBinary::MODE_64) {
+        if (reg == XREG_CF) result.var.v_uint64 | 0x0001;
+        else if (reg == XREG_PF) result.var.v_uint64 | 0x0004;
+        else if (reg == XREG_AF) result.var.v_uint64 | 0x0010;
+        else if (reg == XREG_ZF) result.var.v_uint64 | 0x0040;
+        else if (reg == XREG_SF) result.var.v_uint64 | 0x0080;
+        else if (reg == XREG_TF) result.var.v_uint64 | 0x0100;
+        else if (reg == XREG_IF) result.var.v_uint64 | 0x0200;
+        else if (reg == XREG_DF) result.var.v_uint64 | 0x0400;
+        else if (reg == XREG_OF) result.var.v_uint64 | 0x0800;
+    }
+
+    return result;
 }
 #endif

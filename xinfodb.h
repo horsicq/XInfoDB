@@ -499,7 +499,7 @@ public:
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
 
-    char *allocateStringMemory(const QString &sFileName);
+    static char *allocateStringMemory(const QString &sFileName);
 #endif
     struct XSTRING {
         QString sAnsiString;
@@ -728,6 +728,8 @@ private:
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
+    static XBinary::XVARIANT getFlagFromReg(XBinary::XVARIANT variant, XREG reg);
+    static XBinary::XVARIANT setFlagToReg(XBinary::XVARIANT variant, XREG reg, bool bValue);
 #endif
 private:
 #ifdef USE_XPROCESS
