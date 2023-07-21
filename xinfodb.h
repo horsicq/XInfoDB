@@ -60,6 +60,20 @@ public:
 #endif
     };
 
+#ifdef Q_PROCESSOR_X86
+    enum RFLAGS_BIT {
+        RFLAGS_BIT_CF = 0,
+        RFLAGS_BIT_PF = 2,
+        RFLAGS_BIT_AF = 4,
+        RFLAGS_BIT_ZF = 6,
+        RFLAGS_BIT_SF = 7,
+        RFLAGS_BIT_TF = 8,
+        RFLAGS_BIT_IF = 9,
+        RFLAGS_BIT_DF = 10,
+        RFLAGS_BIT_OF = 11
+    };
+#endif
+
     enum XREG {
         XREG_UNKNOWN = 0,
         XREG_NONE,
@@ -500,6 +514,8 @@ public:
     static XREG getSubReg8L(XREG reg);
 
     static char *allocateStringMemory(const QString &sFileName);
+    static XBinary::XVARIANT getFlagFromReg(XBinary::XVARIANT variant, XREG reg);
+    static XBinary::XVARIANT setFlagToReg(XBinary::XVARIANT variant, XREG reg, bool bValue);
 #endif
     struct XSTRING {
         QString sAnsiString;
@@ -728,8 +744,6 @@ private:
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
-    static XBinary::XVARIANT getFlagFromReg(XBinary::XVARIANT variant, XREG reg);
-    static XBinary::XVARIANT setFlagToReg(XBinary::XVARIANT variant, XREG reg, bool bValue);
 #endif
 private:
 #ifdef USE_XPROCESS
