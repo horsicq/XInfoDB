@@ -490,7 +490,6 @@ public:
     bool setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant);
     bool setCurrentReg(XREG reg, XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
-
     XADDR getCurrentStackPointerCache();
     XADDR getCurrentInstructionPointerCache();
 
