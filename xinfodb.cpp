@@ -1488,10 +1488,9 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_EFLAGS) context.EFlags = variant.var.v_uint32;
         else if (reg == XREG_EIP) context.Eip = variant.var.v_uint32;
         else if ((reg == XInfoDB::XREG_CF) || (reg == XInfoDB::XREG_PF) || (reg == XInfoDB::XREG_AF) || (reg == XInfoDB::XREG_ZF) || (reg == XInfoDB::XREG_SF) ||
-                (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
+                 (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
             context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint32;
-        }
-        else bUnknownRegister = true;
+        } else bUnknownRegister = true;
 #endif
 #ifdef Q_PROCESSOR_X86_64
         if (reg == XREG_RAX) context.Rax = variant.var.v_uint64;
@@ -1513,10 +1512,9 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_RFLAGS) context.EFlags = variant.var.v_uint64;
         else if (reg == XREG_RIP) context.Rip = variant.var.v_uint64;
         else if ((reg == XInfoDB::XREG_CF) || (reg == XInfoDB::XREG_PF) || (reg == XInfoDB::XREG_AF) || (reg == XInfoDB::XREG_ZF) || (reg == XInfoDB::XREG_SF) ||
-                (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
+                 (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
             context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint64;
-        }
-        else bUnknownRegister = true;
+        } else bUnknownRegister = true;
 #endif
 #endif
         // TODO more
@@ -5194,8 +5192,8 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs,
 
     if (result.mode != XBinary::MODE_UNKNOWN) {
 #ifdef Q_PROCESSOR_X86
-        if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) || (reg == XREG_DF) ||
-            (reg == XREG_OF)) {
+        if ((reg == XREG_CF) || (reg == XREG_PF) || (reg == XREG_AF) || (reg == XREG_ZF) || (reg == XREG_SF) || (reg == XREG_TF) || (reg == XREG_IF) ||
+            (reg == XREG_DF) || (reg == XREG_OF)) {
             result = getFlagFromReg(result, reg);
         }
 #endif
