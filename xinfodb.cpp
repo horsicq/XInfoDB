@@ -1926,6 +1926,18 @@ bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue)
     return bResult;
 }
 #endif
+#ifdef USE_XPROCESS
+bool XInfoDB::isAddressValid(XADDR nAddress)
+{
+    bool bResult = false;
+
+    if (XProcess::getMemoryRegionByAddress(&g_statusCurrent.listMemoryRegions, nAddress).nSize != 0) {
+        bResult = true;
+    }
+
+    return bResult;
+}
+#endif
 // #ifdef USE_XPROCESS
 //  void XInfoDB::_lockId(quint32 nId)
 //{

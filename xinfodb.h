@@ -505,6 +505,8 @@ public:
     XADDR getCurrentStackPointer_Id(X_ID nThreadId);
     bool setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue);
 
+    bool isAddressValid(XADDR nAddress);
+
     static QString regIdToString(XREG reg);
 
     static XREG getSubReg32(XREG reg);
@@ -735,11 +737,11 @@ private:
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
-        QList<XProcess::MEMORY_REGION> listMemoryRegions;
+        QList<XProcess::MEMORY_REGION> listMemoryRegions; // TODO prev
         quint32 nModulesHash;
+        QList<XProcess::MODULE> listModules; // TODO prev
         quint32 nThreadsHash;
-        QList<XProcess::MODULE> listModules;
-        QList<XProcess::THREAD_INFO> listThreads;
+        QList<XProcess::THREAD_INFO> listThreads; // TODO prev
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
