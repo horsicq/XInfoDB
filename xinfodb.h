@@ -346,6 +346,7 @@ public:
 #ifdef QT_SQL_LIB
     enum DBTABLE {
         DBTABLE_BOOKMARKS = 0,
+        DBTABLE_COMMENTS,
         DBTABLE_SHOWRECORDS,
         DBTABLE_RELATIVS,
         DBTABLE_IMPORT,
@@ -554,7 +555,8 @@ public:
     enum RT {
         RT_UNKNOWN = 0,
         RT_CODE,
-        RT_DATA
+        RT_DATA,
+        RT_VIRTUAL
     };
 
     struct SYMBOL {
@@ -568,10 +570,7 @@ public:
         XADDR nAddress;
         qint64 nOffset;
         qint64 nSize;
-        QString sRecText1;
-        QString sRecText2;
         RT recordType;
-        quint64 nLineNumber;
         quint64 nRefTo;
         quint64 nRefFrom;
     };
@@ -590,10 +589,13 @@ public:
         quint64 nLocation;
         qint64 nSize;
         QColor colBackground;
-        QString sName;
         QString sComment;
     };
 #endif
+    struct COMMENTRECORD {
+        quint64 nLocation;
+        QString sComment;
+    };
 
     bool isSymbolsPresent();
     QList<SYMBOL> getAllSymbols();
@@ -634,8 +636,7 @@ public:
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);  // TODO options
-    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, const QString &sRecText1, const QString &sRecText2, RT recordType, qint64 nLineNumber,
-                        quint64 nRefTo, quint64 nRefFrom);
+    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, RT recordType, quint64 nRefTo, quint64 nRefFrom);
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
 #ifdef QT_SQL_LIB
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
@@ -648,13 +649,13 @@ public:
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sName, const QString &sComment);  // mb TODO return UUID
+    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
-    void updateBookmarkRecordName(const QString &sUUID, const QString &sName);
+    void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
 #endif
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bAprox = false);
@@ -662,7 +663,6 @@ public:
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);
     SHOWRECORD getPrevShowRecordByOffset(qint64 nOffset);
-    SHOWRECORD getShowRecordByLine(qint64 nLine);
     SHOWRECORD getShowRecordByOffset(qint64 nOffset);
     qint64 getShowRecordOffsetByAddress(XADDR nAddress);
     qint64 getShowRecordPrevOffsetByAddress(XADDR nAddress);
@@ -687,9 +687,6 @@ public:
     bool isAddressHasRefFrom(XADDR nAddress);
 
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
-
-    void disasmToDb(qint64 nOffset, XCapstone::DISASM_RESULT disasmResult);
-    XCapstone::DISASM_RESULT dbToDisasm(XADDR nAddress);
 
     bool loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
