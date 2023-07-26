@@ -1340,6 +1340,12 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             }
 
             if (regOptions.bFloat) {
+#if defined(Q_PROCESSOR_X86_32)
+//                for (qint32 i = 0; i < 8; i++) {
+//                    g_statusCurrent.mapRegs.insert(
+//                        XREG(XREG_ST0 + i), XBinary::getXVariant((quint64)(context.FloatSave.RegisterArea), (quint64)(context.FloatSave.FloatRegisters[i].High)));
+//                }
+#endif
 #if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 8; i++) {
                     g_statusCurrent.mapRegs.insert(
@@ -1349,6 +1355,9 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions)
             }
 
             if (regOptions.bXMM) {
+#if defined(Q_PROCESSOR_X86_32)
+                // TODO
+#endif
 #if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 16; i++) {
                     g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i),
