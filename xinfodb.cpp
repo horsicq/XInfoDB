@@ -2845,6 +2845,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
         querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                                  "UUID TEXT PRIMARY KEY,"
                                  "LOCATION INTEGER,"
+                                 "LOCTYPE INTEGER,"
                                  "SIZE INTEGER,"
                                  "COLBACKGROUND TEXT,"
                                  "COMMENT TEXT"
@@ -3530,6 +3531,10 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 //                    sVarName = "qword";
 //                }
 
+                if (record.nSize == 0) {
+                    record.nSize = 1;
+                }
+
                 bool bAdd = false;
 
                 if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
@@ -3948,29 +3953,31 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
     return bResult;
 }
 #ifdef QT_GUI_LIB
-bool XInfoDB::_addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sComment)
+bool XInfoDB::_addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment)
 {
     bool bResult = false;
 
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (UUID, LOCATION, SIZE, COLBACKGROUND, COMMENT) "
-                          "VALUES (?, ?, ?, ?, ?)")
+    query.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLBACKGROUND, COMMENT) "
+                          "VALUES (?, ?, ?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
 
     query.bindValue(0, XBinary::generateUUID());
     query.bindValue(1, nLocation);
-    query.bindValue(2, nSize);
-    query.bindValue(3, colorToString(colBackground));
-    query.bindValue(4, sComment);
+    query.bindValue(2, locationType);
+    query.bindValue(3, nSize);
+    query.bindValue(4, colorToString(colBackground));
+    query.bindValue(5, sComment);
 
     bResult = querySQL(&query);
 #else
     Q_UNUSED(nLocation)
+    Q_UNUSED(locationType)
     Q_UNUSED(nSize)
     Q_UNUSED(colBackground)
-    Q_UNUSED(sName)
+    Q_UNUSED(sComment)
 #endif
 
     return bResult;
@@ -4001,16 +4008,17 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT UUID, LOCATION, SIZE, COLBACKGROUND, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+    querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLBACKGROUND, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
 
     while (query.next()) {
         BOOKMARKRECORD record = {};
 
         record.sUUID = query.value(0).toString();
         record.nLocation = query.value(1).toULongLong();
-        record.nSize = query.value(2).toLongLong();
-        record.colBackground = stringToColor(query.value(3).toString());
-        record.sComment = query.value(4).toString();
+        record.locationType = (LT)query.value(2).toLongLong();
+        record.nSize = query.value(3).toLongLong();
+        record.colBackground = stringToColor(query.value(4).toString());
+        record.sComment = query.value(5).toString();
 
         listResult.append(record);
     }
@@ -4021,25 +4029,26 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 }
 #endif
 #ifdef QT_GUI_LIB
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, qint64 nSize)
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT UUID, LOCATION, SIZE, COLBACKGROUND, COMMENT FROM %1 "
+    querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLBACKGROUND, COMMENT FROM %1 "
                              "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
-                             "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3)))  ORDER BY LOCATION")
-                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize)));
+                             "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3))) AND LOCTYPE = '%4'  ORDER BY LOCATION")
+                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize), QString::number(locationType)));
 
     while (query.next()) {
         BOOKMARKRECORD record = {};
 
         record.sUUID = query.value(0).toString();
         record.nLocation = query.value(1).toULongLong();
-        record.nSize = query.value(2).toLongLong();
-        record.colBackground = stringToColor(query.value(3).toString());
-        record.sComment = query.value(4).toString();
+        record.locationType = (LT)query.value(2).toLongLong();
+        record.nSize = query.value(3).toLongLong();
+        record.colBackground = stringToColor(query.value(4).toString());
+        record.sComment = query.value(5).toString();
 
         listResult.append(record);
     }
@@ -4057,8 +4066,8 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET LOCATION = '%2', SIZE = '%3', COLBACKGROUND = '%4', COMMENT = '%5' WHERE UUID = '%7'")
-                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.nSize), colorToString(record.colBackground),
+    querySQL(&query, QString("UPDATE %1 SET LOCATION = '%2', LOCTYPE = '%3', SIZE = '%4', COLBACKGROUND = '%5', COMMENT = '%6' WHERE UUID = '%7'")
+                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize), colorToString(record.colBackground),
                               record.sComment, record.sUUID));
 #else
     Q_UNUSED(record)
@@ -4087,7 +4096,7 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
     querySQL(&query, QString("UPDATE %1 SET COMMENT = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sComment), sUUID));
 #else
     Q_UNUSED(sUUID)
-    Q_UNUSED(sName)
+    Q_UNUSED(sComment)
 #endif
 }
 #endif

@@ -559,6 +559,12 @@ public:
         RT_VIRTUAL
     };
 
+    enum LT {
+        LT_UNKNOWN = 0,
+        LT_OFFSET,
+        LT_ADDRESS
+    };
+
     struct SYMBOL {
         XADDR nAddress;
         quint32 nModule;  // ModuleIndex; 0 - main module
@@ -587,6 +593,7 @@ public:
     struct BOOKMARKRECORD {
         QString sUUID;
         quint64 nLocation;
+        LT locationType;
         qint64 nSize;
         QColor colBackground;
         QString sComment;
@@ -649,10 +656,10 @@ public:
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
+    bool _addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
-    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, qint64 nSize);
+    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
