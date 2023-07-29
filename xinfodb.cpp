@@ -122,14 +122,14 @@ void XInfoDB::initDB()
     g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
     g_dataBase.setDatabaseName(":memory:");
-//#ifdef Q_OS_LINUX
-//    g_dataBase.setDatabaseName("/home/hors/local_db.db");
-//#endif
-    // #ifndef QT_DEBUG
-    //     g_dataBase.setDatabaseName(":memory:");
-    // #else
-    // #ifdef Q_OS_WIN
-    //     g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+    // #ifdef Q_OS_LINUX
+    //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
+    // #endif
+    //  #ifndef QT_DEBUG
+    //      g_dataBase.setDatabaseName(":memory:");
+    //  #else
+    //  #ifdef Q_OS_WIN
+    //      g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
     ////    g_dataBase.setDatabaseName(":memory:");
     // #else
     //     g_dataBase.setDatabaseName(":memory:");
@@ -2850,13 +2850,13 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                                  "COLBACKGROUND TEXT,"
                                  "COMMENT TEXT"
                                  ")")
-                             .arg(s_sql_tableName[DBTABLE_BOOKMARKS])); // mb column BASE for share objects
+                             .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));  // mb column BASE for share objects
     } else if (dbTable == DBTABLE_COMMENTS) {
         querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                                  "LOCATION INTEGER PRIMARY KEY,"
                                  "COMMENT TEXT"
                                  ")")
-                             .arg(s_sql_tableName[DBTABLE_COMMENTS])); // mb column BASE for share objects
+                             .arg(s_sql_tableName[DBTABLE_COMMENTS]));  // mb column BASE for share objects
     } else if (dbTable == DBTABLE_FUNCTIONS) {
         querySQL(&query, QString("CREATE TABLE IF NOT EXISTS %1 ("
                                  "ADDRESS INTEGER PRIMARY KEY,"
@@ -2891,10 +2891,11 @@ bool XInfoDB::isDbPresent()
     bool bResult = false;
 #ifdef QT_SQL_LIB
     if (g_dataBase.isOpen()) {
-        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_COMMENTS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
+        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_COMMENTS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
     }
 #endif
     return bResult;
@@ -3360,8 +3361,8 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
                             showRecord.nAddress = nCurrentAddress;
                             showRecord.nOffset = -1;
                             showRecord.nSize = 1;
-//                            showRecord.sRecText1 = "db";
-//                            showRecord.sRecText2 = "0x01 dup (?)";
+                            //                            showRecord.sRecText1 = "db";
+                            //                            showRecord.sRecText2 = "0x01 dup (?)";
                             showRecord.recordType = RT_VIRTUAL;
                             showRecord.nRefTo = 0;
                             showRecord.nRefFrom = 0;
@@ -3475,17 +3476,17 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
             QList<XADDR> listImportAddresses = getImportSymbolAddresses();
             qint32 nNumberOfRecords = listImportAddresses.count();
             qint32 nSize = 4;
-//            QString sVarName = "db";
-//            if (mode == XBinary::MODE_16) {
-//                nSize = 2;
-//                sVarName = "word";
-//            } else if (mode == XBinary::MODE_32) {
-//                nSize = 4;
-//                sVarName = "dword";
-//            } else if (mode == XBinary::MODE_64) {
-//                nSize = 8;
-//                sVarName = "qword";
-//            }
+            //            QString sVarName = "db";
+            //            if (mode == XBinary::MODE_16) {
+            //                nSize = 2;
+            //                sVarName = "word";
+            //            } else if (mode == XBinary::MODE_32) {
+            //                nSize = 4;
+            //                sVarName = "dword";
+            //            } else if (mode == XBinary::MODE_64) {
+            //                nSize = 8;
+            //                sVarName = "qword";
+            //            }
 
             for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
                 XADDR nAddress = listImportAddresses.at(i);
@@ -3519,17 +3520,17 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
             for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfVariables); i++) {
                 XBinary::ADDRESSSIZE record = listVariables.at(i);
 
-//                // TODO if size = 0 check if it is a string
-//                QString sVarName = "db";
-//                if (record.nSize == 0) {
-//                    record.nSize = 1;
-//                } else if (record.nSize == 2) {
-//                    sVarName = "word";
-//                } else if (record.nSize == 4) {
-//                    sVarName = "dword";
-//                } else if (record.nSize == 8) {
-//                    sVarName = "qword";
-//                }
+                //                // TODO if size = 0 check if it is a string
+                //                QString sVarName = "db";
+                //                if (record.nSize == 0) {
+                //                    record.nSize = 1;
+                //                } else if (record.nSize == 2) {
+                //                    sVarName = "word";
+                //                } else if (record.nSize == 4) {
+                //                    sVarName = "dword";
+                //                } else if (record.nSize == 8) {
+                //                    sVarName = "qword";
+                //                }
 
                 if (record.nSize == 0) {
                     record.nSize = 1;
@@ -3730,8 +3731,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 #endif
 }
 
-bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, RT recordType,
-                             quint64 nRefTo, quint64 nRefFrom)
+bool XInfoDB::_addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, RT recordType, quint64 nRefTo, quint64 nRefFrom)
 {
     bool bResult = false;
 
@@ -4067,8 +4067,8 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
     QSqlQuery query(g_dataBase);
 
     querySQL(&query, QString("UPDATE %1 SET LOCATION = '%2', LOCTYPE = '%3', SIZE = '%4', COLBACKGROUND = '%5', COMMENT = '%6' WHERE UUID = '%7'")
-                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize), colorToString(record.colBackground),
-                              record.sComment, record.sUUID));
+                         .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize),
+                              colorToString(record.colBackground), record.sComment, record.sUUID));
 #else
     Q_UNUSED(record)
 #endif
@@ -4112,10 +4112,8 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
         querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ADDRESS = %2")
                              .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
     } else {
-        querySQL(
-            &query,
-            QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
-                .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+        querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
+                             .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
     }
 
     if (query.next()) {
@@ -4143,9 +4141,8 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
         result.bValid = true;
@@ -4170,9 +4167,8 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)));
 
     if (query.next()) {
         result.bValid = true;
@@ -4197,9 +4193,8 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
 
     if (query.next()) {
         result.bValid = true;
@@ -4224,9 +4219,8 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)));
 
     if (query.next()) {
         result.bValid = true;
@@ -4243,7 +4237,6 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
 
     return result;
 }
-
 
 XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
 {
@@ -4407,9 +4400,8 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE LINENUMBER >= %2  ORDER BY ADDRESS LIMIT %3")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nCount)));
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM FROM %1 WHERE LINENUMBER >= %2  ORDER BY ADDRESS LIMIT %3")
+                         .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nCount)));
 
     while (query.next()) {
         SHOWRECORD record = {};

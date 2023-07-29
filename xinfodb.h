@@ -741,11 +741,11 @@ private:
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
-        QList<XProcess::MEMORY_REGION> listMemoryRegions; // TODO prev
+        QList<XProcess::MEMORY_REGION> listMemoryRegions;  // TODO prev
         quint32 nModulesHash;
-        QList<XProcess::MODULE> listModules; // TODO prev
+        QList<XProcess::MODULE> listModules;  // TODO prev
         quint32 nThreadsHash;
-        QList<XProcess::THREAD_INFO> listThreads; // TODO prev
+        QList<XProcess::THREAD_INFO> listThreads;  // TODO prev
     };
     XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
     void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
