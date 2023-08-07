@@ -571,6 +571,11 @@ public:
         QString sSymbol;
     };
 
+    struct REFERENCE {
+        XADDR nAddress;
+        QString sCode;
+    };
+
     struct SHOWRECORD {
         bool bValid;
         XADDR nAddress;
@@ -607,6 +612,7 @@ public:
     bool isSymbolsPresent();
     QList<SYMBOL> getAllSymbols();
     QMap<quint32, QString> getSymbolModules();
+    QList<REFERENCE> getReferencesForAddress(XADDR nAddress);
 
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
 

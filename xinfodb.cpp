@@ -2470,6 +2470,27 @@ QMap<quint32, QString> XInfoDB::getSymbolModules()
     return g_mapSymbolModules;
 }
 
+QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
+{
+    QList<REFERENCE> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) ").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)));
+
+    while (query.next()) {
+        REFERENCE record = {};
+
+        record.nAddress = query.value(0).toULongLong();
+
+        //record.sCode = query.value(2).toString();
+
+        listResult.append(record);
+    }
+#endif
+    return listResult;
+}
+
 // QList<XADDR> XInfoDB::getSymbolAddresses(ST symbolType)
 //{
 //     QList<XADDR> listResult;
