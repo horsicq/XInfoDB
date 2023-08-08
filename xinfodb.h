@@ -721,6 +721,7 @@ public:
     static QColor stringToColor(const QString &sCode);
     static QString colorToString(QColor color);
 #endif
+    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType);
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
     void writeDataSlot(quint64 nOffset, char *pData, qint64 nSize);

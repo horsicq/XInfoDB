@@ -2476,14 +2476,24 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) ").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)));
+    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ((XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2)) AND ((RELTYPE <> 0) OR (MEMTYPE <> 0))").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)));
 
     while (query.next()) {
         REFERENCE record = {};
 
         record.nAddress = query.value(0).toULongLong();
 
-        //record.sCode = query.value(2).toString();
+        SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress);
+
+        if (showRecord.nOffset != -1) {
+            QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
+            XCapstone::DISASM_RESULT _disasmResult =
+                XCapstone::disasm_ex(g_handle, getDisasmMode(), baBuffer.data(), baBuffer.size(), record.nAddress);
+            record.sCode = _disasmResult.sMnemonic;
+            if (_disasmResult.sString != "") {
+                record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS);
+            }
+        }
 
         listResult.append(record);
     }
@@ -5066,6 +5076,33 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const RI_TYPE &riType)
+{
+    QString sResult = disasmResult.sString;
+
+    if (disasmResult.relType) {
+        QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(disasmResult.nXrefToRelative), riType);
+
+        if (sReplace != "") {
+            QString sOrigin = QString("0x%1").arg(QString::number(disasmResult.nXrefToRelative, 16));
+            sResult = disasmResult.sString.replace(sOrigin, sReplace);
+            // TODO Check UpperCase
+        }
+    }
+
+    if (disasmResult.memType) {
+        QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(disasmResult.nXrefToMemory), riType);
+
+        if (sReplace != "") {
+            QString sOrigin = QString("0x%1").arg(QString::number(disasmResult.nXrefToMemory, 16));
+            sResult = disasmResult.sString.replace(sOrigin, sReplace);
+            // TODO Check UpperCase
+        }
+    }
+
+    return sResult;
+}
+
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
 {
     // #ifdef QT_DEBUG
