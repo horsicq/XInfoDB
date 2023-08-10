@@ -662,7 +662,7 @@ public:
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
 #ifdef QT_GUI_LIB
-    bool _addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
+    QString _addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize);
@@ -707,8 +707,8 @@ public:
     static QString threadStatusToString(THREAD_STATUS threadStatus);
 #endif
 #ifdef QT_SQL_LIB
-    bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL);
-    bool querySQL(QSqlQuery *pSqlQuery);
+    bool querySQL(QSqlQuery *pSqlQuery, const QString &sSQL, bool bWrite);
+    bool querySQL(QSqlQuery *pSqlQuery, bool bWrite);
     QString convertStringSQLTableName(const QString &sSQL);
     QString convertStringSQLValue(const QString &sSQL);
     bool copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct);
@@ -722,6 +722,8 @@ public:
     static QString colorToString(QColor color);
 #endif
     QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType);
+    void setDatabaseChanged(bool bState);
+    bool isDatabaseChanged();
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
     void writeDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -800,6 +802,7 @@ private:
     QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
+    bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
 };
 
