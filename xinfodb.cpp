@@ -3243,7 +3243,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
     XBinary::DM disasmMode = getDisasmMode();
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
-    XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
+    //XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
 
@@ -5327,15 +5327,16 @@ XBinary::XVARIANT XInfoDB::setFlagToReg(XBinary::XVARIANT variant, XREG reg, boo
 #endif
     } else if (variant.mode == XBinary::MODE_64) {
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_CF) result.var.v_uint64 | 0x0001;
-        else if (reg == XREG_PF) result.var.v_uint64 | 0x0004;
-        else if (reg == XREG_AF) result.var.v_uint64 | 0x0010;
-        else if (reg == XREG_ZF) result.var.v_uint64 | 0x0040;
-        else if (reg == XREG_SF) result.var.v_uint64 | 0x0080;
-        else if (reg == XREG_TF) result.var.v_uint64 | 0x0100;
-        else if (reg == XREG_IF) result.var.v_uint64 | 0x0200;
-        else if (reg == XREG_DF) result.var.v_uint64 | 0x0400;
-        else if (reg == XREG_OF) result.var.v_uint64 | 0x0800;
+        // TODO CHeck mn reg32
+        if (reg == XREG_CF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_CF));
+        else if (reg == XREG_PF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_PF));
+        else if (reg == XREG_AF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_AF));
+        else if (reg == XREG_ZF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_ZF));
+        else if (reg == XREG_SF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_SF));
+        else if (reg == XREG_TF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_TF));
+        else if (reg == XREG_IF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_IF));
+        else if (reg == XREG_DF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_DF));
+        else if (reg == XREG_OF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_OF));
 #endif
     }
 
