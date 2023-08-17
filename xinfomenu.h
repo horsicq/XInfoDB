@@ -29,6 +29,7 @@ class XInfoMenu : public QObject {
     Q_OBJECT
 public:
     explicit XInfoMenu();
+
     QMenu *createMenu(QWidget *pParent);
     void setData(XInfoDB *pXInfoDB);
     void reset();
