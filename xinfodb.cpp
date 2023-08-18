@@ -3243,7 +3243,7 @@ void XInfoDB::_analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap,
 
     XBinary::DM disasmMode = getDisasmMode();
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
-    //XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
+    // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
 
