@@ -493,7 +493,6 @@ public:
     bool isRegChanged(XREG reg);
     XADDR getCurrentStackPointerCache();
     XADDR getCurrentInstructionPointerCache();
-
     XADDR getCurrentInstructionPointer_Handle(X_HANDLE hThread);
     XADDR getCurrentInstructionPointer_Id(X_ID nThreadId);
     bool setCurrentIntructionPointer_Handle(X_HANDLE hThread, XADDR nValue);
