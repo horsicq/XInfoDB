@@ -66,3 +66,10 @@ void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::C
     g_pTransfer->setData(pXInfoDB, command, options, getPdStruct());
     g_pThread->start();
 }
+
+void DialogXInfoDBTransferProcess::saveDatabase(XInfoDB *pXInfoDB)
+{
+    if (pXInfoDB) {
+        // TODO
+    }
+}

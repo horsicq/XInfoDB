@@ -114,39 +114,35 @@ QIODevice *XInfoDB::getDevice()
 void XInfoDB::initDB()
 {
 #ifdef QT_SQL_LIB
-    if (g_dataBase.isOpen()) {
-        g_dataBase.close();
-        g_dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("memory_db");
-    }
+    if (!g_dataBase.isOpen()) {
+        g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
-    g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
+        g_dataBase.setDatabaseName(":memory:");
+        // #ifdef Q_OS_LINUX
+        //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
+        // #endif
+        //  #ifndef QT_DEBUG
+        //      g_dataBase.setDatabaseName(":memory:");
+        //  #else
+        //  #ifdef Q_OS_WIN
+        //      g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+        ////    g_dataBase.setDatabaseName(":memory:");
+        // #else
+        //     g_dataBase.setDatabaseName(":memory:");
+        // #endif
+        ////    g_dataBase.setDatabaseName(":memory:");
+        // #endif
 
-    g_dataBase.setDatabaseName(":memory:");
-    // #ifdef Q_OS_LINUX
-    //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
-    // #endif
-    //  #ifndef QT_DEBUG
-    //      g_dataBase.setDatabaseName(":memory:");
-    //  #else
-    //  #ifdef Q_OS_WIN
-    //      g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
-    ////    g_dataBase.setDatabaseName(":memory:");
-    // #else
-    //     g_dataBase.setDatabaseName(":memory:");
-    // #endif
-    ////    g_dataBase.setDatabaseName(":memory:");
-    // #endif
+        if (g_dataBase.open()) {
+            g_dataBase.exec("PRAGMA synchronous = OFF");
+            g_dataBase.exec("PRAGMA journal_mode = MEMORY");
 
-    if (g_dataBase.open()) {
-        g_dataBase.exec("PRAGMA synchronous = OFF");
-        g_dataBase.exec("PRAGMA journal_mode = MEMORY");
-
-        // setAnalyzed(isSymbolsPresent());
-    } else {
-#ifdef QT_DEBUG
-        qDebug("Cannot open sqlite database");
-#endif
+            // setAnalyzed(isSymbolsPresent());
+        } else {
+    #ifdef QT_DEBUG
+            qDebug("Cannot open sqlite database");
+    #endif
+        }
     }
 #endif
 }
@@ -2784,6 +2780,8 @@ void XInfoDB::initDisasmDb()
     createTable(&g_dataBase, DBTABLE_EXPORT);
     createTable(&g_dataBase, DBTABLE_TLS);
     createTable(&g_dataBase, DBTABLE_FUNCTIONS);
+    createTable(&g_dataBase, DBTABLE_BOOKMARKS);
+    createTable(&g_dataBase, DBTABLE_COMMENTS);
 #endif
 }
 
