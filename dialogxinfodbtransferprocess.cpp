@@ -42,7 +42,7 @@ DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
     delete g_pTransfer;
 }
 
-void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, XInfoDBTransfer::OPTIONS options)
+void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options)
 {
     QString sTitle;
 

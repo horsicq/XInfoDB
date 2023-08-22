@@ -34,7 +34,7 @@ public:
     explicit DialogXInfoDBTransferProcess(QWidget *pParent = nullptr);
     ~DialogXInfoDBTransferProcess();
 
-    void setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, XInfoDBTransfer::OPTIONS options);
+    void setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options);
     static void saveDatabase(XInfoDB *pXInfoDB);
 
 private:
