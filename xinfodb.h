@@ -414,7 +414,7 @@ public:
     void setCurrentThreadHandle(X_HANDLE hThread);
     X_ID getCurrentThreadId();
     X_HANDLE getCurrentThreadHandle();
-    void updateRegsById(X_ID nThreadId, XREG_OPTIONS regOptions);
+    void updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions);
     void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
@@ -558,6 +558,11 @@ public:
         RT_VIRTUAL
     };
 
+    enum DBSTATUS {
+        DBSTATUS_NONE,
+        DBSTATUS_PROCESS
+    };
+
     enum LT {
         LT_UNKNOWN = 0,
         LT_OFFSET,
@@ -583,6 +588,7 @@ public:
         RT recordType;
         quint64 nRefTo;
         quint64 nRefFrom;
+        DBSTATUS dbstatus;
     };
 
     struct RELRECORD {
@@ -592,6 +598,7 @@ public:
         XCapstone::MEMTYPE memType;
         XADDR nXrefToMemory;
         qint32 nMemorySize;
+        DBSTATUS dbstatus;
     };
 #ifdef QT_GUI_LIB
     struct BOOKMARKRECORD {
@@ -647,15 +654,24 @@ public:
     void clearDb();
     void vacuumDb();
     void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    void _analyzeCode(QIODevice *pDevice, XBinary::_MEMORY_MAP *pMemoryMap, XADDR nStartAddress, bool bIsInit, XBinary::PDSTRUCT *pPdStruct = nullptr);  // TODO options
+
+    struct ANALYZEOPTIONS {
+        QIODevice *pDevice;
+        XBinary::_MEMORY_MAP *pMemoryMap;
+        XADDR nStartAddress;
+        bool bIsInit;
+    };
+
+    void _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, RT recordType, quint64 nRefTo, quint64 nRefFrom);
     bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
+    void _completeDbAnalyze();
 #ifdef QT_SQL_LIB
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
     void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
     void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
 #endif
-    QList<RELRECORD> getRelRecords();
+    QList<RELRECORD> getRelRecords(DBSTATUS dbstatus);
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _removeAnalysis(XADDR nAddress, qint64 nSize);
     bool _setArray(XADDR nAddress, qint64 nSize);
@@ -687,8 +703,8 @@ public:
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
 
-    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType);
-    QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables();
+    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
+    QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus);
 
     QList<XADDR> getExportSymbolAddresses();
     QList<XADDR> getImportSymbolAddresses();

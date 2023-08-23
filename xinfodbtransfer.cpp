@@ -51,7 +51,7 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS)) {
+        if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
             QIODevice *pDevice = g_options.pDevice;
 
             bool bFile = false;
@@ -70,7 +70,7 @@ bool XInfoDBTransfer::process()
                 }
             }
 
-            if (g_transferType == COMMAND_ANALYZE) {
+            if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
                     if (!(g_pXInfoDB->isSymbolsPresent())) {
                         g_pXInfoDB->initSymbolsDb();
@@ -81,10 +81,22 @@ bool XInfoDBTransfer::process()
 
                     XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, pDevice);
 
-                    g_pXInfoDB->_analyzeCode(pDevice, &memoryMap, -1, true, g_pPdStruct);
+                    XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
+
+                    if (g_transferType == COMMAND_ANALYZE) {
+                        analyzeOptions.bIsInit = true;
+                        analyzeOptions.nStartAddress = -1;
+                    } else if(g_transferType == COMMAND_DISASM) {
+                        analyzeOptions.bIsInit = false;
+                        analyzeOptions.nStartAddress = g_options.nAddress;
+                    }
+
+                    analyzeOptions.pDevice = pDevice;
+                    analyzeOptions.pMemoryMap = &memoryMap;
+
+                    g_pXInfoDB->_analyzeCode(analyzeOptions, g_pPdStruct);
                     // TODO sort records
                 }
-
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
@@ -108,8 +120,6 @@ bool XInfoDBTransfer::process()
             g_pXInfoDB->clearAllTables();
         } else if (g_transferType == COMMAND_REMOVE) {
             g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
-        } else if (g_transferType == COMMAND_DISASM) {
-            // TODO
         }
     }
 
