@@ -2492,7 +2492,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         record.nAddress = query.value(0).toULongLong();
 
-        SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress);
+        SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress, false);
 
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
@@ -3270,8 +3270,9 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
     g_pMutexSQL->unlock();
 }
 
-void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct)
 {
+    bool bResult = false;
 #ifdef QT_SQL_LIB
     g_pMutexSQL->lock();
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
@@ -3381,6 +3382,7 @@ void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     qint64 nMaxTotal = mapEntries.count();
+    qint64 nNumberOfOpcodes = 0;
 
     QList<SHOWRECORD> listShowRecords;
     QList<RELRECORD> listRelRecords;
@@ -3452,7 +3454,6 @@ void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     showRecord.nRefFrom = 0;
                                     showRecord.nBranch = nCurrentBranch;
                                     showRecord.dbstatus = DBSTATUS_PROCESS;
-
                                     listShowRecords.append(showRecord);
 
                                     if (disasmResult.relType || disasmResult.memType) {
@@ -3464,8 +3465,13 @@ void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                         relRecord.nXrefToMemory = disasmResult.nXrefToMemory;
                                         relRecord.nMemorySize = disasmResult.nMemorySize;
                                         relRecord.dbstatus = DBSTATUS_PROCESS;
-
                                         listRelRecords.append(relRecord);
+                                    }
+
+                                    nNumberOfOpcodes++;
+
+                                    if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                                        break;
                                     }
                                 }
 
@@ -3535,8 +3541,13 @@ void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             showRecord.nRefTo = 0;
                             showRecord.nRefFrom = 0;
                             showRecord.dbstatus = DBSTATUS_PROCESS;
-
                             listShowRecords.append(showRecord);
+
+                            nNumberOfOpcodes++;
+
+                            if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                                break;
+                            }
                         }
 
                         break;
@@ -3865,9 +3876,15 @@ void XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     g_pMutexSQL->unlock();
+
+    if (!pPdStruct->bIsStop) {
+        bResult = true;
+    }
 #else
     Q_UNUSED(analyzeOptions)
 #endif
+
+    return bResult;
 }
 
 bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
@@ -5467,7 +5484,7 @@ XBinary::XVARIANT XInfoDB::setFlagToReg(XBinary::XVARIANT variant, XREG reg, boo
 #endif
     } else if (variant.mode == XBinary::MODE_64) {
 #ifdef Q_PROCESSOR_X86_64
-        // TODO CHeck mn reg32
+        // TODO Check mb reg32
         if (reg == XREG_CF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_CF));
         else if (reg == XREG_PF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_PF));
         else if (reg == XREG_AF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint32, bValue, RFLAGS_BIT_AF));

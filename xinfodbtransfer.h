@@ -30,7 +30,8 @@ public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
     enum COMMAND {
-        COMMAND_ANALYZE = 0,
+        COMMAND_ANALYZEALL = 0,
+        COMMAND_ANALYZE,
         COMMAND_SYMBOLS,
         COMMAND_DISASM,
         COMMAND_REMOVE,
@@ -45,9 +46,10 @@ public:
         QIODevice *pDevice;
         XADDR nAddress;
         qint64 nSize;
+        qint64 nCount;
     };
 
-    void setData(XInfoDB *pXInfoDB, COMMAND transferType, OPTIONS options, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPTIONS &options, XBinary::PDSTRUCT *pPdStruct);
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:

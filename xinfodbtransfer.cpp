@@ -23,12 +23,12 @@
 XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
 {
     g_pXInfoDB = nullptr;
-    g_transferType = COMMAND_ANALYZE;
+    g_transferType = COMMAND_ANALYZEALL;
     g_options = {};
     g_pPdStruct = nullptr;
 }
 
-void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, OPTIONS options, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPTIONS &options, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
@@ -51,7 +51,7 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
+        if ((g_transferType == COMMAND_ANALYZEALL)|| (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
             QIODevice *pDevice = g_options.pDevice;
 
             bool bFile = false;
@@ -70,7 +70,7 @@ bool XInfoDBTransfer::process()
                 }
             }
 
-            if ((g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
+            if ((g_transferType == COMMAND_ANALYZEALL) ||(g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
                     if (!(g_pXInfoDB->isSymbolsPresent())) {
                         g_pXInfoDB->initSymbolsDb();
@@ -83,18 +83,26 @@ bool XInfoDBTransfer::process()
 
                     XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
 
-                    if (g_transferType == COMMAND_ANALYZE) {
+                    if (g_transferType == COMMAND_ANALYZEALL) {
                         analyzeOptions.bIsInit = true;
                         analyzeOptions.nStartAddress = -1;
+                    } else if(g_transferType == COMMAND_ANALYZE) {
+                        analyzeOptions.bIsInit = false;
+                        analyzeOptions.nStartAddress = g_options.nAddress;
                     } else if(g_transferType == COMMAND_DISASM) {
                         analyzeOptions.bIsInit = false;
                         analyzeOptions.nStartAddress = g_options.nAddress;
+                        analyzeOptions.nCount = 1;
                     }
 
                     analyzeOptions.pDevice = pDevice;
                     analyzeOptions.pMemoryMap = &memoryMap;
 
-                    g_pXInfoDB->_analyzeCode(analyzeOptions, g_pPdStruct);
+                    bool bSuccess = g_pXInfoDB->_analyzeCode(analyzeOptions, g_pPdStruct);
+
+                    if (bSuccess && (g_transferType == COMMAND_ANALYZEALL)) {
+                        // TODO set analyze
+                    }
                     // TODO sort records
                 }
             } else if (g_transferType == COMMAND_SYMBOLS) {
@@ -116,10 +124,12 @@ bool XInfoDBTransfer::process()
             g_pXInfoDB->saveDbToFile(g_options.sFileName, g_pPdStruct);
         } else if (g_transferType == COMMAND_IMPORT) {
             g_pXInfoDB->loadDbFromFile(g_options.sFileName, g_pPdStruct);
-        } else if (g_transferType == COMMAND_CLEAR) {
-            g_pXInfoDB->clearAllTables();
         } else if (g_transferType == COMMAND_REMOVE) {
             g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
+        } else if (g_transferType == COMMAND_CLEAR) {
+            g_pXInfoDB->clearAllTables();
+            // TODO unset analyze all flag
+            // TODO unset dtatabase changed
         }
     }
 

@@ -46,9 +46,11 @@ void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::C
 {
     QString sTitle;
 
-    if (command == XInfoDBTransfer::COMMAND_ANALYZE) {
+    if ((command == XInfoDBTransfer::COMMAND_ANALYZEALL) || (command == XInfoDBTransfer::COMMAND_ANALYZE)) {
         // TODO if FT_UNKNOWN show a dialog with options
         sTitle = tr("Analyze");
+    } else if (command == XInfoDBTransfer::COMMAND_DISASM) {
+        sTitle = tr("Disasm");
     } else if (command == XInfoDBTransfer::COMMAND_SYMBOLS) {
         sTitle = tr("Symbols");
     } else if (command == XInfoDBTransfer::COMMAND_CLEAR) {
