@@ -415,7 +415,7 @@ public:
     X_ID getCurrentThreadId();
     X_HANDLE getCurrentThreadHandle();
     void updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions);
-    void updateRegsByHandle(X_HANDLE hThread, XREG_OPTIONS regOptions);
+    void updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOptions);
     void updateMemoryRegionsList();
     void updateModulesList();
     void updateThreadsList();
@@ -588,6 +588,7 @@ public:
         RT recordType;
         quint64 nRefTo;
         quint64 nRefFrom;
+        quint64 nBranch;
         DBSTATUS dbstatus;
     };
 
@@ -636,6 +637,7 @@ public:
 
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
+    bool isFunctionPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
     void initSymbolsDb();
     void initDisasmDb();
@@ -663,13 +665,14 @@ public:
     };
 
     void _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _addShowRecord(XADDR nAddress, qint64 nOffset, qint64 nSize, RT recordType, quint64 nRefTo, quint64 nRefFrom);
-    bool _addRelRecord(XADDR nAddress, XCapstone::RELTYPE relType, XADDR nXrefToRelative, XCapstone::MEMTYPE memType, XADDR nXrefToMemory, qint32 nMemorySize);
+    bool _addShowRecord(const SHOWRECORD &record);
+    bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
 #ifdef QT_SQL_LIB
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
     void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
     void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
+    quint64 _getBranchNumber();
 #endif
     QList<RELRECORD> getRelRecords(DBSTATUS dbstatus);
     bool _incShowRecordRefFrom(XADDR nAddress);
