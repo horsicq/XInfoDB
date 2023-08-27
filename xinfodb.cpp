@@ -117,7 +117,7 @@ void XInfoDB::initDB()
     if (!g_dataBase.isOpen()) {
         g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
-//        g_dataBase.setDatabaseName(":memory:");
+        //        g_dataBase.setDatabaseName(":memory:");
         g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
         // #ifdef Q_OS_LINUX
         //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
@@ -140,9 +140,9 @@ void XInfoDB::initDB()
 
             // setAnalyzed(isSymbolsPresent());
         } else {
-    #ifdef QT_DEBUG
+#ifdef QT_DEBUG
             qDebug("Cannot open sqlite database");
-    #endif
+#endif
         }
     }
 #endif
@@ -3333,9 +3333,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         // Import table
         if (!(pPdStruct->bIsStop)) {
-    #ifdef QT_SQL_LIB
+#ifdef QT_SQL_LIB
             g_dataBase.transaction();
-    #endif
+#endif
             QSqlQuery query(g_dataBase);
 
             QList<XADDR> listImportAddresses = getImportSymbolAddresses();
@@ -3371,9 +3371,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 }
             }
 
-    #ifdef QT_SQL_LIB
+#ifdef QT_SQL_LIB
             g_dataBase.commit();
-    #endif
+#endif
         }
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
         if (!(pPdStruct->bIsStop)) {
@@ -3481,7 +3481,6 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
 
                                 if (disasmResult.relType) {
-
                                     if (disasmResult.sMnemonic == "call") {
                                         nBranch++;
                                     }
@@ -3967,8 +3966,14 @@ void XInfoDB::_completeDbAnalyze()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)), true);
-    querySQL(&query, QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)), true);
+    querySQL(&query,
+             QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
+             true);
+    querySQL(&query,
+             QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
+                 .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
+             true);
 #endif
 }
 #ifdef QT_SQL_LIB

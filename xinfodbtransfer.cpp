@@ -51,7 +51,7 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
-        if ((g_transferType == COMMAND_ANALYZEALL)|| (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
+        if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
             QIODevice *pDevice = g_options.pDevice;
 
             bool bFile = false;
@@ -70,7 +70,7 @@ bool XInfoDBTransfer::process()
                 }
             }
 
-            if ((g_transferType == COMMAND_ANALYZEALL) ||(g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
+            if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
                     if (!(g_pXInfoDB->isSymbolsPresent())) {
                         g_pXInfoDB->initSymbolsDb();
@@ -86,10 +86,10 @@ bool XInfoDBTransfer::process()
                     if (g_transferType == COMMAND_ANALYZEALL) {
                         analyzeOptions.bIsInit = true;
                         analyzeOptions.nStartAddress = -1;
-                    } else if(g_transferType == COMMAND_ANALYZE) {
+                    } else if (g_transferType == COMMAND_ANALYZE) {
                         analyzeOptions.bIsInit = false;
                         analyzeOptions.nStartAddress = g_options.nAddress;
-                    } else if(g_transferType == COMMAND_DISASM) {
+                    } else if (g_transferType == COMMAND_DISASM) {
                         analyzeOptions.bIsInit = false;
                         analyzeOptions.nStartAddress = g_options.nAddress;
                         analyzeOptions.nCount = 1;
