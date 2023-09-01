@@ -44,6 +44,7 @@
 .adata|protector|ASProtect
 .adata|protector|Armadillo
 .alex|protector|Alex Protector
+.alien|protector|Alienyze
 .alloy32|protector|Alloy
 .apiset|compiler|a section present inside the apisetschema.dll
 .arch|compiler|Alpha-architecture section
