@@ -580,6 +580,12 @@ public:
         QString sCode;
     };
 
+    struct FUNCTION {
+        XADDR nAddress;
+        qint64 nSize;
+        QString sName;
+    };
+
     struct SHOWRECORD {
         bool bValid;
         XADDR nAddress;
@@ -637,6 +643,7 @@ public:
 
     SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
+    QList<FUNCTION> getAllFunctions();
     bool isFunctionPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
     void initSymbolsDb();
@@ -680,6 +687,7 @@ public:
     bool _removeAnalysis(XADDR nAddress, qint64 nSize);
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
+    void updateFunctionSize(XADDR nAddress, qint64 nSize);
 #ifdef QT_GUI_LIB
     QString _addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
     bool _removeBookmarkRecord(const QString &sUUID);
@@ -709,6 +717,7 @@ public:
 
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus);
+    QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus);
 
     QList<XADDR> getExportSymbolAddresses();
     QList<XADDR> getImportSymbolAddresses();

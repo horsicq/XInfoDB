@@ -118,7 +118,11 @@ void XInfoDB::initDB()
         g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
         //        g_dataBase.setDatabaseName(":memory:");
+    #ifdef Q_OS_WIN
         g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+    #else
+        g_dataBase.setDatabaseName(":memory:");
+    #endif
         // #ifdef Q_OS_LINUX
         //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
         // #endif
@@ -787,7 +791,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 
     XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(g_handle, nAddress, baData.data(), baData.size());
 
-    if (XCapstone::isCallOpcode(opcodeID.nOpcodeID)) {
+    if (XCapstone::isCallOpcode(XBinary::getDisasmFamily(g_disasmMode), opcodeID.nOpcodeID)) {
         nResult = nAddress + opcodeID.nSize;
     }
 
@@ -2753,6 +2757,27 @@ bool XInfoDB::isSymbolPresent(XADDR nAddress)
     return bResult;
 }
 
+QList<XInfoDB::FUNCTION> XInfoDB::getAllFunctions()
+{
+    QList<FUNCTION> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), false);
+
+    while (query.next()) {
+        FUNCTION record = {};
+
+        record.nAddress = query.value(0).toULongLong();
+        record.nSize = query.value(1).toLongLong();
+        record.sName = query.value(2).toString();
+
+        listResult.append(record);
+    }
+#endif
+    return listResult;
+}
+
 bool XInfoDB::isFunctionPresent(XADDR nAddress)
 {
     bool bResult = false;
@@ -3272,6 +3297,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
 bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct)
 {
+    // mb TODO get all symbol info if init
     bool bResult = false;
 #ifdef QT_SQL_LIB
     g_pMutexSQL->lock();
@@ -3311,6 +3337,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     if (analyzeOptions.bIsInit) {
+        //_addSymbols(analyzeOptions.pDevice, analyzeOptions.pMemoryMap->fileType, pPdStruct);
+
         QList<XADDR> listFunctionAddresses;
 
         listFunctionAddresses.append(getFunctionAddresses());
@@ -3395,6 +3423,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             XADDR nEntryAddress = 0;
             qint32 nCurrentBranch = 0;
 
+            bool bSuspect = false;
+
             if (!mapEntries.isEmpty()) {
                 nEntryAddress = mapEntries.firstKey();
                 nCurrentBranch = mapEntries.first();
@@ -3402,6 +3432,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 nEntryAddress = *stSuspect.begin();
                 nBranch++;
                 nCurrentBranch = nBranch;
+                bSuspect = true;
             }
 
             XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
@@ -3434,6 +3465,16 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
                             if (disasmResult.bIsValid) {
                                 {
+                                    quint64 _nCurrentBranch = nCurrentBranch;
+
+                                    if (bSuspect) {
+                                        if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
+                                            _nCurrentBranch = 0;
+                                        } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                                            _nCurrentBranch = 0;
+                                        }
+                                    }
+
                                     quint64 nRefTo = 0;
 
                                     if (disasmResult.relType) {
@@ -3452,7 +3493,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     showRecord.recordType = RT_CODE;
                                     showRecord.nRefTo = nRefTo;
                                     showRecord.nRefFrom = 0;
-                                    showRecord.nBranch = nCurrentBranch;
+                                    showRecord.nBranch = _nCurrentBranch;
                                     showRecord.dbstatus = DBSTATUS_PROCESS;
                                     listShowRecords.append(showRecord);
 
@@ -3481,7 +3522,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
 
                                 if (disasmResult.relType) {
-                                    if (disasmResult.sMnemonic == "call") {
+
+                                    if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
                                         nBranch++;
                                     }
 
@@ -3582,44 +3624,83 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         vacuumDb();
     }
 
-    // Labels
     if (!(pPdStruct->bIsStop)) {
 #ifdef QT_SQL_LIB
         g_dataBase.transaction();
 #endif
-        // Calls
-        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_CALL, DBSTATUS_PROCESS);
-        qint32 nNumberOfLabels = listLabels.count();
+        QSet<XADDR> stCalls;
 
-        XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
-        XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfLabels);
+        // Functions
 
-        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfLabels); i++) {
-            XADDR nSymbolAddress = listLabels.at(i);
+        {
+            // Calls
+            QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_CALL, DBSTATUS_PROCESS);
+            qint32 nNumberOfLabels = listLabels.count();
 
-            QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
+            XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfLabels);
 
-            if (!isSymbolPresent(nSymbolAddress)) {
-                _addSymbol(nSymbolAddress, 0, sSymbolName);
+            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfLabels); i++) {
+                XADDR nCallAddress = listLabels.at(i);
+                stCalls.insert(nCallAddress);
+
+    //            QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+
+    //            if (!isSymbolPresent(nSymbolAddress)) {
+    //                _addSymbol(nSymbolAddress, 0, sSymbolName);
+    //            }
+
+    //            if (!isFunctionPresent(nSymbolAddress)) {
+    //                _addFunction(nSymbolAddress, 0, sSymbolName);
+    //            }
+
+                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
             }
+        }
+        {
+            // Branches
+            QList<XBinary::ADDRESSSIZE> listBranches = getBranches(DBSTATUS_PROCESS);
+            qint32 nNumberOfBranches = listBranches.count();
 
-            if (!isFunctionPresent(nSymbolAddress)) {
-                _addFunction(nSymbolAddress, 0, sSymbolName);
+            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
+            XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfBranches);
+
+            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfBranches); i++) {
+                XADDR nSymbolAddress = listBranches.at(i).nAddress;
+
+                QString sSymbolName;
+
+                if (stCalls.contains(nSymbolAddress)) {
+                    sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+                } else {
+                    sSymbolName = QString("unk_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+                }
+
+                if (!isSymbolPresent(nSymbolAddress)) {
+                    _addSymbol(nSymbolAddress, 0, sSymbolName);
+                }
+
+                if (!isFunctionPresent(nSymbolAddress)) {
+                    _addFunction(nSymbolAddress, listBranches.at(i).nSize, sSymbolName);
+                } else {
+                    updateFunctionSize(nSymbolAddress, listBranches.at(i).nSize);
+                }
+
+                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
             }
-
-            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
         }
 
 #ifdef QT_SQL_LIB
         g_dataBase.commit();
 #endif
     }
+
+    // Labels
     if (!(pPdStruct->bIsStop)) {
 #ifdef QT_SQL_LIB
         g_dataBase.transaction();
 #endif
-        // Jmps
-        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_JMP, DBSTATUS_PROCESS);
+        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_ALL, DBSTATUS_PROCESS);
         qint32 nNumberOfLabels = listLabels.count();
 
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4024,7 +4105,7 @@ void XInfoDB::_addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords)
 #ifdef QT_SQL_LIB
 quint64 XInfoDB::_getBranchNumber()
 {
-    quint64 nResult = 1;
+    quint64 nResult = 0;
 
     QSqlQuery query(g_dataBase);
 
@@ -4032,6 +4113,10 @@ quint64 XInfoDB::_getBranchNumber()
 
     if (query.next()) {
         nResult = query.value(0).toULongLong();
+    }
+
+    if (nResult == 0) {
+        nResult = 1;
     }
 
     return nResult;
@@ -4143,6 +4228,21 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 #endif
 
     return bResult;
+}
+
+void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
+{
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query,
+            QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'")
+            .arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize), QString::number(nAddress)),
+            true);
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+#endif
 }
 #ifdef QT_GUI_LIB
 QString XInfoDB::_addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment)
@@ -4661,7 +4761,9 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
 
     QString sSQL;
 
-    if (relType == XCapstone::RELTYPE_JMP) {
+    if (relType == XCapstone::RELTYPE_ALL) {
+         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_NONE));
+    } else if (relType == XCapstone::RELTYPE_JMP) {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
                    .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_JMP), QString::number(XCapstone::RELTYPE_JMP_COND),
                         QString::number(XCapstone::RELTYPE_JMP_UNCOND));
@@ -4706,6 +4808,33 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
         XBinary::ADDRESSSIZE record = {};
         record.nAddress = query.value(0).toULongLong();
         record.nSize = query.value(1).toLongLong();
+
+        listResult.append(record);
+    }
+#endif
+    return listResult;
+}
+
+QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus)
+{
+    QList<XBinary::ADDRESSSIZE> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    QString sSQL = QString("SELECT MIN(ADDRESS), MAX(ADDRESS+SIZE) FROM %1 WHERE BRANCH > 0").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]);
+
+    if (dbstatus != DBSTATUS_NONE) {
+        sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
+    }
+
+    sSQL += "GROUP BY BRANCH ORDER BY ADDRESS";
+
+    querySQL(&query, sSQL, false);
+
+    while (query.next()) {
+        XBinary::ADDRESSSIZE record = {};
+        record.nAddress = query.value(0).toULongLong();
+        record.nSize = query.value(1).toULongLong() - record.nAddress;
 
         listResult.append(record);
     }
