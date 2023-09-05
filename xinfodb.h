@@ -770,6 +770,10 @@ signals:
     //    void analyzeStateChanged();
 
 private:
+    struct _ENTRY {
+        XADDR nAddress;
+        quint32 nBranch;
+    };
 #ifdef USE_XPROCESS
     struct STATUS {
         quint32 nRegistersHash;

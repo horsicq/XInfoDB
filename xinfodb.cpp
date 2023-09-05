@@ -3320,12 +3320,15 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     XBinary binary(analyzeOptions.pDevice);
     qint64 nTotalSize = analyzeOptions.pDevice->size();
 
-    QMap<XADDR, qint32> mapEntries;
-    QSet<XADDR> stSuspect;
+    QList<_ENTRY> listEntries;
+    QList<XADDR> listSuspect;
     qint32 nBranch = _getBranchNumber();
 
     if (analyzeOptions.nStartAddress != (XADDR)-1) {
-        mapEntries.insert(analyzeOptions.nStartAddress, nBranch);
+        _ENTRY _entry = {};
+        _entry.nAddress = analyzeOptions.nStartAddress;
+        _entry.nBranch = nBranch;
+        listEntries.append(_entry);
         nBranch++;
     }
 
@@ -3346,15 +3349,17 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         qint32 nNumberOfRecords = listFunctionAddresses.count();
 
         for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
-            mapEntries.insert(listFunctionAddresses.at(i), nBranch);
+            _ENTRY _entry = {};
+            _entry.nAddress = listFunctionAddresses.at(i);
+            _entry.nBranch = nBranch;
+            listEntries.append(_entry);
             nBranch++;
         }
 
         // Start of code section
         // mb optional
         if (mrCode.nSize) {
-            mapEntries.insert(mrCode.nAddress, nBranch);
-            nBranch++;
+            listSuspect.append(mrCode.nAddress);
         }
 
         XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, analyzeOptions.pMemoryMap->nImageSize);
@@ -3409,7 +3414,6 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         }
     }
 
-    qint64 nMaxTotal = mapEntries.count();
     qint64 nNumberOfOpcodes = 0;
 
     QList<SHOWRECORD> listShowRecords;
@@ -3419,17 +3423,17 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     QSqlQuery query(g_dataBase);
 
     while (!(pPdStruct->bIsStop)) {
-        if ((!mapEntries.isEmpty()) || (!stSuspect.isEmpty())) {
+        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
             XADDR nEntryAddress = 0;
             qint32 nCurrentBranch = 0;
 
             bool bSuspect = false;
 
-            if (!mapEntries.isEmpty()) {
-                nEntryAddress = mapEntries.firstKey();
-                nCurrentBranch = mapEntries.first();
-            } else if (!stSuspect.isEmpty()) {
-                nEntryAddress = *stSuspect.begin();
+            if (!listEntries.isEmpty()) {
+                nCurrentBranch = listEntries.first().nBranch;
+                nEntryAddress = listEntries.first().nAddress;
+            } else if (!listSuspect.isEmpty()) {
+                nEntryAddress = listSuspect.first();
                 nBranch++;
                 nCurrentBranch = nBranch;
                 bSuspect = true;
@@ -3527,8 +3531,10 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                         nBranch++;
                                     }
 
-                                    mapEntries.insert(disasmResult.nXrefToRelative, nBranch);
-                                    nMaxTotal++;
+                                    _ENTRY _entry = {};
+                                    _entry.nAddress = disasmResult.nXrefToRelative;
+                                    _entry.nBranch = nBranch;
+                                    listEntries.append(_entry);
 
                                     if (!(analyzeOptions.bIsInit)) {
                                         // TODO relative if code code
@@ -3536,15 +3542,18 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 }
 
                                 if (stShowRecords.count() > 10000) {  // TODO Consts
-                                    mapEntries.insert(nCurrentAddress, nBranch);
+                                    _ENTRY _entry = {};
+                                    _entry.nAddress = nCurrentAddress;
+                                    _entry.nBranch = nBranch;
+                                    listEntries.append(_entry);
 
                                     break;
                                 }
 
                                 // TODO Check mb int3
-                                if ((disasmResult.sMnemonic == "ret") || (disasmResult.sMnemonic == "retn")) {
+                                if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
                                     if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress + mrCode.nSize))) {
-                                        stSuspect.insert(nCurrentAddress);
+                                        listSuspect.append(nCurrentAddress);
                                     }
 
                                     break;
@@ -3598,10 +3607,17 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 }
             }
 
-            mapEntries.remove(nEntryAddress);
-            stSuspect.remove(nEntryAddress);
+            if (!bSuspect) {
+                if (listEntries.first().nAddress == nEntryAddress) {
+                    listEntries.removeFirst();
+                }
+            } else {
+                if (listSuspect.first() == nEntryAddress) {
+                    listSuspect.removeFirst();
+                }
+            }
 
-            if (mapEntries.isEmpty() || (listShowRecords.count() > 10000)) {
+            if (listEntries.isEmpty() || (listShowRecords.count() > 10000)) {
 #ifdef QT_SQL_LIB
                 g_dataBase.transaction();
 #endif
