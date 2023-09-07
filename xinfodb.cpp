@@ -3526,7 +3526,6 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
 
                                 if (disasmResult.relType) {
-
                                     if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
                                         nBranch++;
                                     }
@@ -3552,10 +3551,13 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
                                 // TODO Check mb int3
                                 if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
-                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress + mrCode.nSize))) {
-                                        listSuspect.append(nCurrentAddress);
-                                    }
+//                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress + mrCode.nSize))) {
+//                                        listSuspect.append(nCurrentAddress);
+//                                    }
+                                    break;
+                                }
 
+                                if (XCapstone::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
                                     break;
                                 }
                                 //                                if (dmFamily == XBinary::DMFAMILY_X86) {
