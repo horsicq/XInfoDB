@@ -1753,7 +1753,11 @@ QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 #ifdef USE_XPROCESS
 bool XInfoDB::isRegChanged(XREG reg)
 {
-    return !(XBinary::isXVariantEqual(_getRegCache(&(g_statusCurrent.mapRegs), reg), _getRegCache(&(g_statusCurrent.mapRegsPrev), reg)));
+    // mb TODO if init and 0 -> not changed
+    XBinary::XVARIANT varReg = _getRegCache(&(g_statusCurrent.mapRegs), reg);
+    XBinary::XVARIANT varRegPrev = _getRegCache(&(g_statusCurrent.mapRegsPrev), reg);
+
+    return !(XBinary::isXVariantEqual(varReg, varRegPrev));
 }
 #endif
 #ifdef USE_XPROCESS
@@ -3510,12 +3514,16 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 if (disasmResult.relType) {
                                     if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
                                         nBranch++;
+                                        _ENTRY _entry = {};
+                                        _entry.nAddress = disasmResult.nXrefToRelative;
+                                        _entry.nBranch = nBranch;
+                                        listEntries.append(_entry);
+                                    } else {
+                                        _ENTRY _entry = {};
+                                        _entry.nAddress = disasmResult.nXrefToRelative;
+                                        _entry.nBranch = nCurrentBranch;
+                                        listEntries.append(_entry);
                                     }
-
-                                    _ENTRY _entry = {};
-                                    _entry.nAddress = disasmResult.nXrefToRelative;
-                                    _entry.nBranch = nBranch;
-                                    listEntries.append(_entry);
 
                                     if (!(analyzeOptions.bIsInit)) {
                                         // TODO relative if code code
@@ -3525,7 +3533,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                 if (stShowRecords.count() > 10000) {  // TODO Consts
                                     _ENTRY _entry = {};
                                     _entry.nAddress = nCurrentAddress;
-                                    _entry.nBranch = nBranch;
+                                    _entry.nBranch = nCurrentBranch;
                                     listEntries.append(_entry);
 
                                     break;
@@ -3536,6 +3544,10 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress + mrCode.nSize))) {
 //                                        listSuspect.append(nCurrentAddress);
 //                                    }
+                                    break;
+                                }
+
+                                if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
                                     break;
                                 }
 
@@ -3671,7 +3683,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 QString sSymbolName;
 
                 if (stCalls.contains(nSymbolAddress)) {
-                    sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+                    sSymbolName = QString("sub_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
                 } else {
                     sSymbolName = QString("unk_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
                 }
