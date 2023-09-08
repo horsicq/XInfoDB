@@ -569,10 +569,16 @@ public:
         LT_ADDRESS
     };
 
+    enum SS {
+        SS_FILE,
+        SS_ANALYZE
+    };
+
     struct SYMBOL {
         XADDR nAddress;
         quint32 nModule;  // ModuleIndex; 0 - main module
         QString sSymbol;
+        SS symSource;
     };
 
     struct REFERENCE {
@@ -629,8 +635,7 @@ public:
 
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
 
-    void addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol);
-    bool _addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol);
+    bool _addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol, SS symSource);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
 
@@ -646,7 +651,6 @@ public:
     QList<FUNCTION> getAllFunctions();
     bool isFunctionPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
-    void initSymbolsDb();
     void initDisasmDb();
     void initHexDb();
 #ifdef QT_SQL_LIB
@@ -662,7 +666,7 @@ public:
     void clearAllTables();
     void clearDb();
     void vacuumDb();
-    void _addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
     struct ANALYZEOPTIONS {
         QIODevice *pDevice;
@@ -684,7 +688,8 @@ public:
 #endif
     QList<RELRECORD> getRelRecords(DBSTATUS dbstatus);
     bool _incShowRecordRefFrom(XADDR nAddress);
-    bool _removeAnalysis(XADDR nAddress, qint64 nSize);
+    bool _removeAnalyze(XADDR nAddress, qint64 nSize);
+    void _clearAnalyze();
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
     void updateFunctionSize(XADDR nAddress, qint64 nSize);

@@ -73,8 +73,7 @@ bool XInfoDBTransfer::process()
             if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
                     if (!(g_pXInfoDB->isSymbolsPresent())) {
-                        g_pXInfoDB->initSymbolsDb();
-                        g_pXInfoDB->_addSymbols(pDevice, g_options.fileType, g_pPdStruct);
+                        g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.fileType, g_pPdStruct);
                     }
 
                     g_pXInfoDB->initDisasmDb();
@@ -108,8 +107,7 @@ bool XInfoDBTransfer::process()
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
-                    g_pXInfoDB->initSymbolsDb();
-                    g_pXInfoDB->_addSymbols(pDevice, g_options.fileType, g_pPdStruct);
+                    g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.fileType, g_pPdStruct);
                 }
             }
 
@@ -125,9 +123,9 @@ bool XInfoDBTransfer::process()
         } else if (g_transferType == COMMAND_IMPORT) {
             g_pXInfoDB->loadDbFromFile(g_options.sFileName, g_pPdStruct);
         } else if (g_transferType == COMMAND_REMOVE) {
-            g_pXInfoDB->_removeAnalysis(g_options.nAddress, g_options.nSize);
+            g_pXInfoDB->_removeAnalyze(g_options.nAddress, g_options.nSize);
         } else if (g_transferType == COMMAND_CLEAR) {
-            g_pXInfoDB->clearAllTables();
+            g_pXInfoDB->_clearAnalyze();
             // TODO unset analyze all flag
             // TODO unset dtatabase changed
         }

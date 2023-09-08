@@ -119,7 +119,8 @@ void XInfoDB::initDB()
 
         //        g_dataBase.setDatabaseName(":memory:");
     #ifdef Q_OS_WIN
-        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+        g_dataBase.setDatabaseName(":memory:");
+//        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
     #else
         g_dataBase.setDatabaseName(":memory:");
     #endif
@@ -2458,7 +2459,7 @@ QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT, SYMSOURCE FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
 
     while (query.next()) {
         SYMBOL record = {};
@@ -2466,6 +2467,7 @@ QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
         record.nAddress = query.value(0).toULongLong();
         record.nModule = query.value(1).toULongLong();
         record.sSymbol = query.value(2).toString();
+        record.symSource = (SS)query.value(3).toULongLong();
 
         listResult.append(record);
     }
@@ -2530,47 +2532,21 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 //    return listResult;
 //}
 
-void XInfoDB::addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
-{
-#ifdef QT_SQL_LIB
-    _addSymbol(nAddress, nModule, sSymbol);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nModule)
-    Q_UNUSED(sSymbol)
-//    qint32 nInsertIndex = 0;
-//    qint32 nIndex = _getSymbolIndex(nAddress, nSize, nModule, &nInsertIndex);
 
-//    if (nIndex != -1) {
-//        g_listSymbols[nIndex].sSymbol = sSymbol;
-//        g_listSymbols[nIndex].symbolType = symbolType;
-//    } else {
-//        SYMBOL symbol = {};
-//        symbol.nAddress = nAddress;
-//        symbol.nSize = nSize;
-//        symbol.nModule = nModule;
-//        symbol.sSymbol = sSymbol;
-//        symbol.symbolType = symbolType;
-//        symbol.symbolSource = symbolSource;
-
-//        g_listSymbols.insert(nInsertIndex, symbol);
-//    }
-#endif
-}
-
-bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol)
+bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol, SS symSource)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
-                          "VALUES (?, ?, ?)")
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT, SYMSOURCE) "
+                          "VALUES (?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
     query.bindValue(0, nAddress);
     query.bindValue(1, nModule);
     query.bindValue(2, sSymbol);
+    query.bindValue(3, symSource);
 
     bResult = querySQL(&query, true);
 #else
@@ -2578,6 +2554,7 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol
     symbol.nAddress = nAddress;
     symbol.nModule = nModule;
     symbol.sSymbol = sSymbol;
+    symbol.symSource = symSource;
 
     g_listSymbols.append(symbol);
 
@@ -2722,12 +2699,13 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
+    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
         result.nModule = query.value(1).toULongLong();
         result.sSymbol = query.value(2).toString();
+        result.symSource = (SS)query.value(3).toULongLong();
     }
 #else
     qint32 nNumberOfSymbols = g_listSymbols.count();
@@ -2805,20 +2783,6 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
     return sResult;
 }
 
-void XInfoDB::initSymbolsDb()
-{
-#ifdef QT_SQL_LIB
-    //    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
-    //    removeTable(&g_dataBase, DBTABLE_IMPORT);
-    //    removeTable(&g_dataBase, DBTABLE_EXPORT);
-    //    removeTable(&g_dataBase, DBTABLE_TLS);
-    createTable(&g_dataBase, DBTABLE_SYMBOLS);
-    createTable(&g_dataBase, DBTABLE_IMPORT);
-    createTable(&g_dataBase, DBTABLE_EXPORT);
-    createTable(&g_dataBase, DBTABLE_TLS);
-#endif
-}
-
 void XInfoDB::initDisasmDb()
 {
 #ifdef QT_SQL_LIB
@@ -2882,7 +2846,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
                          "ADDRESS INTEGER PRIMARY KEY,"
                          "MODULE INTEGER,"
-                         "SYMTEXT TEXT"
+                         "SYMTEXT TEXT,"
+                         "SYMSOURCE INTEGER"
                          ")")
                      .arg(s_sql_tableName[DBTABLE_SYMBOLS]),
                  false);
@@ -3061,9 +3026,25 @@ void XInfoDB::vacuumDb()
 #endif
 }
 
-void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pMutexSQL->lock();
+
+    {
+        createTable(&g_dataBase, DBTABLE_SYMBOLS);
+        createTable(&g_dataBase, DBTABLE_IMPORT);
+        createTable(&g_dataBase, DBTABLE_EXPORT);
+        createTable(&g_dataBase, DBTABLE_TLS);
+    }
+
+    {
+        QSqlQuery query(g_dataBase);
+
+        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_IMPORT]), true);
+        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_EXPORT]), true);
+        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_TLS]), true);
+        querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'") .arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+    }
 
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
@@ -3091,7 +3072,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
             QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList();
 
             if (memoryMap.nEntryPointAddress) {
-                _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint");
+                _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);
                 _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
             }
 
@@ -3174,7 +3155,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                                 if (XBinary::isAddressValid(&memoryMap, nSymbolAddress)) {
                                     if (!isSymbolPresent(nSymbolAddress)) {
                                         //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
-                                        _addSymbol(nSymbolAddress, 0, sSymbolName);
+                                        _addSymbol(nSymbolAddress, 0, sSymbolName, SS_FILE);
                                         // TODO Add symbol ranges;
                                     }
 
@@ -3202,7 +3183,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
             XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
 
-            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint");  // TD mb tr
+            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
             _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
@@ -3221,7 +3202,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
                             sFunctionName = QString::number(_export.listPositions.at(i).nOrdinal);
                         }
 
-                        _addSymbol(nAddress, 0, sFunctionName);
+                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
                         _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
@@ -3239,7 +3220,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
                     if (!stAddresses.contains(nAddress)) {
                         QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
-                        _addSymbol(nAddress, 0, sFunctionName);
+                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
                         _addImportSymbol(nAddress, listImportRecords.at(i).sFunction);  // TODO ordinals
@@ -3257,7 +3238,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
                     if (!stAddresses.contains(nAddress)) {
                         QString sFunctionName = QString("tlsfunc_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
-                        _addSymbol(nAddress, 0, sFunctionName);
+                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
                         _addTLSSymbol(nAddress, sFunctionName);
@@ -3277,7 +3258,7 @@ void XInfoDB::_addSymbols(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDS
 
             XBinary::_MEMORY_MAP memoryMap = mach.getMemoryMap();
 
-            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint");  // TD mb tr
+            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
             _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
@@ -3321,7 +3302,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     qint64 nTotalSize = analyzeOptions.pDevice->size();
 
     QList<_ENTRY> listEntries;
-    QList<XADDR> listSuspect;
+//    QList<XADDR> listSuspect;
     qint32 nBranch = _getBranchNumber();
 
     if (analyzeOptions.nStartAddress != (XADDR)-1) {
@@ -3358,9 +3339,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         // Start of code section
         // mb optional
-        if (mrCode.nSize) {
-            listSuspect.append(mrCode.nAddress);
-        }
+//        if (mrCode.nSize) {
+//            listSuspect.append(mrCode.nAddress);
+//        }
 
         XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, analyzeOptions.pMemoryMap->nImageSize);
 
@@ -3423,7 +3404,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     QSqlQuery query(g_dataBase);
 
     while (!(pPdStruct->bIsStop)) {
-        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
+//        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
+        if (!listEntries.isEmpty()) {
             XADDR nEntryAddress = 0;
             qint32 nCurrentBranch = 0;
 
@@ -3432,12 +3414,12 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             if (!listEntries.isEmpty()) {
                 nCurrentBranch = listEntries.first().nBranch;
                 nEntryAddress = listEntries.first().nAddress;
-            } else if (!listSuspect.isEmpty()) {
+            } /*else if (!listSuspect.isEmpty()) {
                 nEntryAddress = listSuspect.first();
                 nBranch++;
                 nCurrentBranch = nBranch;
                 bSuspect = true;
-            }
+            }*/
 
             XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
 
@@ -3472,7 +3454,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     quint64 _nCurrentBranch = nCurrentBranch;
 
                                     if (bSuspect) {
-                                        if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
+                                        if (XCapstone::isNoOpcode(dmFamily, disasmResult.nOpcode)) {
                                             _nCurrentBranch = 0;
                                         } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
                                             _nCurrentBranch = 0;
@@ -3613,11 +3595,11 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 if (listEntries.first().nAddress == nEntryAddress) {
                     listEntries.removeFirst();
                 }
-            } else {
+            } /*else {
                 if (listSuspect.first() == nEntryAddress) {
                     listSuspect.removeFirst();
                 }
-            }
+            }*/
 
             if (listEntries.isEmpty() || (listShowRecords.count() > 10000)) {
 #ifdef QT_SQL_LIB
@@ -3695,7 +3677,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 }
 
                 if (!isSymbolPresent(nSymbolAddress)) {
-                    _addSymbol(nSymbolAddress, 0, sSymbolName);
+                    _addSymbol(nSymbolAddress, 0, sSymbolName, SS_ANALYZE);
                 }
 
                 if (!isFunctionPresent(nSymbolAddress)) {
@@ -3730,7 +3712,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             if (!isSymbolPresent(nSymbolAddress)) {
                 QString sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
 
-                _addSymbol(nSymbolAddress, 0, sSymbolName);
+                _addSymbol(nSymbolAddress, 0, sSymbolName, SS_ANALYZE);
             }
 
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
@@ -3813,7 +3795,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                         sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
                     }
 
-                    if (!_addSymbol(record.nAddress, 0, sSymbolName)) {
+                    if (!_addSymbol(record.nAddress, 0, sSymbolName, SS_ANALYZE)) {
 #ifdef QT_DEBUG
                         qDebug("%s", XBinary::valueToHex(record.nAddress).toLatin1().data());
 #endif
@@ -4188,7 +4170,7 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
     return bResult;
 }
 
-bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
+bool XInfoDB::_removeAnalyze(XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
 
@@ -4207,6 +4189,18 @@ bool XInfoDB::_removeAnalysis(XADDR nAddress, qint64 nSize)
 #endif
 
     return bResult;
+}
+
+void XInfoDB::_clearAnalyze()
+{
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
+    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
+    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
+    querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'") .arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+#endif
 }
 
 bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)

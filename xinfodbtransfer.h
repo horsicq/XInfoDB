@@ -32,10 +32,10 @@ public:
     enum COMMAND {
         COMMAND_ANALYZEALL = 0,
         COMMAND_ANALYZE,
-        COMMAND_SYMBOLS,
+        COMMAND_SYMBOLS, // TODO reload
         COMMAND_DISASM,
         COMMAND_REMOVE,
-        COMMAND_CLEAR,  // TODO CLEAR_SYMBOLS, CLEAR_ANALYZE
+        COMMAND_CLEAR,
         COMMAND_EXPORT,
         COMMAND_IMPORT
     };
