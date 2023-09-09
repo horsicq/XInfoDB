@@ -118,12 +118,12 @@ void XInfoDB::initDB()
         g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
 
         //        g_dataBase.setDatabaseName(":memory:");
-    #ifdef Q_OS_WIN
+#ifdef Q_OS_WIN
         g_dataBase.setDatabaseName(":memory:");
-//        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
-    #else
+        //        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+#else
         g_dataBase.setDatabaseName(":memory:");
-    #endif
+#endif
         // #ifdef Q_OS_LINUX
         //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
         // #endif
@@ -2536,7 +2536,6 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 //    return listResult;
 //}
 
-
 bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol, SS symSource)
 {
     bool bResult = false;
@@ -2703,7 +2702,8 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
+    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
+             false);
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
@@ -3044,10 +3044,10 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
     {
         QSqlQuery query(g_dataBase);
 
-        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_IMPORT]), true);
-        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_EXPORT]), true);
-        querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_TLS]), true);
-        querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'") .arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]), true);
+        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]), true);
+        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), true);
+        querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
     }
 
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
@@ -3306,7 +3306,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     qint64 nTotalSize = analyzeOptions.pDevice->size();
 
     QList<_ENTRY> listEntries;
-//    QList<XADDR> listSuspect;
+    //    QList<XADDR> listSuspect;
     qint32 nBranch = _getBranchNumber();
 
     if (analyzeOptions.nStartAddress != (XADDR)-1) {
@@ -3343,9 +3343,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         // Start of code section
         // mb optional
-//        if (mrCode.nSize) {
-//            listSuspect.append(mrCode.nAddress);
-//        }
+        //        if (mrCode.nSize) {
+        //            listSuspect.append(mrCode.nAddress);
+        //        }
 
         XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, analyzeOptions.pMemoryMap->nImageSize);
 
@@ -3408,7 +3408,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     QSqlQuery query(g_dataBase);
 
     while (!(pPdStruct->bIsStop)) {
-//        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
+        //        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
         if (!listEntries.isEmpty()) {
             XADDR nEntryAddress = 0;
             qint32 nCurrentBranch = 0;
@@ -3541,9 +3541,10 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
                                 // TODO Check mb int3
                                 if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
-//                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress + mrCode.nSize))) {
-//                                        listSuspect.append(nCurrentAddress);
-//                                    }
+                                    //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
+                                    //                                    mrCode.nSize))) {
+                                    //                                        listSuspect.append(nCurrentAddress);
+                                    //                                    }
                                     break;
                                 }
 
@@ -3656,15 +3657,15 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 XADDR nCallAddress = listLabels.at(i);
                 stCalls.insert(nCallAddress);
 
-    //            QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
+                //            QString sSymbolName = QString("func_%1").arg(XBinary::valueToHexEx(nSymbolAddress));
 
-    //            if (!isSymbolPresent(nSymbolAddress)) {
-    //                _addSymbol(nSymbolAddress, 0, sSymbolName);
-    //            }
+                //            if (!isSymbolPresent(nSymbolAddress)) {
+                //                _addSymbol(nSymbolAddress, 0, sSymbolName);
+                //            }
 
-    //            if (!isFunctionPresent(nSymbolAddress)) {
-    //                _addFunction(nSymbolAddress, 0, sSymbolName);
-    //            }
+                //            if (!isFunctionPresent(nSymbolAddress)) {
+                //                _addFunction(nSymbolAddress, 0, sSymbolName);
+                //            }
 
                 XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
             }
@@ -4208,10 +4209,10 @@ void XInfoDB::_clearAnalyze()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
-    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
-    querySQL(&query, QString("DELETE FROM %1") .arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
-    querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'") .arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
+    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
+    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
+    querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
 #endif
 }
 
@@ -4259,10 +4260,8 @@ void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-            QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'")
-            .arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize), QString::number(nAddress)),
-            true);
+    querySQL(&query, QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize), QString::number(nAddress)),
+             true);
 #else
     Q_UNUSED(nAddress)
     Q_UNUSED(nSize)
@@ -4786,7 +4785,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
     QString sSQL;
 
     if (relType == XCapstone::RELTYPE_ALL) {
-         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_NONE));
+        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_NONE));
     } else if (relType == XCapstone::RELTYPE_JMP) {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
                    .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_JMP), QString::number(XCapstone::RELTYPE_JMP_COND),
