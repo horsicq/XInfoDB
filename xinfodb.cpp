@@ -2515,6 +2515,8 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         listResult.append(record);
     }
+#else
+    Q_UNUSED(nAddress)
 #endif
     return listResult;
 }
@@ -3034,6 +3036,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
 {
     g_pMutexSQL->lock();
 
+#ifdef QT_SQL_LIB
     {
         createTable(&g_dataBase, DBTABLE_SYMBOLS);
         createTable(&g_dataBase, DBTABLE_IMPORT);
@@ -3049,6 +3052,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), true);
         querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
     }
+#endif
 
     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
@@ -3975,6 +3979,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 #else
     Q_UNUSED(analyzeOptions)
+    Q_UNUSED(pPdStruct)
 #endif
 
     return bResult;
@@ -4162,7 +4167,8 @@ QList<XInfoDB::RELRECORD> XInfoDB::getRelRecords(DBSTATUS dbstatus)
 
         listResult.append(record);
     }
-
+#else
+    Q_UNUSED(dbstatus)
 #endif
 
     return listResult;
@@ -4374,6 +4380,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT
     }
 #else
     Q_UNUSED(nLocation)
+    Q_UNUSED(locationType)
     Q_UNUSED(nSize)
 #endif
 
@@ -4807,6 +4814,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
     }
 #else
     Q_UNUSED(relType)
+    Q_UNUSED(dbstatus)
 #endif
     return listResult;
 }
@@ -4834,6 +4842,8 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
 
         listResult.append(record);
     }
+#else
+    Q_UNUSED(dbstatus)
 #endif
     return listResult;
 }
@@ -4861,6 +4871,8 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus)
 
         listResult.append(record);
     }
+#else
+    Q_UNUSED(dbstatus)
 #endif
     return listResult;
 }

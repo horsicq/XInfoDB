@@ -638,7 +638,6 @@ public:
     bool _addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol, SS symSource);
     void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
-
     bool _addExportSymbol(XADDR nAddress, const QString &sSymbol);
     bool _addImportSymbol(XADDR nAddress, const QString &sSymbol);
     bool _addTLSSymbol(XADDR nAddress, const QString &sSymbol);
