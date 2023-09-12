@@ -377,8 +377,7 @@ public:
     qint64 write_array(XADDR nAddress, char *pData, quint64 nSize);
     QByteArray read_array(XADDR nAddress, quint64 nSize);
     QString read_ansiString(XADDR nAddress, quint64 nMaxSize = 256);
-    QString read_unicodeString(XADDR nAddress,
-                               quint64 nMaxSize = 256);  // TODO endian ??
+    QString read_unicodeString(XADDR nAddress, quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
     XCapstone::DISASM_RESULT disasm(XADDR nAddress);
 #else
