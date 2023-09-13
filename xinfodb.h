@@ -57,6 +57,7 @@ public:
         bool bDebug;
         bool bFloat;
         bool bXMM;
+        bool bYMM;
 #endif
     };
 
@@ -163,6 +164,22 @@ public:
         XREG_XMM13,
         XREG_XMM14,
         XREG_XMM15,
+        XREG_YMM0,
+        XREG_YMM1,
+        XREG_YMM2,
+        XREG_YMM3,
+        XREG_YMM4,
+        XREG_YMM5,
+        XREG_YMM6,
+        XREG_YMM7,
+        XREG_YMM8,
+        XREG_YMM9,
+        XREG_YMM10,
+        XREG_YMM11,
+        XREG_YMM12,
+        XREG_YMM13,
+        XREG_YMM14,
+        XREG_YMM15,
         XREG_AH,
         XREG_CH,
         XREG_DH,
@@ -380,6 +397,8 @@ public:
     QString read_unicodeString(XADDR nAddress, quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
     XCapstone::DISASM_RESULT disasm(XADDR nAddress);
+    qint64 read_userData(X_ID nThreadId,qint64 nOffset, char *pData, qint64 nSize);
+    qint64 write_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize);
 #else
     quint32 read_uint32(qint64 nOffset, bool bIsBigEndian = false);
     quint64 read_uint64(qint64 nOffset, bool bIsBigEndian = false);
@@ -512,6 +531,8 @@ public:
     static XREG getSubReg16(XREG reg);
     static XREG getSubReg8H(XREG reg);
     static XREG getSubReg8L(XREG reg);
+
+    static XREG_OPTIONS getRegOptions(XREG reg);
 
     static char *allocateStringMemory(const QString &sFileName);
     static XBinary::XVARIANT getFlagFromReg(XBinary::XVARIANT variant, XREG reg);
