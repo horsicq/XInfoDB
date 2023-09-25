@@ -1449,11 +1449,27 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
 
             if (regOptions.bXMM) {
 #if defined(Q_PROCESSOR_X86_32)
-                // TODO
+//                for (qint32 i = 0; i < 8; i++) {
+//                    g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i),
+//                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+//                }
 #endif
 #if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 16; i++) {
                     g_statusCurrent.mapRegs.insert(XREG(XREG_XMM0 + i),
+                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+                }
+#endif
+                //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
+            }
+
+            if (regOptions.bYMM) {
+#if defined(Q_PROCESSOR_X86_32)
+                // TODO
+#endif
+#if defined(Q_PROCESSOR_X86_64)
+                for (qint32 i = 0; i < 16; i++) {
+                    g_statusCurrent.mapRegs.insert(XREG(XREG_YMM0 + i),
                                                    XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
                 }
 #endif
