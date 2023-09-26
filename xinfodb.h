@@ -131,15 +131,15 @@ public:
         XREG_DR3,
         XREG_DR6,
         XREG_DR7,
-        XREG_CF,
-        XREG_PF,
-        XREG_AF,
-        XREG_ZF,
-        XREG_SF,
-        XREG_TF,
-        XREG_IF,
-        XREG_DF,
-        XREG_OF,
+        XREG_FLAGS_CF,
+        XREG_FLAGS_PF,
+        XREG_FLAGS_AF,
+        XREG_FLAGS_ZF,
+        XREG_FLAGS_SF,
+        XREG_FLAGS_TF,
+        XREG_FLAGS_IF,
+        XREG_FLAGS_DF,
+        XREG_FLAGS_OF,
         XREG_ST0,
         XREG_ST1,
         XREG_ST2,
@@ -148,6 +148,15 @@ public:
         XREG_ST5,
         XREG_ST6,
         XREG_ST7,
+        XREG_FPCR, // https://help.totalview.io/previous_releases/2019/html/index.html#page/Reference_Guide%2FIntelx86FloatingPointRegisters_2.html%23
+        XREG_FPSR,
+        XREG_FPTAG,
+        XREG_FPIOFF,
+        XREG_FPISEL,
+        XREG_FPDOFF,
+        XREG_FPDSEL,
+        XREG_MXCSR,
+        XREG_MXCSR_MASK,
         XREG_XMM0,
         XREG_XMM1,
         XREG_XMM2,
@@ -799,10 +808,15 @@ private:
         quint32 nBranch;
     };
 #ifdef USE_XPROCESS
+    struct REG_RECORD {
+        XREG reg;
+        XBinary::XVARIANT value;
+    };
+
     struct STATUS {
         quint32 nRegistersHash;
-        QMap<XREG, XBinary::XVARIANT> mapRegs;
-        QMap<XREG, XBinary::XVARIANT> mapRegsPrev;  // mb TODO move to prev
+        QList<REG_RECORD> listRegs;
+        QList<REG_RECORD> listRegsPrev;  // mb TODO move to prev
         X_ID nThreadId;
         X_HANDLE hThread;
         quint32 nMemoryRegionsHash;
@@ -812,8 +826,9 @@ private:
         quint32 nThreadsHash;
         QList<XProcess::THREAD_INFO> listThreads;  // TODO prev
     };
-    XBinary::XVARIANT _getRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg);
-    void _setRegCache(QMap<XREG, XBinary::XVARIANT> *pMapRegs, XREG reg, XBinary::XVARIANT variant);
+    XBinary::XVARIANT _getRegCache(QList<REG_RECORD> *pListRegs, XREG reg);
+    void _setRegCache(QList<REG_RECORD> *pListRegs, XREG reg, XBinary::XVARIANT variant);
+    void _addCurrentRegRecord(XREG reg, XBinary::XVARIANT value);
 #endif
 private:
 #ifdef USE_XPROCESS
