@@ -230,6 +230,11 @@ public:
 #endif
     };
 
+    struct REG_RECORD {
+        XREG reg;
+        XBinary::XVARIANT value;
+    };
+
     enum BPT {
         BPT_UNKNOWN = 0,
         BPT_CODE_SOFTWARE,  // for X86 0xCC Check for ARM Check invalid opcodes
@@ -518,6 +523,7 @@ public:
     bool setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT variant);
     bool setCurrentReg(XREG reg, XBinary::XVARIANT variant);
     bool isRegChanged(XREG reg);
+    QList<REG_RECORD> getCurrentRegs();
     XADDR getCurrentStackPointerCache();
     XADDR getCurrentInstructionPointerCache();
     XADDR getCurrentInstructionPointer_Handle(X_HANDLE hThread);
@@ -695,6 +701,7 @@ public:
     void clearDb();
     void vacuumDb();
     void _addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize, XBinary::PDSTRUCT *pPdStruct);
 
     struct ANALYZEOPTIONS {
         QIODevice *pDevice;
@@ -808,11 +815,6 @@ private:
         quint32 nBranch;
     };
 #ifdef USE_XPROCESS
-    struct REG_RECORD {
-        XREG reg;
-        XBinary::XVARIANT value;
-    };
-
     struct STATUS {
         quint32 nRegistersHash;
         QList<REG_RECORD> listRegs;
