@@ -1293,32 +1293,42 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 #endif
     }
 
-    if (regOptions.bDebug || regOptions.bFloat || regOptions.bXMM || regOptions.bYMM) {
-        if (regOptions.bDebug) {
+    if (regOptions.bDebug) {
 #ifdef Q_PROCESSOR_X86_64
-            qint32 nDebugOffset = offsetof(struct user, u_debugreg);
-            quint64 nDR[8] = {};
-            read_userData(nThreadId, nDebugOffset + 8 * 0, (char *)(&nDR[0]), 8);
-            read_userData(nThreadId, nDebugOffset + 8 * 1, (char *)(&nDR[1]), 8);
-            read_userData(nThreadId, nDebugOffset + 8 * 2, (char *)(&nDR[2]), 8);
-            read_userData(nThreadId, nDebugOffset + 8 * 3, (char *)(&nDR[3]), 8);
-            read_userData(nThreadId, nDebugOffset + 8 * 6, (char *)(&nDR[6]), 8);
-            read_userData(nThreadId, nDebugOffset + 8 * 7, (char *)(&nDR[7]), 8);
-            _addCurrentRegRecord(XREG_DR0, XBinary::getXVariant((quint64)(nDR[0])));
-            _addCurrentRegRecord(XREG_DR1, XBinary::getXVariant((quint64)(nDR[1])));
-            _addCurrentRegRecord(XREG_DR2, XBinary::getXVariant((quint64)(nDR[2])));
-            _addCurrentRegRecord(XREG_DR3, XBinary::getXVariant((quint64)(nDR[3])));
-            _addCurrentRegRecord(XREG_DR6, XBinary::getXVariant((quint64)(nDR[6])));
-            _addCurrentRegRecord(XREG_DR7, XBinary::getXVariant((quint64)(nDR[7])));
+        quint64 debugRegs[8] = {};
+        read_userData(nThreadId, offsetof(user, u_debugreg), (char *)(debugRegs), sizeof(debugRegs));
+        _addCurrentRegRecord(XREG_DR0, XBinary::getXVariant((quint64)(debugRegs[0])));
+        _addCurrentRegRecord(XREG_DR1, XBinary::getXVariant((quint64)(debugRegs[1])));
+        _addCurrentRegRecord(XREG_DR2, XBinary::getXVariant((quint64)(debugRegs[2])));
+        _addCurrentRegRecord(XREG_DR3, XBinary::getXVariant((quint64)(debugRegs[3])));
+        _addCurrentRegRecord(XREG_DR6, XBinary::getXVariant((quint64)(debugRegs[6])));
+        _addCurrentRegRecord(XREG_DR7, XBinary::getXVariant((quint64)(debugRegs[7])));
 #endif
-        }
+    }
+
+    if (regOptions.bFloat || regOptions.bXMM || regOptions.bYMM) {
+
+
+//        qDebug("u_tsize %llX", _userData.u_tsize);
+//        qDebug("u_dsize %llX", _userData.u_dsize);
+//        qDebug("u_ssize %llX", _userData.u_ssize);
+//        qDebug("start_code %llX", _userData.start_code);
+//        qDebug("start_stack %llX", _userData.start_stack);
 
         if (regOptions.bFloat) {
+//            _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(_userData.i387.cwd)));
+//            _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(_userData.i387.swd)));
+//            _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(_userData.i387.ftw)));
+//            _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(_userData.i387.fop))); // TODO Check
 
+//            _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector))); // TODO Check
+//            _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
+//            _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
         }
 
         if (regOptions.bXMM) {
-
+//            _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(_userData.i387.mxcsr)));
+//            _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(_userData.i387.mxcr_mask)));
         }
 
         if (regOptions.bYMM) {
