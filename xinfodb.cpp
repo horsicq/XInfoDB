@@ -1307,39 +1307,36 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
     }
 
     if (regOptions.bFloat || regOptions.bXMM || regOptions.bYMM) {
-
         char regs[10000];
         struct iovec io;
         io.iov_base = &regs;
         io.iov_len = sizeof(regs);
 
-        if (ptrace(PTRACE_GETREGSET, nThreadId, (void*)NT_X86_XSTATE, (void*)&io) == -1)
-                    printf("BAD REGISTER REQUEST\n");
+        if (ptrace(PTRACE_GETREGSET, nThreadId, (void *)NT_X86_XSTATE, (void *)&io) == -1) printf("BAD REGISTER REQUEST\n");
         qDebug("io.iov_len %d", io.iov_len);
-//        qDebug("u_tsize %llX", _userData.u_tsize);
-//        qDebug("u_dsize %llX", _userData.u_dsize);
-//        qDebug("u_ssize %llX", _userData.u_ssize);
-//        qDebug("start_code %llX", _userData.start_code);
-//        qDebug("start_stack %llX", _userData.start_stack);
+        //        qDebug("u_tsize %llX", _userData.u_tsize);
+        //        qDebug("u_dsize %llX", _userData.u_dsize);
+        //        qDebug("u_ssize %llX", _userData.u_ssize);
+        //        qDebug("start_code %llX", _userData.start_code);
+        //        qDebug("start_stack %llX", _userData.start_stack);
 
         if (regOptions.bFloat) {
-//            _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(_userData.i387.cwd)));
-//            _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(_userData.i387.swd)));
-//            _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(_userData.i387.ftw)));
-//            _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(_userData.i387.fop))); // TODO Check
+            //            _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(_userData.i387.cwd)));
+            //            _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(_userData.i387.swd)));
+            //            _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(_userData.i387.ftw)));
+            //            _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(_userData.i387.fop))); // TODO Check
 
-//            _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector))); // TODO Check
-//            _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
-//            _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
+            //            _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector))); // TODO Check
+            //            _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
+            //            _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
         }
 
         if (regOptions.bXMM) {
-//            _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(_userData.i387.mxcsr)));
-//            _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(_userData.i387.mxcr_mask)));
+            //            _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(_userData.i387.mxcsr)));
+            //            _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(_userData.i387.mxcr_mask)));
         }
 
         if (regOptions.bYMM) {
-
         }
     }
 
@@ -1417,7 +1414,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
 #endif
 #ifdef Q_PROCESSOR_X86_64
                 _addCurrentRegRecord(XREG_RFLAGS,
-                                               XBinary::getXVariant((quint64)(context.EFlags)));  // TODO !!!
+                                     XBinary::getXVariant((quint64)(context.EFlags)));  // TODO !!!
 #endif
             }
 
@@ -1460,14 +1457,14 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
                 _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(context.FltSave.ControlWord)));
                 _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(context.FltSave.StatusWord)));
                 _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(context.FltSave.TagWord)));
-                _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(context.FltSave.ErrorOffset))); // TODO Check
-                _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector))); // TODO Check
+                _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(context.FltSave.ErrorOffset)));    // TODO Check
+                _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector)));  // TODO Check
                 _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
                 _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
 
                 for (qint32 i = 0; i < 8; i++) {
-                    _addCurrentRegRecord(
-                        XREG(XREG_ST0 + i), XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
+                    _addCurrentRegRecord(XREG(XREG_ST0 + i),
+                                         XBinary::getXVariant((quint64)(context.FltSave.FloatRegisters[i].Low), (quint64)(context.FltSave.FloatRegisters[i].High)));
                 }
 #endif
             }
@@ -1476,13 +1473,14 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
 #if defined(Q_PROCESSOR_X86_32)
 //                for (qint32 i = 0; i < 8; i++) {
 //                    _addCurrentRegRecord(XREG(XREG_XMM0 + i),
-//                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+//                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low),
+//                                                   (quint64)(context.FltSave.XmmRegisters[i].High)));
 //                }
 #endif
 #if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 16; i++) {
                     _addCurrentRegRecord(XREG(XREG_XMM0 + i),
-                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+                                         XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
                 }
 #endif
                 _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(context.FltSave.MxCsr)));
@@ -1496,7 +1494,7 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
 #if defined(Q_PROCESSOR_X86_64)
                 for (qint32 i = 0; i < 16; i++) {
                     _addCurrentRegRecord(XREG(XREG_YMM0 + i),
-                                                   XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
+                                         XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
                 }
 #endif
                 //            mapResult.insert("MxCsr",(quint32)(context.MxCsr));
@@ -1655,8 +1653,9 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_R15) context.R15 = variant.var.v_uint64;
         else if (reg == XREG_RFLAGS) context.EFlags = variant.var.v_uint64;
         else if (reg == XREG_RIP) context.Rip = variant.var.v_uint64;
-        else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) || (reg == XInfoDB::XREG_FLAGS_SF) ||
-                 (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) || (reg == XInfoDB::XREG_FLAGS_OF)) {
+        else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
+                 (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
+                 (reg == XInfoDB::XREG_FLAGS_OF)) {
             context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint64;
         } else bUnknownRegister = true;
 #endif
@@ -2415,10 +2414,9 @@ XInfoDB::XREG_OPTIONS XInfoDB::getRegOptions(XREG reg)
     }
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    if ((reg == XREG_RAX) || (reg == XREG_RBX) || (reg == XREG_RCX) || (reg == XREG_RDX) || (reg == XREG_RBP) ||
-        (reg == XREG_RSP) || (reg == XREG_RSI) || (reg == XREG_RDI) || (reg == XREG_R8) || (reg == XREG_R9) ||
-        (reg == XREG_R10) || (reg == XREG_R11) || (reg == XREG_R12) || (reg == XREG_R13) || (reg == XREG_R14) ||
-        (reg == XREG_R15)) {
+    if ((reg == XREG_RAX) || (reg == XREG_RBX) || (reg == XREG_RCX) || (reg == XREG_RDX) || (reg == XREG_RBP) || (reg == XREG_RSP) || (reg == XREG_RSI) ||
+        (reg == XREG_RDI) || (reg == XREG_R8) || (reg == XREG_R9) || (reg == XREG_R10) || (reg == XREG_R11) || (reg == XREG_R12) || (reg == XREG_R13) ||
+        (reg == XREG_R14) || (reg == XREG_R15)) {
         result.bGeneral = true;
     } else if (reg == XREG_RIP) {
         result.bIP = true;
@@ -3343,7 +3341,8 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
     g_pMutexSQL->unlock();
 }
 
-void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
+                             XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XELF_DEF::Elf_Sym> listSymbols = pELF->getElf_SymList(nDataOffset, nDataSize);
     qint32 nNumberOfSymbols = listSymbols.count();
@@ -5674,8 +5673,8 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QList<REG_RECORD> *pListRegs, XREG reg)
 
     XREG _reg = reg;
 #ifdef Q_PROCESSOR_X86
-    if ((reg == XREG_FLAGS_CF) || (reg == XREG_FLAGS_PF) || (reg == XREG_FLAGS_AF) || (reg == XREG_FLAGS_ZF) || (reg == XREG_FLAGS_SF) || (reg == XREG_FLAGS_TF) || (reg == XREG_FLAGS_IF) || (reg == XREG_FLAGS_DF) ||
-        (reg == XREG_FLAGS_OF)) {
+    if ((reg == XREG_FLAGS_CF) || (reg == XREG_FLAGS_PF) || (reg == XREG_FLAGS_AF) || (reg == XREG_FLAGS_ZF) || (reg == XREG_FLAGS_SF) || (reg == XREG_FLAGS_TF) ||
+        (reg == XREG_FLAGS_IF) || (reg == XREG_FLAGS_DF) || (reg == XREG_FLAGS_OF)) {
 #ifdef Q_PROCESSOR_X86_32
         _reg = XREG_EFLAGS;
 #endif
@@ -5702,8 +5701,8 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QList<REG_RECORD> *pListRegs, XREG reg)
 
     if (result.mode != XBinary::MODE_UNKNOWN) {
 #ifdef Q_PROCESSOR_X86
-        if ((reg == XREG_FLAGS_CF) || (reg == XREG_FLAGS_PF) || (reg == XREG_FLAGS_AF) || (reg == XREG_FLAGS_ZF) || (reg == XREG_FLAGS_SF) || (reg == XREG_FLAGS_TF) || (reg == XREG_FLAGS_IF) ||
-            (reg == XREG_FLAGS_DF) || (reg == XREG_FLAGS_OF)) {
+        if ((reg == XREG_FLAGS_CF) || (reg == XREG_FLAGS_PF) || (reg == XREG_FLAGS_AF) || (reg == XREG_FLAGS_ZF) || (reg == XREG_FLAGS_SF) || (reg == XREG_FLAGS_TF) ||
+            (reg == XREG_FLAGS_IF) || (reg == XREG_FLAGS_DF) || (reg == XREG_FLAGS_OF)) {
             result = getFlagFromReg(result, reg);
         }
 #endif

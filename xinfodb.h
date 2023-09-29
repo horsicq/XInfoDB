@@ -148,7 +148,7 @@ public:
         XREG_ST5,
         XREG_ST6,
         XREG_ST7,
-        XREG_FPCR, // https://help.totalview.io/previous_releases/2019/html/index.html#page/Reference_Guide%2FIntelx86FloatingPointRegisters_2.html%23
+        XREG_FPCR,  // https://help.totalview.io/previous_releases/2019/html/index.html#page/Reference_Guide%2FIntelx86FloatingPointRegisters_2.html%23
         XREG_FPSR,
         XREG_FPTAG,
         XREG_FPIOFF,
@@ -411,7 +411,7 @@ public:
     QString read_unicodeString(XADDR nAddress, quint64 nMaxSize = 256);  // TODO endian ??
     QString read_utf8String(XADDR nAddress, quint64 nMaxSize = 256);
     XCapstone::DISASM_RESULT disasm(XADDR nAddress);
-    qint64 read_userData(X_ID nThreadId,qint64 nOffset, char *pData, qint64 nSize);
+    qint64 read_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize);
     qint64 write_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize);
 #else
     quint32 read_uint32(qint64 nOffset, bool bIsBigEndian = false);
@@ -701,7 +701,8 @@ public:
     void clearDb();
     void vacuumDb();
     void _addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize, XBinary::PDSTRUCT *pPdStruct);
+    void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
+                        XBinary::PDSTRUCT *pPdStruct);
 
     struct ANALYZEOPTIONS {
         QIODevice *pDevice;
