@@ -1308,7 +1308,14 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 
     if (regOptions.bFloat || regOptions.bXMM || regOptions.bYMM) {
 
+        char regs[10000];
+        struct iovec io;
+        io.iov_base = &regs;
+        io.iov_len = sizeof(regs);
 
+        if (ptrace(PTRACE_GETREGSET, nThreadId, (void*)NT_X86_XSTATE, (void*)&io) == -1)
+                    printf("BAD REGISTER REQUEST\n");
+        qDebug("io.iov_len %d", io.iov_len);
 //        qDebug("u_tsize %llX", _userData.u_tsize);
 //        qDebug("u_dsize %llX", _userData.u_dsize);
 //        qDebug("u_ssize %llX", _userData.u_ssize);
@@ -3220,9 +3227,9 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
 
             QList<XELF::TAG_STRUCT> listTagStructs = elf.getTagStructs(&listProgramHeaders, &memoryMap);
 
-            QList<XELF::TAG_STRUCT> listDynSym = elf._getTagStructs(&listTagStructs, XELF_DEF::DT_SYMTAB);
-            QList<XELF::TAG_STRUCT> listStrTab = elf._getTagStructs(&listTagStructs, XELF_DEF::DT_STRTAB);
-            QList<XELF::TAG_STRUCT> listStrSize = elf._getTagStructs(&listTagStructs, XELF_DEF::DT_STRSZ);
+            QList<XELF::TAG_STRUCT> listDynSym = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_SYMTAB);
+            QList<XELF::TAG_STRUCT> listStrTab = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRTAB);
+            QList<XELF::TAG_STRUCT> listStrSize = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRSZ);
             // TODO relocs !!!
 
             // TODO all sym Tables
