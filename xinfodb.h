@@ -755,7 +755,6 @@ public:
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
-
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus);
