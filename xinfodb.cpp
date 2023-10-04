@@ -1307,13 +1307,14 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
     }
 
     if (regOptions.bFloat || regOptions.bXMM || regOptions.bYMM) {
-        char regs[10000];
+#ifdef Q_PROCESSOR_X86_64
+        S_X86XState state = {};
         struct iovec io;
-        io.iov_base = &regs;
-        io.iov_len = sizeof(regs);
+        io.iov_base = &state;
+        io.iov_len = sizeof(state);
 
         if (ptrace(PTRACE_GETREGSET, nThreadId, (void *)NT_X86_XSTATE, (void *)&io) == -1) printf("BAD REGISTER REQUEST\n");
-        qDebug("io.iov_len %d", io.iov_len);
+        //qDebug("io.iov_len %x", io.iov_len);
         //        qDebug("u_tsize %llX", _userData.u_tsize);
         //        qDebug("u_dsize %llX", _userData.u_dsize);
         //        qDebug("u_ssize %llX", _userData.u_ssize);
@@ -1332,12 +1333,13 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
         }
 
         if (regOptions.bXMM) {
-            //            _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(_userData.i387.mxcsr)));
-            //            _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(_userData.i387.mxcr_mask)));
+            _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(state.mxcsr)));
+            _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(state.mxcsr_mask)));
         }
 
         if (regOptions.bYMM) {
         }
+#endif
     }
 
     emit registersListChanged();
@@ -1629,6 +1631,12 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_EDI) context.Edi = variant.var.v_uint32;
         else if (reg == XREG_EFLAGS) context.EFlags = variant.var.v_uint32;
         else if (reg == XREG_EIP) context.Eip = variant.var.v_uint32;
+        else if (reg == XREG_DR0) context.Dr0 = variant.var.v_uint32;
+        else if (reg == XREG_DR1) context.Dr1 = variant.var.v_uint32;
+        else if (reg == XREG_DR2) context.Dr2 = variant.var.v_uint32;
+        else if (reg == XREG_DR3) context.Dr3 = variant.var.v_uint32;
+        else if (reg == XREG_DR6) context.Dr6 = variant.var.v_uint32;
+        else if (reg == XREG_DR7) context.Dr7 = variant.var.v_uint32;
         else if ((reg == XInfoDB::XREG_CF) || (reg == XInfoDB::XREG_PF) || (reg == XInfoDB::XREG_AF) || (reg == XInfoDB::XREG_ZF) || (reg == XInfoDB::XREG_SF) ||
                  (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
             context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint32;
@@ -1653,6 +1661,12 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_R15) context.R15 = variant.var.v_uint64;
         else if (reg == XREG_RFLAGS) context.EFlags = variant.var.v_uint64;
         else if (reg == XREG_RIP) context.Rip = variant.var.v_uint64;
+        else if (reg == XREG_DR0) context.Dr0 = variant.var.v_uint64;
+        else if (reg == XREG_DR1) context.Dr1 = variant.var.v_uint64;
+        else if (reg == XREG_DR2) context.Dr2 = variant.var.v_uint64;
+        else if (reg == XREG_DR3) context.Dr3 = variant.var.v_uint64;
+        else if (reg == XREG_DR6) context.Dr6 = variant.var.v_uint64;
+        else if (reg == XREG_DR7) context.Dr7 = variant.var.v_uint64;
         else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
                  (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
                  (reg == XInfoDB::XREG_FLAGS_OF)) {
