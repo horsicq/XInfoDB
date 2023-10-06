@@ -514,7 +514,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     bool bResult = false;
 
     XADDR nAddress = getCurrentInstructionPointer_Handle(hThread);
-    XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
+    XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress); // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
         bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
@@ -532,7 +532,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     bool bResult = false;
 
     XADDR nAddress = getCurrentInstructionPointer_Id(nThreadId);
-    XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);
+    XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress); // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
         if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1)) {
@@ -1322,19 +1322,27 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
         //        qDebug("start_stack %llX", _userData.start_stack);
 
         if (regOptions.bFloat) {
-            //            _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(_userData.i387.cwd)));
-            //            _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(_userData.i387.swd)));
-            //            _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(_userData.i387.ftw)));
+            _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(state.cwd)));
+            _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(state.swd)));
+            _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(state.twd)));
             //            _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(_userData.i387.fop))); // TODO Check
-
             //            _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector))); // TODO Check
             //            _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
             //            _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
+            for (qint32 i = 0; i < 8; i++) {
+                _addCurrentRegRecord(XREG(XREG_ST0 + i),
+                                     XBinary::getXVariant((quint64)(state.st_space[i].Low), (quint64)(state.st_space[i].High)));
+            }
         }
 
         if (regOptions.bXMM) {
             _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(state.mxcsr)));
             _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(state.mxcsr_mask)));
+
+            for (qint32 i = 0; i < 16; i++) {
+                _addCurrentRegRecord(XREG(XREG_XMM0 + i),
+                                     XBinary::getXVariant((quint64)(state.xmm_space[i].Low), (quint64)(state.xmm_space[i].High)));
+            }
         }
 
         if (regOptions.bYMM) {
@@ -1459,10 +1467,10 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
                 _addCurrentRegRecord(XREG_FPCR, XBinary::getXVariant((quint16)(context.FltSave.ControlWord)));
                 _addCurrentRegRecord(XREG_FPSR, XBinary::getXVariant((quint16)(context.FltSave.StatusWord)));
                 _addCurrentRegRecord(XREG_FPTAG, XBinary::getXVariant((quint8)(context.FltSave.TagWord)));
-                _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(context.FltSave.ErrorOffset)));    // TODO Check
-                _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector)));  // TODO Check
-                _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
-                _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
+//                _addCurrentRegRecord(XREG_FPIOFF, XBinary::getXVariant((quint32)(context.FltSave.ErrorOffset)));    // TODO Check
+//                _addCurrentRegRecord(XREG_FPISEL, XBinary::getXVariant((quint16)(context.FltSave.ErrorSelector)));  // TODO Check
+//                _addCurrentRegRecord(XREG_FPDOFF, XBinary::getXVariant((quint32)(context.FltSave.DataOffset)));
+//                _addCurrentRegRecord(XREG_FPDSEL, XBinary::getXVariant((quint16)(context.FltSave.DataSelector)));
 
                 for (qint32 i = 0; i < 8; i++) {
                     _addCurrentRegRecord(XREG(XREG_ST0 + i),
@@ -2240,10 +2248,10 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg == XREG_FPCR) sResult = QString("FPCR");
     else if (reg == XREG_FPSR) sResult = QString("FPSR");
     else if (reg == XREG_FPTAG) sResult = QString("FPTAG");
-    else if (reg == XREG_FPIOFF) sResult = QString("FPIOFF");
-    else if (reg == XREG_FPISEL) sResult = QString("FPISEL");
-    else if (reg == XREG_FPDOFF) sResult = QString("FPDOFF");
-    else if (reg == XREG_FPDSEL) sResult = QString("FPDSEL");
+//    else if (reg == XREG_FPIOFF) sResult = QString("FPIOFF");
+//    else if (reg == XREG_FPISEL) sResult = QString("FPISEL");
+//    else if (reg == XREG_FPDOFF) sResult = QString("FPDOFF");
+//    else if (reg == XREG_FPDSEL) sResult = QString("FPDSEL");
     else if ((reg >= XREG_ST0) && (reg <= XREG_ST7)) sResult = QString("ST%1").arg(reg - XREG_ST0);
     else if ((reg >= XREG_XMM0) && (reg <= XREG_XMM15)) sResult = QString("XM%1").arg(reg - XREG_XMM0);
     else if ((reg >= XREG_YMM0) && (reg <= XREG_YMM15)) sResult = QString("YM%1").arg(reg - XREG_YMM0);
