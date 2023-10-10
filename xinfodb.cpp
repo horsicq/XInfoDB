@@ -1153,6 +1153,97 @@ XInfoDB::FUNCTION_INFO XInfoDB::getFunctionInfo(X_HANDLE hThread, const QString 
     return result;
 }
 #endif
+#ifdef USE_XPROCESS
+XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Handle(X_HANDLE hThread)
+{
+    // mb TODO Check Harware regs state and show MessageBox if program set DR
+    XInfoDB::XHARDWAREBP result = {};
+
+#ifdef Q_OS_WIN
+    CONTEXT context = {};
+    context.ContextFlags = CONTEXT_DEBUG_REGISTERS;  // Full
+
+    if (GetThreadContext(hThread, &context)) {
+        quint64 nDR[8] = {};
+#ifdef Q_PROCESSOR_X86_32
+        nDR[0] = (quint32)(context.Dr0);
+        nDR[1] = (quint32)(context.Dr1);
+        nDR[2] = (quint32)(context.Dr2);
+        nDR[3] = (quint32)(context.Dr3);
+        nDR[6] = (quint32)(context.Dr6);
+        nDR[7] = (quint32)(context.Dr7);
+#endif
+#ifdef Q_PROCESSOR_X86_64
+        nDR[0] = (quint64)(context.Dr0);
+        nDR[1] = (quint64)(context.Dr1);
+        nDR[2] = (quint64)(context.Dr2);
+        nDR[3] = (quint64)(context.Dr3);
+        nDR[6] = (quint64)(context.Dr6);
+        nDR[7] = (quint64)(context.Dr7);
+#endif
+        _regsToXHARDWAREBP(nDR, &result);
+    }
+#else
+    Q_UNUSED(hThread)
+#endif
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setHardwareBP_Handle(X_HANDLE hThread, XInfoDB::XHARDWAREBP &hardwareBP)
+{
+    return false;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Id(X_ID nThreadId)
+{
+    XInfoDB::XHARDWAREBP result = {};
+
+#ifdef Q_OS_LINUX
+#ifdef Q_PROCESSOR_X86_64
+        quint64 nDR[8] = {};
+        read_userData(nThreadId, offsetof(user, u_debugreg), (char *)(nDR), sizeof(nDR));
+
+        _regsToXHARDWAREBP(nDR, &result);
+#endif
+#endif
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::setHardwareBP_Id(X_ID nThreadId, XInfoDB::XHARDWAREBP &hardwareBP)
+{
+    return false;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::_regsToXHARDWAREBP(quint64 *pDebugRegs, XInfoDB::XHARDWAREBP *pHardwareBP)
+{
+    // TODO check after step and CC bp
+    bool bResult = true;
+
+    pHardwareBP->regs[0].nAddress = *(pDebugRegs + 0);
+    pHardwareBP->regs[1].nAddress = *(pDebugRegs + 1);
+    pHardwareBP->regs[2].nAddress = *(pDebugRegs + 2);
+    pHardwareBP->regs[3].nAddress = *(pDebugRegs + 3);
+
+    quint64 nStatus = *(pDebugRegs + 6);
+    quint64 nControl = *(pDebugRegs + 7);
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::_XHARDWAREBPToRegs(XInfoDB::XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs)
+{
+    bool bResult = false;
+
+    return bResult;
+}
+#endif
 // #ifdef USE_XPROCESS
 //  bool XInfoDB::setStep(XProcess::HANDLEID handleThread)
 //{
