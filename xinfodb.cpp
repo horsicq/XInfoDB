@@ -1191,10 +1191,10 @@ XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Handle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-//bool XInfoDB::setHardwareBP_Handle(X_HANDLE hThread, XInfoDB::XHARDWAREBP &hardwareBP)
+// bool XInfoDB::setHardwareBP_Handle(X_HANDLE hThread, XInfoDB::XHARDWAREBP &hardwareBP)
 //{
-//    return false;
-//}
+//     return false;
+// }
 #endif
 #ifdef USE_XPROCESS
 XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Id(X_ID nThreadId)
@@ -1203,10 +1203,10 @@ XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Id(X_ID nThreadId)
 
 #ifdef Q_OS_LINUX
 #ifdef Q_PROCESSOR_X86_64
-        quint64 nDR[8] = {};
-        read_userData(nThreadId, offsetof(user, u_debugreg), (char *)(nDR), sizeof(nDR));
+    quint64 nDR[8] = {};
+    read_userData(nThreadId, offsetof(user, u_debugreg), (char *)(nDR), sizeof(nDR));
 
-        _regsToXHARDWAREBP(nDR, &result);
+    _regsToXHARDWAREBP(nDR, &result);
 #endif
 #endif
 
@@ -1237,9 +1237,9 @@ bool XInfoDB::_regsToXHARDWAREBP(quint64 *pDebugRegs, XInfoDB::XHARDWAREBP *pHar
 }
 #endif
 #ifdef USE_XPROCESS
-//bool XInfoDB::_XHARDWAREBPToRegs(XInfoDB::XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs)
+// bool XInfoDB::_XHARDWAREBPToRegs(XInfoDB::XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs)
 //{
-//    bool bResult = false;
+//     bool bResult = false;
 
 //    return bResult;
 //}

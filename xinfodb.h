@@ -523,11 +523,11 @@ public:
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, const QString &sName);
 
     XHARDWAREBP getHardwareBP_Handle(X_HANDLE hThread);
-//    bool setHardwareBP_Handle(X_HANDLE hThread, XHARDWAREBP &hardwareBP);
+    //    bool setHardwareBP_Handle(X_HANDLE hThread, XHARDWAREBP &hardwareBP);
     XHARDWAREBP getHardwareBP_Id(X_ID nThreadId);
     bool setHardwareBP_Id(X_ID nThreadId, XHARDWAREBP &hardwareBP);
     bool _regsToXHARDWAREBP(quint64 *pDebugRegs, XHARDWAREBP *pHardwareBP);
-//    bool _XHARDWAREBPToRegs(XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs); // TODO Check
+    //    bool _XHARDWAREBPToRegs(XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs); // TODO Check
 
     //    void _lockId(quint32 nId);
     //    void _unlockID(quint32 nId);
