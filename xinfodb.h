@@ -480,10 +480,8 @@ public:
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
-
     void addThreadInfo(XInfoDB::THREAD_INFO *pThreadInfo);
     void removeThreadInfo(X_ID nThreadID);
-
     bool setThreadStatus(X_ID nThreadID, THREAD_STATUS status);
     THREAD_STATUS getThreadStatus(X_ID nThreadID);
 
