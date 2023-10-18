@@ -1581,9 +1581,9 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
                     _addCurrentRegRecord(XREG(XREG_XMM0 + i),
                                          XBinary::getXVariant((quint64)(context.FltSave.XmmRegisters[i].Low), (quint64)(context.FltSave.XmmRegisters[i].High)));
                 }
-#endif
                 _addCurrentRegRecord(XREG_MXCSR, XBinary::getXVariant((quint32)(context.FltSave.MxCsr)));
                 _addCurrentRegRecord(XREG_MXCSR_MASK, XBinary::getXVariant((quint32)(context.FltSave.MxCsr_Mask)));
+#endif  
             }
 
             if (regOptions.bYMM) {
@@ -1734,8 +1734,8 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if (reg == XREG_DR3) context.Dr3 = variant.var.v_uint32;
         else if (reg == XREG_DR6) context.Dr6 = variant.var.v_uint32;
         else if (reg == XREG_DR7) context.Dr7 = variant.var.v_uint32;
-        else if ((reg == XInfoDB::XREG_CF) || (reg == XInfoDB::XREG_PF) || (reg == XInfoDB::XREG_AF) || (reg == XInfoDB::XREG_ZF) || (reg == XInfoDB::XREG_SF) ||
-                 (reg == XInfoDB::XREG_TF) || (reg == XInfoDB::XREG_IF) || (reg == XInfoDB::XREG_DF) || (reg == XInfoDB::XREG_OF)) {
+        else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) || (reg == XInfoDB::XREG_FLAGS_SF) ||
+                 (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) || (reg == XInfoDB::XREG_FLAGS_OF)) {
             context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint32;
         } else bUnknownRegister = true;
 #endif
