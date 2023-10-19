@@ -554,7 +554,6 @@ public:
     bool isAddressValid(XADDR nAddress);
 
     static QString regIdToString(XREG reg);
-
     static XREG getSubReg32(XREG reg);
     static XREG getSubReg16(XREG reg);
     static XREG getSubReg8H(XREG reg);
