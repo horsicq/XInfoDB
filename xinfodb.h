@@ -245,7 +245,7 @@ public:
 
     enum BPT {
         BPT_UNKNOWN = 0,
-        BPT_CODE_SOFTWARE,  // for X86 0xCC Check for ARM Check invalid opcodes
+        BPT_CODE_SOFTWARE_INT3,  // for X86 0xCC Check for ARM Check invalid opcodes
                             // as BP
         BPT_CODE_HARDWARE,
         BPT_CODE_MEMORY
@@ -462,12 +462,12 @@ public:
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
-    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
+    bool addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
                        const QString &sGUID = QString());
-    bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
-    bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE);
+    bool removeBreakPoint(XADDR nAddress, BPT bpType);
+    bool isBreakPointPresent(XADDR nAddress, BPT bpType);
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN

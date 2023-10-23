@@ -517,7 +517,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1);
+        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, bpInfo, 1); // mb TODO get default software breakpoint
         // mb TODO
     } else {
         bResult = stepInto_Handle(hThread, bpInfo, bAddThreadBP);
@@ -535,7 +535,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE, bpInfo, 1)) {
+        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, bpInfo, 1)) {  // mb TODO get default software breakpoint
             bResult = resumeThread_Id(nThreadId);
         }
     } else {
@@ -593,12 +593,12 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult = false;
 
-    if (!isBreakPointPresent(nAddress)) {
-        if (addBreakPoint(nAddress)) {
+    if (!isBreakPointPresent(nAddress, BPT_CODE_SOFTWARE_INT3)) {  // mb TODO get default software breakpoint
+        if (addBreakPoint(nAddress, BPT_CODE_SOFTWARE_INT3)) {
             bResult = true;
         }
     } else {
-        if (removeBreakPoint(nAddress)) {
+        if (removeBreakPoint(nAddress, BPT_CODE_SOFTWARE_INT3)) {  // mb TODO get default software breakpoint
             bResult = true;
         }
     }
@@ -680,7 +680,7 @@ bool XInfoDB::setFunctionHook(const QString &sFunctionName)
     qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
 
     if (nFunctionAddress != -1) {
-        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
+        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);  // mb TODO get default software breakpoint
 
         XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
         functionhook_info.sName = sFunctionName;
@@ -1883,7 +1883,7 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
 {
     bool bResult = false;
 
-    if (bpType == BPT_CODE_SOFTWARE) {
+    if (bpType == BPT_CODE_SOFTWARE_INT3) {  // mb TODO get default software breakpoint
         if (!isBreakPointPresent(nAddress, bpType)) {
             BREAKPOINT bp = {};
             bp.nAddress = nAddress;
@@ -1898,7 +1898,7 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
 
             if (read_array(nAddress, bp.origData, bp.nOrigDataSize) == bp.nOrigDataSize) {
                 if (write_array(nAddress, (char *)"\xCC",
-                                bp.nOrigDataSize))  // TODO Check if x86
+                                bp.nOrigDataSize))  // TODO Check if x86  // mb TODO get default software breakpoint
                 {
                     g_listBreakpoints.append(bp);
 
@@ -1918,7 +1918,7 @@ bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType)
 {
     bool bResult = false;
 
-    if (bpType == BPT_CODE_SOFTWARE) {
+    if (bpType == BPT_CODE_SOFTWARE_INT3) {  // mb TODO get default software breakpoint
         BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
 
         if (bp.nAddress == nAddress) {
@@ -3686,7 +3686,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     quint64 _nCurrentBranch = nCurrentBranch;
 
                                     if (bSuspect) {
-                                        if (XCapstone::isNoOpcode(dmFamily, disasmResult.nOpcode)) {
+                                        if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
                                             _nCurrentBranch = 0;
                                         } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
                                             _nCurrentBranch = 0;
