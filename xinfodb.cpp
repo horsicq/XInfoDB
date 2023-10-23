@@ -1216,6 +1216,9 @@ XInfoDB::XHARDWAREBP XInfoDB::getHardwareBP_Id(X_ID nThreadId)
 #ifdef USE_XPROCESS
 bool XInfoDB::setHardwareBP_Id(X_ID nThreadId, XInfoDB::XHARDWAREBP &hardwareBP)
 {
+    Q_UNUSED(nThreadId)
+    Q_UNUSED(hardwareBP)
+
     return false;
 }
 #endif
