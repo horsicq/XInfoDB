@@ -38,7 +38,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -484,16 +484,11 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
 
     return listResult;
 }
+
 #ifdef USE_XPROCESS
 void XInfoDB::setDefaultBreakpointType(BPT bpType)
 {
     g_bpTypeDefault = bpType;
-
-    if (bpType == BPT_CODE_SOFTWARE_INT1) {
-        g_baBreakpoint = QByteArray((char *)"\xF1", 1);
-    } else if (bpType == BPT_CODE_SOFTWARE_INT3) {
-        g_baBreakpoint = QByteArray((char *)"\xCC", 1);
-    }
 }
 #endif
 #ifdef USE_XPROCESS
@@ -587,9 +582,6 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
         bpType = g_bpTypeDefault;
     }
 
-    // TODO bptype
-    Q_UNUSED(bpType)
-
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -598,8 +590,27 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
 
-        if (breakPoint.nAddress == (nExceptionAddress - breakPoint.nOrigDataSize)) {
+        if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (g_listBreakpoints.at(i).bpType == bpType)) {
             result = breakPoint;
+
+            break;
+        }
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(QString sUUID)
+{
+    BREAKPOINT result = {};
+    result.nAddress = -1;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if (g_listBreakpoints.at(i).sUUID == sUUID) {
+            result = g_listBreakpoints.at(i);
 
             break;
         }
@@ -613,12 +624,14 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult = false;
 
-    if (!isBreakPointPresent(nAddress)) {
-        if (addBreakPoint(nAddress)) {
+    BREAKPOINT bp = findBreakPointByAddress(nAddress);
+
+    if (bp.sUUID != "") {
+        if (removeBreakPoint(bp.sUUID)) {
             bResult = true;
         }
     } else {
-        if (removeBreakPoint(nAddress)) {
+        if (addBreakPoint(nAddress)) {
             bResult = true;
         }
     }
@@ -1946,7 +1959,7 @@ QList<XProcess::THREAD_INFO> *XInfoDB::getCurrentThreadsList()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, const QString &sInfo, const QString &sGUID)
+bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, const QString &sInfo, const QString &sUUID)
 {
     bool bResult = false;
 
@@ -1954,64 +1967,55 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
         bpType = g_bpTypeDefault;
     }
 
-    if ((bpType == BPT_CODE_SOFTWARE_INT1) || (bpType == BPT_CODE_SOFTWARE_INT3)) {
-        if (!isBreakPointPresent(nAddress, bpType)) {
-            BREAKPOINT bp = {};
-            bp.nAddress = nAddress;
-            bp.nSize = g_baBreakpoint.size();
-            bp.nCount = nCount;
-            bp.bpInfo = bpInfo;
-            bp.bpType = bpType;
-            bp.sInfo = sInfo;
-            bp.sGUID = sGUID;
+    QString _sUUID = sUUID;
 
-            bp.nOrigDataSize = 1;
+    if (_sUUID == "") {
+        _sUUID = XBinary::generateUUID();
+    }
 
-            if (read_array(nAddress, bp.origData, bp.nOrigDataSize) == bp.nOrigDataSize) {
-                if (write_array(nAddress, g_baBreakpoint.data(), g_baBreakpoint.size()))
-                {
-                    g_listBreakpoints.append(bp);
+    if (!isBreakPointPresent(nAddress, bpType)) {
+        BREAKPOINT bp = {};
+        bp.nAddress = nAddress;
+        bp.nSize = 1;
+        bp.nCount = nCount;
+        bp.bpInfo = bpInfo;
+        bp.bpType = bpType;
+        bp.sInfo = sInfo;
+        bp.sUUID = _sUUID;
 
-                    bResult = true;
-                }
-            }
+        if (bpType == BPT_CODE_SOFTWARE_INT1) {
+            bp.nDataSize = 1;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xF1", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_INT3) {
+            bp.nDataSize = 1;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xCC", bp.nDataSize);
         }
-    } else if (bpType == BPT_CODE_HARDWARE) {
-        // TODO
+
+        g_listBreakpoints.append(bp);
+
+        if (enableBreakPoint(bp.sUUID)) {
+            bResult = true;
+        } else {
+            g_listBreakpoints.removeLast();
+        }
     }
 
     return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType)
+bool XInfoDB::removeBreakPoint(QString sUUID)
 {
-    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-        bpType = g_bpTypeDefault;
-    }
-
     bool bResult = false;
 
-    if ((bpType == BPT_CODE_SOFTWARE_INT1) || (bpType == BPT_CODE_SOFTWARE_INT3)) {
-        BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
-
-        if (bp.nAddress == nAddress) {
-            if (write_array(nAddress, (char *)bp.origData,
-                            bp.nOrigDataSize))  // TODO Check
-            {
-                bResult = true;
-            }
-        }
-    } else if (bpType == XInfoDB::BPT_CODE_HARDWARE) {
-        // TODO
-    }
-
-    if (bResult) {
+    if (disableBreakPoint(sUUID)) {
         qint32 nNumberOfRecords = g_listBreakpoints.count();
 
         for (qint32 i = nNumberOfRecords -1; i>= 0; i--) {
-            if ((g_listBreakpoints.at(i).nAddress == nAddress) && (g_listBreakpoints.at(i).bpType == bpType)) {
+            if (g_listBreakpoints.at(i).sUUID == sUUID) {
                 g_listBreakpoints.removeAt(i);
+
+                bResult = true;
 
                 break;
             }
@@ -2029,6 +2033,54 @@ bool XInfoDB::isBreakPointPresent(XADDR nAddress, BPT bpType)
     BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
 
     bResult = (bp.nAddress == nAddress);
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::enableBreakPoint(QString sUUID)
+{
+    bool bResult = false;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if (g_listBreakpoints.at(i).sUUID == sUUID) {
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3)) {
+                if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
+                    if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).bpData, g_listBreakpoints.at(i).nDataSize)) {
+                        bResult = true;
+                    }
+                }
+            } else if (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE) {
+                // TODO
+            }
+
+            break;
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::disableBreakPoint(QString sUUID)
+{
+    bool bResult = false;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if (g_listBreakpoints.at(i).sUUID == sUUID) {
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3)) {
+                if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
+                    bResult = true;
+                }
+            } else if (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE) {
+                // TODO
+            }
+        }
+    }
 
     return bResult;
 }
@@ -2321,11 +2373,11 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
 
-        if (breakPoint.nOrigDataSize) {
+        if (breakPoint.nDataSize) {
             if ((breakPoint.nAddress >= nBase) && (breakPoint.nAddress < nBase + nSize)) {
                 XBinary::MEMORY_REPLACE record = {};
                 record.nAddress = breakPoint.nAddress;
-                record.baOriginal = QByteArray(breakPoint.origData, breakPoint.nOrigDataSize);
+                record.baOriginal = QByteArray(breakPoint.origData, breakPoint.nDataSize);
                 record.nSize = record.baOriginal.size();
 
                 listResult.append(record);
@@ -5826,7 +5878,7 @@ void XInfoDB::replaceMemory(quint64 nOffset, char *pData, qint64 nSize)
     qint32 nNumberOfBreakPoints = g_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfBreakPoints; i++) {
-        if (g_listBreakpoints.at(i).nOrigDataSize && XBinary::_isAddressCrossed(nOffset, nSize, g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nSize)) {
+        if (g_listBreakpoints.at(i).nDataSize && XBinary::_isAddressCrossed(nOffset, nSize, g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nSize)) {
 #ifdef QT_DEBUG
             qDebug("Breakpoint replace");
 #endif
@@ -5837,11 +5889,11 @@ void XInfoDB::replaceMemory(quint64 nOffset, char *pData, qint64 nSize)
             if (g_listBreakpoints.at(i).nAddress >= nOffset) {
                 pSource = (char *)g_listBreakpoints.at(i).origData;
                 pDest = pData + (g_listBreakpoints.at(i).nAddress - nOffset);
-                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nOrigDataSize, nOffset + nSize - g_listBreakpoints.at(i).nAddress);
+                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nDataSize, nOffset + nSize - g_listBreakpoints.at(i).nAddress);
             } else if (nOffset > g_listBreakpoints.at(i).nAddress) {
                 pSource = (char *)g_listBreakpoints.at(i).origData + (nOffset - g_listBreakpoints.at(i).nAddress);
                 pDest = pData;
-                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nOrigDataSize, nOffset - g_listBreakpoints.at(i).nAddress);
+                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nDataSize, nOffset - g_listBreakpoints.at(i).nAddress);
             }
 
             if (pSource && pDest && nDataSize) {

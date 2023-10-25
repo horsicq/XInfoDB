@@ -286,9 +286,10 @@ public:
         BPT bpType;
         BPI bpInfo;
         QString sInfo;
-        qint32 nOrigDataSize;
+        qint32 nDataSize;
         char origData[4];  // TODO consts check
-        QString sGUID;
+        char bpData[4];
+        QString sUUID;
     };
 
     enum THREAD_STATUS {
@@ -474,11 +475,14 @@ public:
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
     bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
-                       const QString &sGUID = QString());
-    bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+                       const QString &sUUID = QString());
+    bool removeBreakPoint(QString sUUID);
     bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    bool enableBreakPoint(QString sUUID);
+    bool disableBreakPoint(QString sUUID);
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT); // TODO try in *nix
+    BREAKPOINT findBreakPointByUUID(QString sUUID);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
@@ -861,7 +865,6 @@ private:
     XInfoDB::PROCESS_INFO g_processInfo;
     QList<BREAKPOINT> g_listBreakpoints;
     BPT g_bpTypeDefault;
-    QByteArray g_baBreakpoint;
 #ifdef Q_OS_WIN
     QMap<X_HANDLE, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
