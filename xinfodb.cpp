@@ -38,6 +38,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -483,7 +484,18 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
 
     return listResult;
 }
+#ifdef USE_XPROCESS
+void XInfoDB::setDefaultBreakpointType(BPT bpType)
+{
+    g_bpTypeDefault = bpType;
 
+    if (bpType == BPT_CODE_SOFTWARE_INT1) {
+        g_baBreakpoint = QByteArray((char *)"\xF1", 1);
+    } else if (bpType == BPT_CODE_SOFTWARE_INT3) {
+        g_baBreakpoint = QByteArray((char *)"\xCC", 1);
+    }
+}
+#endif
 #ifdef USE_XPROCESS
 void XInfoDB::setCurrentThreadId(X_ID nThreadId)
 {
@@ -517,7 +529,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, bpInfo, 1); // mb TODO get default software breakpoint
+        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, bpInfo, 1);
         // mb TODO
     } else {
         bResult = stepInto_Handle(hThread, bpInfo, bAddThreadBP);
@@ -535,7 +547,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, bpInfo, 1)) {  // mb TODO get default software breakpoint
+        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, bpInfo, 1)) {
             bResult = resumeThread_Id(nThreadId);
         }
     } else {
@@ -548,6 +560,10 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 #ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 {
+    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
+        bpType = g_bpTypeDefault;
+    }
+
     BREAKPOINT result = {};
     result.nAddress = -1;
 
@@ -567,6 +583,10 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 #ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType)
 {
+    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
+        bpType = g_bpTypeDefault;
+    }
+
     // TODO bptype
     Q_UNUSED(bpType)
 
@@ -593,12 +613,12 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult = false;
 
-    if (!isBreakPointPresent(nAddress, BPT_CODE_SOFTWARE_INT3)) {  // mb TODO get default software breakpoint
-        if (addBreakPoint(nAddress, BPT_CODE_SOFTWARE_INT3)) {
+    if (!isBreakPointPresent(nAddress)) {
+        if (addBreakPoint(nAddress)) {
             bResult = true;
         }
     } else {
-        if (removeBreakPoint(nAddress, BPT_CODE_SOFTWARE_INT3)) {  // mb TODO get default software breakpoint
+        if (removeBreakPoint(nAddress)) {
             bResult = true;
         }
     }
@@ -680,7 +700,7 @@ bool XInfoDB::setFunctionHook(const QString &sFunctionName)
     qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
 
     if (nFunctionAddress != -1) {
-        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_INT3, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);  // mb TODO get default software breakpoint
+        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
 
         XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
         functionhook_info.sName = sFunctionName;
@@ -1228,15 +1248,59 @@ bool XInfoDB::_regsToXHARDWAREBP(quint64 *pDebugRegs, XInfoDB::XHARDWAREBP *pHar
     // TODO check after step and CC bp
     bool bResult = true;
 
-    pHardwareBP->regs[0].nAddress = *(pDebugRegs + 0);
-    pHardwareBP->regs[1].nAddress = *(pDebugRegs + 1);
-    pHardwareBP->regs[2].nAddress = *(pDebugRegs + 2);
-    pHardwareBP->regs[3].nAddress = *(pDebugRegs + 3);
-
     quint64 nStatus = *(pDebugRegs + 6);
     quint64 nControl = *(pDebugRegs + 7);
 
+    pHardwareBP->regs[0] = _bitsToXHARDWAREBP(*(pDebugRegs + 0), XBinary::getBitFromQword(nControl, 0), XBinary::getBitFromQword(nControl, 1),
+                                              XBinary::getBitFromQword(nControl, 16), XBinary::getBitFromQword(nControl, 17),
+                                              XBinary::getBitFromQword(nControl, 18), XBinary::getBitFromQword(nControl, 19));
+    pHardwareBP->regs[1] = _bitsToXHARDWAREBP(*(pDebugRegs + 1), XBinary::getBitFromQword(nControl, 2), XBinary::getBitFromQword(nControl, 3),
+                                              XBinary::getBitFromQword(nControl, 20), XBinary::getBitFromQword(nControl, 21),
+                                              XBinary::getBitFromQword(nControl, 22), XBinary::getBitFromQword(nControl, 23));
+    pHardwareBP->regs[2] = _bitsToXHARDWAREBP(*(pDebugRegs + 2), XBinary::getBitFromQword(nControl, 4), XBinary::getBitFromQword(nControl, 5),
+                                              XBinary::getBitFromQword(nControl, 24), XBinary::getBitFromQword(nControl, 25),
+                                              XBinary::getBitFromQword(nControl, 26), XBinary::getBitFromQword(nControl, 27));
+    pHardwareBP->regs[3] = _bitsToXHARDWAREBP(*(pDebugRegs + 3), XBinary::getBitFromQword(nControl, 6), XBinary::getBitFromQword(nControl, 7),
+                                              XBinary::getBitFromQword(nControl, 28), XBinary::getBitFromQword(nControl, 29),
+                                              XBinary::getBitFromQword(nControl, 30), XBinary::getBitFromQword(nControl, 31));
+
+    pHardwareBP->bSuccess[0] = XBinary::getBitFromQword(nStatus, 0);
+    pHardwareBP->bSuccess[1] = XBinary::getBitFromQword(nStatus, 1);
+    pHardwareBP->bSuccess[2] = XBinary::getBitFromQword(nStatus, 2);
+    pHardwareBP->bSuccess[3] = XBinary::getBitFromQword(nStatus, 3);
+    pHardwareBP->bSingleStep = XBinary::getBitFromQword(nStatus, 14);
+
     return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+XInfoDB::XHARDWAREBPREG XInfoDB::_bitsToXHARDWAREBP(quint64 nReg, bool bLocal, bool bGlobal, bool bCond0, bool bCond1, bool bSize0, bool bSize1)
+{
+    XInfoDB::XHARDWAREBPREG result = {};
+    result.nAddress = nReg;
+    result.bLocal = bLocal;
+    result.bGlobal = bGlobal;
+
+    if (bCond0 && bCond1) {
+        result.bRead = true;
+        result.bWrite = true;
+    } else if (bCond0) {
+        result.bWrite = true;
+    } else {
+        result.bExec = true;
+    }
+
+    if (bSize0 && bSize1) {
+        result.nSize = 4;
+    } else if (bSize0) {
+        result.nSize = 2;
+    } else if (bSize1) {
+        result.nSize = 8; // 64 only
+    } else {
+        result.nSize = 1;
+    }
+
+    return result;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1886,11 +1950,15 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
 {
     bool bResult = false;
 
-    if (bpType == BPT_CODE_SOFTWARE_INT3) {  // mb TODO get default software breakpoint
+    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
+        bpType = g_bpTypeDefault;
+    }
+
+    if ((bpType == BPT_CODE_SOFTWARE_INT1) || (bpType == BPT_CODE_SOFTWARE_INT3)) {
         if (!isBreakPointPresent(nAddress, bpType)) {
             BREAKPOINT bp = {};
             bp.nAddress = nAddress;
-            bp.nSize = 1;
+            bp.nSize = g_baBreakpoint.size();
             bp.nCount = nCount;
             bp.bpInfo = bpInfo;
             bp.bpType = bpType;
@@ -1900,8 +1968,7 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
             bp.nOrigDataSize = 1;
 
             if (read_array(nAddress, bp.origData, bp.nOrigDataSize) == bp.nOrigDataSize) {
-                if (write_array(nAddress, (char *)"\xCC",
-                                bp.nOrigDataSize))  // TODO Check if x86  // mb TODO get default software breakpoint
+                if (write_array(nAddress, g_baBreakpoint.data(), g_baBreakpoint.size()))
                 {
                     g_listBreakpoints.append(bp);
 
@@ -1919,9 +1986,13 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
 #ifdef USE_XPROCESS
 bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType)
 {
+    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
+        bpType = g_bpTypeDefault;
+    }
+
     bool bResult = false;
 
-    if (bpType == BPT_CODE_SOFTWARE_INT3) {  // mb TODO get default software breakpoint
+    if ((bpType == BPT_CODE_SOFTWARE_INT1) || (bpType == BPT_CODE_SOFTWARE_INT3)) {
         BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
 
         if (bp.nAddress == nAddress) {
@@ -1938,7 +2009,7 @@ bool XInfoDB::removeBreakPoint(XADDR nAddress, BPT bpType)
     if (bResult) {
         qint32 nNumberOfRecords = g_listBreakpoints.count();
 
-        for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        for (qint32 i = nNumberOfRecords -1; i>= 0; i--) {
             if ((g_listBreakpoints.at(i).nAddress == nAddress) && (g_listBreakpoints.at(i).bpType == bpType)) {
                 g_listBreakpoints.removeAt(i);
 

@@ -63,10 +63,19 @@ public:
 
     struct XHARDWAREBPREG {
         XADDR nAddress;
+        bool bLocal;
+        bool bGlobal;
+        qint32 nSize;
+        bool bRead;
+        bool bWrite;
+        bool bExec;
     };
 
     struct XHARDWAREBP {
         XHARDWAREBPREG regs[4];
+        bool bSuccess[4];
+        bool bSingleStep;
+        // TODO Check more
     };
 
 #ifdef Q_PROCESSOR_X86
@@ -245,8 +254,9 @@ public:
 
     enum BPT {
         BPT_UNKNOWN = 0,
+        BPT_CODE_SOFTWARE_DEFAULT,
         BPT_CODE_SOFTWARE_INT3,  // for X86 0xCC Check for ARM Check invalid opcodes
-                            // as BP
+        BPT_CODE_SOFTWARE_INT1,
         BPT_CODE_HARDWARE,
         BPT_CODE_MEMORY
         // TODO software invalid opcode
@@ -448,6 +458,7 @@ public:
     static STRRECORD handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti);
     static QList<QString> loadStrDB(const QString &sPath, STRDB strDB);
 #ifdef USE_XPROCESS
+    void setDefaultBreakpointType(BPT bpType);
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
     void setCurrentThreadId(X_ID nThreadId);
@@ -462,12 +473,12 @@ public:
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
-    bool addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
+    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
                        const QString &sGUID = QString());
-    bool removeBreakPoint(XADDR nAddress, BPT bpType);
-    bool isBreakPointPresent(XADDR nAddress, BPT bpType);
-    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);
+    bool removeBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
@@ -525,6 +536,7 @@ public:
     XHARDWAREBP getHardwareBP_Id(X_ID nThreadId);
     bool setHardwareBP_Id(X_ID nThreadId, XHARDWAREBP &hardwareBP);
     bool _regsToXHARDWAREBP(quint64 *pDebugRegs, XHARDWAREBP *pHardwareBP);
+    XHARDWAREBPREG _bitsToXHARDWAREBP(quint64 nReg, bool bLocal, bool bGlobal, bool bCond0, bool bCond1, bool bSize0, bool bSize1);
     //    bool _XHARDWAREBPToRegs(XHARDWAREBP *pHardwareBP, quint64 *pDebugRegs); // TODO Check
 
     //    void _lockId(quint32 nId);
@@ -847,8 +859,9 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO g_processInfo;
-
     QList<BREAKPOINT> g_listBreakpoints;
+    BPT g_bpTypeDefault;
+    QByteArray g_baBreakpoint;
 #ifdef Q_OS_WIN
     QMap<X_HANDLE, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
 #endif
