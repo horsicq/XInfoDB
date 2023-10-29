@@ -1264,18 +1264,18 @@ bool XInfoDB::_regsToXHARDWAREBP(quint64 *pDebugRegs, XInfoDB::XHARDWAREBP *pHar
     quint64 nStatus = *(pDebugRegs + 6);
     quint64 nControl = *(pDebugRegs + 7);
 
-    pHardwareBP->regs[0] = _bitsToXHARDWAREBP(*(pDebugRegs + 0), XBinary::getBitFromQword(nControl, 0), XBinary::getBitFromQword(nControl, 1),
-                                              XBinary::getBitFromQword(nControl, 16), XBinary::getBitFromQword(nControl, 17),
-                                              XBinary::getBitFromQword(nControl, 18), XBinary::getBitFromQword(nControl, 19));
-    pHardwareBP->regs[1] = _bitsToXHARDWAREBP(*(pDebugRegs + 1), XBinary::getBitFromQword(nControl, 2), XBinary::getBitFromQword(nControl, 3),
-                                              XBinary::getBitFromQword(nControl, 20), XBinary::getBitFromQword(nControl, 21),
-                                              XBinary::getBitFromQword(nControl, 22), XBinary::getBitFromQword(nControl, 23));
-    pHardwareBP->regs[2] = _bitsToXHARDWAREBP(*(pDebugRegs + 2), XBinary::getBitFromQword(nControl, 4), XBinary::getBitFromQword(nControl, 5),
-                                              XBinary::getBitFromQword(nControl, 24), XBinary::getBitFromQword(nControl, 25),
-                                              XBinary::getBitFromQword(nControl, 26), XBinary::getBitFromQword(nControl, 27));
-    pHardwareBP->regs[3] = _bitsToXHARDWAREBP(*(pDebugRegs + 3), XBinary::getBitFromQword(nControl, 6), XBinary::getBitFromQword(nControl, 7),
-                                              XBinary::getBitFromQword(nControl, 28), XBinary::getBitFromQword(nControl, 29),
-                                              XBinary::getBitFromQword(nControl, 30), XBinary::getBitFromQword(nControl, 31));
+    pHardwareBP->regs[0] =
+        _bitsToXHARDWAREBP(*(pDebugRegs + 0), XBinary::getBitFromQword(nControl, 0), XBinary::getBitFromQword(nControl, 1), XBinary::getBitFromQword(nControl, 16),
+                           XBinary::getBitFromQword(nControl, 17), XBinary::getBitFromQword(nControl, 18), XBinary::getBitFromQword(nControl, 19));
+    pHardwareBP->regs[1] =
+        _bitsToXHARDWAREBP(*(pDebugRegs + 1), XBinary::getBitFromQword(nControl, 2), XBinary::getBitFromQword(nControl, 3), XBinary::getBitFromQword(nControl, 20),
+                           XBinary::getBitFromQword(nControl, 21), XBinary::getBitFromQword(nControl, 22), XBinary::getBitFromQword(nControl, 23));
+    pHardwareBP->regs[2] =
+        _bitsToXHARDWAREBP(*(pDebugRegs + 2), XBinary::getBitFromQword(nControl, 4), XBinary::getBitFromQword(nControl, 5), XBinary::getBitFromQword(nControl, 24),
+                           XBinary::getBitFromQword(nControl, 25), XBinary::getBitFromQword(nControl, 26), XBinary::getBitFromQword(nControl, 27));
+    pHardwareBP->regs[3] =
+        _bitsToXHARDWAREBP(*(pDebugRegs + 3), XBinary::getBitFromQword(nControl, 6), XBinary::getBitFromQword(nControl, 7), XBinary::getBitFromQword(nControl, 28),
+                           XBinary::getBitFromQword(nControl, 29), XBinary::getBitFromQword(nControl, 30), XBinary::getBitFromQword(nControl, 31));
 
     pHardwareBP->bSuccess[0] = XBinary::getBitFromQword(nStatus, 0);
     pHardwareBP->bSuccess[1] = XBinary::getBitFromQword(nStatus, 1);
@@ -1308,7 +1308,7 @@ XInfoDB::XHARDWAREBPREG XInfoDB::_bitsToXHARDWAREBP(quint64 nReg, bool bLocal, b
     } else if (bSize0) {
         result.nSize = 2;
     } else if (bSize1) {
-        result.nSize = 8; // 64 only
+        result.nSize = 8;  // 64 only
     } else {
         result.nSize = 1;
     }
@@ -2011,7 +2011,7 @@ bool XInfoDB::removeBreakPoint(QString sUUID)
     if (disableBreakPoint(sUUID)) {
         qint32 nNumberOfRecords = g_listBreakpoints.count();
 
-        for (qint32 i = nNumberOfRecords -1; i>= 0; i--) {
+        for (qint32 i = nNumberOfRecords - 1; i >= 0; i--) {
             if (g_listBreakpoints.at(i).sUUID == sUUID) {
                 g_listBreakpoints.removeAt(i);
 

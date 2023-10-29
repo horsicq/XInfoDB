@@ -481,7 +481,7 @@ public:
     bool enableBreakPoint(QString sUUID);
     bool disableBreakPoint(QString sUUID);
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT); // TODO try in *nix
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);  // TODO try in *nix
     BREAKPOINT findBreakPointByUUID(QString sUUID);
 
     QList<BREAKPOINT> *getBreakpoints();
