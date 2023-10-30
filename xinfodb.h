@@ -254,10 +254,17 @@ public:
 
     enum BPT {
         BPT_UNKNOWN = 0,
+        BPT_PROCESS_STOP,
         BPT_CODE_SOFTWARE_DEFAULT,
         BPT_CODE_SOFTWARE_INT3,  // for X86 0xCC Check for ARM Check invalid opcodes
         BPT_CODE_SOFTWARE_INT1,
-        BPT_CODE_HARDWARE,
+        BPT_CODE_SOFTWARE_HLT,
+        BPT_CODE_FLAG_STEP,
+        BPT_CODE_HARDWARE_FREE, // Check free Debug register
+        BPT_CODE_HARDWARE_DR0,
+        BPT_CODE_HARDWARE_DR1,
+        BPT_CODE_HARDWARE_DR2,
+        BPT_CODE_HARDWARE_DR3,
         BPT_CODE_MEMORY
         // TODO software invalid opcode
     };

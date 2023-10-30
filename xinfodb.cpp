@@ -38,7 +38,8 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -857,7 +858,7 @@ quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 bool XInfoDB::setSingleStep(X_HANDLE hThread, const QString &sInfo)
 {
     XInfoDB::BREAKPOINT breakPoint = {};
-    breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
+    breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
     breakPoint.bpInfo = XInfoDB::BPI_STEPINTO;
     breakPoint.sInfo = sInfo;
 #ifdef Q_OS_WIN
@@ -888,7 +889,7 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     // TODO Threads statuses
     if (bAddThreadBP) {
         XInfoDB::BREAKPOINT breakPoint = {};
-        breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
+        breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
         breakPoint.bpInfo = bpInfo;
 #ifdef Q_OS_WIN
         getThreadBreakpoints()->insert(hThread, breakPoint);
@@ -906,7 +907,7 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
         if (bAddThreadBP) {
             XInfoDB::BREAKPOINT breakPoint = {};
-            breakPoint.bpType = XInfoDB::BPT_CODE_HARDWARE;
+            breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
             breakPoint.bpInfo = bpInfo;
 #ifdef Q_OS_LINUX
             getThreadBreakpoints()->insert(nThreadId, breakPoint);
@@ -1989,6 +1990,9 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
         } else if (bpType == BPT_CODE_SOFTWARE_INT3) {
             bp.nDataSize = 1;
             XBinary::_copyMemory(bp.bpData, (char *)"\xCC", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_HLT) {
+            bp.nDataSize = 1;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xF4", bp.nDataSize);
         }
 
         g_listBreakpoints.append(bp);
@@ -2046,13 +2050,15 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3)) {
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT)) {
                 if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
                     if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).bpData, g_listBreakpoints.at(i).nDataSize)) {
                         bResult = true;
                     }
                 }
-            } else if (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE) {
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
             }
 
@@ -2072,11 +2078,13 @@ bool XInfoDB::disableBreakPoint(QString sUUID)
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3)) {
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT)) {
                 if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
                     bResult = true;
                 }
-            } else if (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE) {
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
             }
         }
