@@ -262,7 +262,7 @@ public:
         BPT_CODE_SOFTWARE_CLI,
         BPT_CODE_SOFTWARE_STI,
         BPT_CODE_FLAG_STEP,
-        BPT_CODE_HARDWARE_FREE, // Check free Debug register
+        BPT_CODE_HARDWARE_FREE,  // Check free Debug register
         BPT_CODE_HARDWARE_DR0,
         BPT_CODE_HARDWARE_DR1,
         BPT_CODE_HARDWARE_DR2,
