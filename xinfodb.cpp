@@ -38,8 +38,8 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -1993,6 +1993,12 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
         } else if (bpType == BPT_CODE_SOFTWARE_HLT) {
             bp.nDataSize = 1;
             XBinary::_copyMemory(bp.bpData, (char *)"\xF4", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_CLI) {
+            bp.nDataSize = 1;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xFA", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_STI) {
+            bp.nDataSize = 1;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xFB", bp.nDataSize);
         }
 
         g_listBreakpoints.append(bp);
@@ -2051,7 +2057,8 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
             if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT)) {
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI)) {
                 if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
                     if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).bpData, g_listBreakpoints.at(i).nDataSize)) {
                         bResult = true;
@@ -2079,7 +2086,8 @@ bool XInfoDB::disableBreakPoint(QString sUUID)
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
             if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT)) {
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI)) {
                 if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
                     bResult = true;
                 }

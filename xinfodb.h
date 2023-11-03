@@ -259,6 +259,8 @@ public:
         BPT_CODE_SOFTWARE_INT3,  // for X86 0xCC Check for ARM Check invalid opcodes
         BPT_CODE_SOFTWARE_INT1,
         BPT_CODE_SOFTWARE_HLT,
+        BPT_CODE_SOFTWARE_CLI,
+        BPT_CODE_SOFTWARE_STI,
         BPT_CODE_FLAG_STEP,
         BPT_CODE_HARDWARE_FREE, // Check free Debug register
         BPT_CODE_HARDWARE_DR0,
