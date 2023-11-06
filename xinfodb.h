@@ -265,6 +265,8 @@ public:
         BPT_CODE_SOFTWARE_INSD,
         BPT_CODE_SOFTWARE_OUTSB,
         BPT_CODE_SOFTWARE_OUTSD,
+        BPT_CODE_SOFTWARE_UD0,
+        BPT_CODE_SOFTWARE_UD2,
         BPT_CODE_FLAG_STEP,
         BPT_CODE_HARDWARE_FREE,  // Check free Debug register
         BPT_CODE_HARDWARE_DR0,
@@ -294,7 +296,6 @@ public:
     struct BREAKPOINT {
         // TODO bIsValid
         XADDR nAddress;
-        qint64 nSize;
         qint32 nCount;
         BPT bpType;
         BPI bpInfo;
