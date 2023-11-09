@@ -39,7 +39,8 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef USE_XPROCESS
     g_processInfo = {};
     //setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
+    //setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
