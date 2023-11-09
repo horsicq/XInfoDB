@@ -926,6 +926,7 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 #ifdef USE_XPROCESS
 bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 {
+    //TODO Check if not another step present
     bool bResult = false;
 
     if (hThread) {
@@ -951,6 +952,7 @@ bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 bool XInfoDB::_setStep_Id(X_ID nThreadId)
 {
+    //TODO Check if not another step present
     bool bResult = false;
 #ifdef Q_OS_LINUX
     errno = 0;
@@ -2011,6 +2013,12 @@ bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCoun
         } else if (bpType == BPT_CODE_SOFTWARE_OUTSD) {
             bp.nDataSize = 1;
             XBinary::_copyMemory(bp.bpData, (char *)"\x6F", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_INT1LONG) {
+            bp.nDataSize = 2;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xCD\x01", bp.nDataSize);
+        } else if (bpType == BPT_CODE_SOFTWARE_INT3LONG) {
+            bp.nDataSize = 2;
+            XBinary::_copyMemory(bp.bpData, (char *)"\xCD\x03", bp.nDataSize);
         } else if (bpType == BPT_CODE_SOFTWARE_UD0) {
             bp.nDataSize = 2;
             XBinary::_copyMemory(bp.bpData, (char *)"\x0F\xFF", bp.nDataSize);
@@ -2083,6 +2091,8 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
                 if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
@@ -2122,6 +2132,8 @@ bool XInfoDB::disableBreakPoint(QString sUUID)
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
                 if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
