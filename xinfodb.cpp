@@ -38,9 +38,9 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    //setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
     //setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -526,10 +526,21 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        bResult = addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, bpInfo, 1);
-        // mb TODO
+        XInfoDB::BREAKPOINT breakPoint = {};
+        breakPoint.nAddress = nNextAddress;
+        breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
+        breakPoint.bpInfo = bpInfo;
+        breakPoint.nCount = 1;
+
+        bResult = addBreakPoint(breakPoint);
     } else {
-        bResult = stepInto_Handle(hThread, bpInfo, bAddThreadBP);
+        XInfoDB::BREAKPOINT breakPoint = {};
+        breakPoint.nAddress = nNextAddress;
+        breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
+        breakPoint.bpInfo = bpInfo;
+        breakPoint.nCount = 1;
+
+        bResult = addBreakPoint(breakPoint);
     }
 
     return bResult;
@@ -544,11 +555,21 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     XADDR nNextAddress = getAddressNextInstructionAfterCall(nAddress);  // TODO rep
 
     if (nNextAddress != (XADDR)-1) {
-        if (addBreakPoint(nNextAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, bpInfo, 1)) {
-            bResult = resumeThread_Id(nThreadId);
-        }
+        XInfoDB::BREAKPOINT breakPoint = {};
+        breakPoint.nAddress = nNextAddress;
+        breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
+        breakPoint.bpInfo = bpInfo;
+        breakPoint.nCount = 1;
+
+        bResult = addBreakPoint(breakPoint);
     } else {
-        bResult = stepInto_Id(nThreadId, bpInfo, bAddThreadBP);
+        XInfoDB::BREAKPOINT breakPoint = {};
+        breakPoint.nAddress = nNextAddress;
+        breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
+        breakPoint.bpInfo = bpInfo;
+        breakPoint.nCount = 1;
+
+        bResult = addBreakPoint(breakPoint);
     }
 
     return bResult;
@@ -622,18 +643,39 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(QString sUUID)
 }
 #endif
 #ifdef USE_XPROCESS
+qint32 XInfoDB::getThreadBreakpointsCount(X_ID nThreadID)
+{
+    qint32 nResult = 0;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if (g_listBreakpoints.at(i).nThreadID == nThreadID) {
+            nResult++;
+        }
+    }
+
+    return nResult;
+}
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult = false;
 
-    BREAKPOINT bp = findBreakPointByAddress(nAddress);
+    BREAKPOINT bp = findBreakPointByAddress(nAddress, BPT_CODE_SOFTWARE_DEFAULT);
 
     if (bp.sUUID != "") {
         if (removeBreakPoint(bp.sUUID)) {
             bResult = true;
         }
     } else {
-        if (addBreakPoint(nAddress)) {
+        XInfoDB::BREAKPOINT breakPoint = {};
+        breakPoint.nAddress = nAddress;
+        breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
+        breakPoint.nCount = -1;
+
+        if (addBreakPoint(breakPoint)) {
             bResult = true;
         }
     }
@@ -712,17 +754,17 @@ bool XInfoDB::setFunctionHook(const QString &sFunctionName)
 {
     bool bResult = false;
 
-    qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
+//    qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
 
-    if (nFunctionAddress != -1) {
-        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
+//    if (nFunctionAddress != -1) {
+//        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
 
-        XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
-        functionhook_info.sName = sFunctionName;
-        functionhook_info.nAddress = nFunctionAddress;
+//        XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
+//        functionhook_info.sName = sFunctionName;
+//        functionhook_info.nAddress = nFunctionAddress;
 
-        g_mapFunctionHookInfos.insert(sFunctionName, functionhook_info);
-    }
+//        g_mapFunctionHookInfos.insert(sFunctionName, functionhook_info);
+//    }
 
     return bResult;
 }
@@ -859,7 +901,7 @@ quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 bool XInfoDB::setSingleStep(X_HANDLE hThread, const QString &sInfo)
 {
     XInfoDB::BREAKPOINT breakPoint = {};
-    breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
+    breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
     breakPoint.bpInfo = XInfoDB::BPI_STEPINTO;
     breakPoint.sInfo = sInfo;
 #ifdef Q_OS_WIN
@@ -890,7 +932,7 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
     // TODO Threads statuses
     if (bAddThreadBP) {
         XInfoDB::BREAKPOINT breakPoint = {};
-        breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
+        breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
         breakPoint.bpInfo = bpInfo;
 #ifdef Q_OS_WIN
         getThreadBreakpoints()->insert(hThread, breakPoint);
@@ -908,7 +950,7 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
         if (bAddThreadBP) {
             XInfoDB::BREAKPOINT breakPoint = {};
-            breakPoint.bpType = XInfoDB::BPT_CODE_FLAG_STEP;
+            breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
             breakPoint.bpInfo = bpInfo;
 #ifdef Q_OS_LINUX
             getThreadBreakpoints()->insert(nThreadId, breakPoint);
@@ -926,7 +968,6 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 #ifdef USE_XPROCESS
 bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 {
-    //TODO Check if not another step present
     bool bResult = false;
 
     if (hThread) {
@@ -952,8 +993,11 @@ bool XInfoDB::_setStep_Handle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 bool XInfoDB::_setStep_Id(X_ID nThreadId)
 {
-    //TODO Check if not another step present
     bool bResult = false;
+#ifdef Q_OS_WIN
+    X_HANDLE hThread = findThreadInfoByID(nThreadId).hThread;
+    return _setStep_Handle(hThread);
+#endif
 #ifdef Q_OS_LINUX
     errno = 0;
 
@@ -1963,73 +2007,69 @@ QList<XProcess::THREAD_INFO> *XInfoDB::getCurrentThreadsList()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::addBreakPoint(XADDR nAddress, BPT bpType, BPI bpInfo, qint32 nCount, const QString &sInfo, const QString &sUUID)
+bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
 {
+    BREAKPOINT _breakPoint = breakPoint;
+
     bool bResult = false;
 
-    if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-        bpType = g_bpTypeDefault;
+    if ((_breakPoint.bpType == BPT_CODE_SOFTWARE_DEFAULT) || (_breakPoint.bpType == BPT_UNKNOWN)) {
+        _breakPoint.bpType = g_bpTypeDefault;
     }
 
-    QString _sUUID = sUUID;
-
-    if (_sUUID == "") {
-        _sUUID = XBinary::generateUUID();
+    if (_breakPoint.nCount == 0) {
+        _breakPoint.nCount = -1;
     }
 
-    if (!isBreakPointPresent(nAddress, bpType)) {
-        BREAKPOINT bp = {};
-        bp.nAddress = nAddress;
-        bp.nCount = nCount;
-        bp.bpInfo = bpInfo;
-        bp.bpType = bpType;
-        bp.sInfo = sInfo;
-        bp.sUUID = _sUUID;
+    if (_breakPoint.sUUID == "") {
+        _breakPoint.sUUID = XBinary::generateUUID();
+    }
 
-        if (bpType == BPT_CODE_SOFTWARE_INT1) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xF1", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_INT3) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xCC", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_HLT) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xF4", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_CLI) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xFA", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_STI) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xFB", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_INSB) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x6C", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_INSD) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x6D", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_OUTSB) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x6E", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_OUTSD) {
-            bp.nDataSize = 1;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x6F", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_INT1LONG) {
-            bp.nDataSize = 2;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xCD\x01", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_INT3LONG) {
-            bp.nDataSize = 2;
-            XBinary::_copyMemory(bp.bpData, (char *)"\xCD\x03", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_UD0) {
-            bp.nDataSize = 2;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x0F\xFF", bp.nDataSize);
-        } else if (bpType == BPT_CODE_SOFTWARE_UD2) {
-            bp.nDataSize = 2;
-            XBinary::_copyMemory(bp.bpData, (char *)"\x0F\x0B", bp.nDataSize);
+    if (!isBreakPointPresent(_breakPoint)) {
+        if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INT1) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xF1", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT3) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCC", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_HLT) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xF4", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_CLI) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xFA", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_STI) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xFB", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INSB) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6C", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INSD) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6D", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_OUTSB) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6E", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_OUTSD) {
+            _breakPoint.nDataSize = 1;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6F", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT1LONG) {
+            _breakPoint.nDataSize = 2;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCD\x01", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT3LONG) {
+            _breakPoint.nDataSize = 2;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCD\x03", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_UD0) {
+            _breakPoint.nDataSize = 2;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\xFF", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_UD2) {
+            _breakPoint.nDataSize = 2;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\x0B", _breakPoint.nDataSize);
         }
 
-        g_listBreakpoints.append(bp);
+        g_listBreakpoints.append(_breakPoint);
 
-        if (enableBreakPoint(bp.sUUID)) {
+        if (enableBreakPoint(_breakPoint.sUUID)) {
             bResult = true;
         } else {
             g_listBreakpoints.removeLast();
@@ -2062,14 +2102,21 @@ bool XInfoDB::removeBreakPoint(QString sUUID)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::isBreakPointPresent(XADDR nAddress, BPT bpType)
+bool XInfoDB::isBreakPointPresent(const BREAKPOINT &breakPoint)
 {
     bool bResult = false;
 
-    BREAKPOINT bp = findBreakPointByAddress(nAddress, bpType);
+    BREAKPOINT result = {};
+    result.nAddress = -1;
 
-    bResult = (bp.nAddress == nAddress);
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
 
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if ((g_listBreakpoints.at(i).nAddress == breakPoint.nAddress) && (g_listBreakpoints.at(i).bpType == breakPoint.bpType) && (g_listBreakpoints.at(i).nThreadID == breakPoint.nThreadID)) {
+            bResult = true;
+            break;
+        }
+    }
     return bResult;
 }
 #endif
@@ -2105,6 +2152,13 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
                        (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) ||
                        (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) ||
+                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
+                if (getThreadBreakpointsCount(g_listBreakpoints.at(i).nThreadID) == 1) {
+                    bResult = _setStep_Id(g_listBreakpoints.at(i).nThreadID);
+                } else {
+                    bResult = true;
+                }
             }
 
             break;

@@ -270,7 +270,8 @@ public:
         BPT_CODE_SOFTWARE_UD0,
         BPT_CODE_SOFTWARE_UD2,
         BPT_CODE_SOFTWARE_SYSTEM,
-        BPT_CODE_FLAG_STEP,
+        BPT_CODE_STEP_FLAG,
+        BPT_CODE_STEP_TO_RESTORE,
         BPT_CODE_HARDWARE_FREE,  // Check free Debug register
         BPT_CODE_HARDWARE_DR0,
         BPT_CODE_HARDWARE_DR1,
@@ -299,6 +300,7 @@ public:
     struct BREAKPOINT {
         // TODO bIsValid
         XADDR nAddress;
+        X_ID nThreadID;
         qint32 nCount;
         BPT bpType;
         BPI bpInfo;
@@ -373,6 +375,7 @@ public:
 
     struct BREAKPOINT_INFO {
         XADDR nAddress;
+        XADDR nExceptionAddress;
         XInfoDB::BPT bpType;
         XInfoDB::BPI bpInfo;
         QString sInfo;
@@ -491,15 +494,15 @@ public:
     QList<XProcess::MEMORY_REGION> *getCurrentMemoryRegionsList();
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
-    bool addBreakPoint(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT, BPI bpInfo = BPI_UNKNOWN, qint32 nCount = -1, const QString &sInfo = QString(),
-                       const QString &sUUID = QString());
+    bool addBreakPoint(const BREAKPOINT &breakPoint);
     bool removeBreakPoint(QString sUUID);
-    bool isBreakPointPresent(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
+    bool isBreakPointPresent(const BREAKPOINT &breakPoint);
     bool enableBreakPoint(QString sUUID);
     bool disableBreakPoint(QString sUUID);
-    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);
-    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType = BPT_CODE_SOFTWARE_DEFAULT);  // TODO try in *nix
+    BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
+    BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
     BREAKPOINT findBreakPointByUUID(QString sUUID);
+    qint32 getThreadBreakpointsCount(X_ID nThreadID);
 
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
