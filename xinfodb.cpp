@@ -39,7 +39,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef USE_XPROCESS
     g_processInfo = {};
     setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-    //setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
+    // setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
     g_pDevice = nullptr;
@@ -754,17 +754,17 @@ bool XInfoDB::setFunctionHook(const QString &sFunctionName)
 {
     bool bResult = false;
 
-//    qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
+    //    qint64 nFunctionAddress = getFunctionAddress(sFunctionName);
 
-//    if (nFunctionAddress != -1) {
-//        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
+    //    if (nFunctionAddress != -1) {
+    //        bResult = addBreakPoint(nFunctionAddress, XInfoDB::BPT_CODE_SOFTWARE_DEFAULT, XInfoDB::BPI_FUNCTIONENTER, -1, sFunctionName);
 
-//        XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
-//        functionhook_info.sName = sFunctionName;
-//        functionhook_info.nAddress = nFunctionAddress;
+    //        XInfoDB::FUNCTIONHOOK_INFO functionhook_info = {};
+    //        functionhook_info.sName = sFunctionName;
+    //        functionhook_info.nAddress = nFunctionAddress;
 
-//        g_mapFunctionHookInfos.insert(sFunctionName, functionhook_info);
-//    }
+    //        g_mapFunctionHookInfos.insert(sFunctionName, functionhook_info);
+    //    }
 
     return bResult;
 }
@@ -2029,40 +2029,40 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INT1) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xF1", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT3) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INT3) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCC", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_HLT) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_HLT) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xF4", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_CLI) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_CLI) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xFA", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_STI) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_STI) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xFB", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INSB) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INSB) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6C", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INSD) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INSD) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6D", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_OUTSB) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_OUTSB) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6E", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_OUTSD) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_OUTSD) {
             _breakPoint.nDataSize = 1;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x6F", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT1LONG) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INT1LONG) {
             _breakPoint.nDataSize = 2;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCD\x01", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_INT3LONG) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_INT3LONG) {
             _breakPoint.nDataSize = 2;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\xCD\x03", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_UD0) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_UD0) {
             _breakPoint.nDataSize = 2;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\xFF", _breakPoint.nDataSize);
-        } else if (_breakPoint.bpType== BPT_CODE_SOFTWARE_UD2) {
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_UD2) {
             _breakPoint.nDataSize = 2;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\x0B", _breakPoint.nDataSize);
         }
@@ -2112,7 +2112,8 @@ bool XInfoDB::isBreakPointPresent(const BREAKPOINT &breakPoint)
     qint32 nNumberOfRecords = g_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if ((g_listBreakpoints.at(i).nAddress == breakPoint.nAddress) && (g_listBreakpoints.at(i).bpType == breakPoint.bpType) && (g_listBreakpoints.at(i).nThreadID == breakPoint.nThreadID)) {
+        if ((g_listBreakpoints.at(i).nAddress == breakPoint.nAddress) && (g_listBreakpoints.at(i).bpType == breakPoint.bpType) &&
+            (g_listBreakpoints.at(i).nThreadID == breakPoint.nThreadID)) {
             bResult = true;
             break;
         }
@@ -2129,31 +2130,22 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
                 if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
                     if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).bpData, g_listBreakpoints.at(i).nDataSize)) {
                         bResult = true;
                     }
                 }
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
                 if (getThreadBreakpointsCount(g_listBreakpoints.at(i).nThreadID) == 1) {
                     bResult = _setStep_Id(g_listBreakpoints.at(i).nThreadID);
                 } else {
@@ -2177,26 +2169,18 @@ bool XInfoDB::disableBreakPoint(QString sUUID)
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
+            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
                 (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
                 if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
                     bResult = true;
                 }
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
             }
         }
