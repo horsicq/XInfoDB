@@ -519,7 +519,6 @@ public:
     void removeThreadInfo(X_ID nThreadID);
     bool setThreadStatus(X_ID nThreadID, THREAD_STATUS status);
     THREAD_STATUS getThreadStatus(X_ID nThreadID);
-
     bool setFunctionHook(const QString &sFunctionName);
     bool removeFunctionHook(const QString &sFunctionName);
 
