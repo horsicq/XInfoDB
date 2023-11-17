@@ -278,7 +278,6 @@ public:
         BPT_CODE_HARDWARE_DR2,
         BPT_CODE_HARDWARE_DR3,
         BPT_CODE_MEMORY
-        // TODO software invalid opcode
     };
 
     enum BPI {
