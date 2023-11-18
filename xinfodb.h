@@ -524,10 +524,8 @@ public:
     QMap<XADDR, SHAREDOBJECT_INFO> *getSharedObjectInfos();
     QList<THREAD_INFO> *getThreadInfos();
     QMap<QString, FUNCTIONHOOK_INFO> *getFunctionHookInfos();
-
     SHAREDOBJECT_INFO findSharedInfoByName(const QString &sName);
     SHAREDOBJECT_INFO findSharedInfoByAddress(XADDR nAddress);
-
     THREAD_INFO findThreadInfoByID(X_ID nThreadID);
 #ifdef Q_OS_WIN
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
