@@ -958,7 +958,7 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
         }
 
         if (_setStep_Id(nThreadId)) {
-            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
+            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING); // TODO remove
         }
     }
 
@@ -996,22 +996,36 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId)
     bool bResult = false;
 #ifdef Q_OS_WIN
     X_HANDLE hThread = findThreadInfoByID(nThreadId).hThread;
-    return _setStep_Handle(hThread);
+    bResult = _setStep_Handle(hThread);
 #endif
 #ifdef Q_OS_LINUX
+    user_regs_struct regs = {};
     errno = 0;
 
-    long int nRet = ptrace(PTRACE_SINGLESTEP, nThreadId, 0, 0);
+    if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
+        if (!(regs.eflags & 0x100)) {
+            regs.eflags |= 0x100;
+        }
 
-    if (nRet == 0) {
-        bResult = true;
-    } else {
-#ifdef QT_DEBUG
-        qDebug("ptrace failed: %s", strerror(errno));
-        // TODO error signal
-#endif
+        if (ptrace(PTRACE_SETREGS, nThreadId, nullptr, &regs) != -1) {
+            bResult = true;
+        }
     }
 #endif
+//#ifdef Q_OS_LINUX
+//    errno = 0;
+
+//    long int nRet = ptrace(PTRACE_SINGLESTEP, nThreadId, 0, 0);
+
+//    if (nRet == 0) {
+//        bResult = true;
+//    } else {
+//#ifdef QT_DEBUG
+//        qDebug("ptrace failed: %s", strerror(errno));
+//        // TODO error signal
+//#endif
+//    }
+//#endif
     return bResult;
 }
 #endif
