@@ -502,7 +502,6 @@ public:
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
     BREAKPOINT findBreakPointByUUID(QString sUUID);
     qint32 getThreadBreakpointsCount(X_ID nThreadID);
-
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
     QMap<X_HANDLE, BREAKPOINT> *getThreadBreakpoints();
