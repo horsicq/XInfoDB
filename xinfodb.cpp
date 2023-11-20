@@ -624,6 +624,27 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
 }
 #endif
 #ifdef USE_XPROCESS
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByThreadID(X_ID nThreadID, BPT bpType)
+{
+    BREAKPOINT result = {};
+    result.nAddress = -1;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
+
+        if ((breakPoint.nThreadID == nThreadID) && (g_listBreakpoints.at(i).bpType == bpType)) {
+            result = breakPoint;
+
+            break;
+        }
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(QString sUUID)
 {
     BREAKPOINT result = {};
@@ -698,12 +719,16 @@ void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
 #ifdef USE_XPROCESS
 void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
 {
+    g_pMutexThread->lock();
     g_listThreadInfos.append(*pThreadInfo);
+    g_pMutexThread->unlock();
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::removeThreadInfo(X_ID nThreadID)
 {
+    g_pMutexThread->lock();
+
     qint32 nNumberOfThread = g_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfThread; i++) {
@@ -713,11 +738,15 @@ void XInfoDB::removeThreadInfo(X_ID nThreadID)
             break;
         }
     }
+
+    g_pMutexThread->unlock();
 }
 #endif
 #ifdef USE_XPROCESS
 bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
 {
+    g_pMutexThread->lock();
+
     bool bResult = false;
     qint32 nNumberOfThread = g_listThreadInfos.count();
 
@@ -729,12 +758,16 @@ bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
         }
     }
 
+    g_pMutexThread->unlock();
+
     return bResult;
 }
 #endif
 #ifdef USE_XPROCESS
 XInfoDB::THREAD_STATUS XInfoDB::getThreadStatus(X_ID nThreadID)
 {
+    g_pMutexThread->lock();
+
     THREAD_STATUS result = THREAD_STATUS_UNKNOWN;
     qint32 nNumberOfThread = g_listThreadInfos.count();
 
@@ -745,6 +778,8 @@ XInfoDB::THREAD_STATUS XInfoDB::getThreadStatus(X_ID nThreadID)
             break;
         }
     }
+
+    g_pMutexThread->unlock();
 
     return result;
 }
@@ -856,6 +891,8 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
 {
     XInfoDB::THREAD_INFO result = {};
 
+    g_pMutexThread->lock();
+
     qint32 nNumberOfRecords = g_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
@@ -866,6 +903,8 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
         }
     }
 
+    g_pMutexThread->unlock();
+
     return result;
 }
 #endif
@@ -874,6 +913,8 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
 XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
 {
     XInfoDB::THREAD_INFO result = {};
+
+    g_pMutexThread->lock();
 
     qint32 nNumberOfRecords = g_listThreadInfos.count();
 
@@ -884,6 +925,8 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
             break;
         }
     }
+
+    g_pMutexThread->unlock();
 
     return result;
 }
@@ -924,6 +967,18 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
     }
 
     return nResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo)
+{
+    XInfoDB::BREAKPOINT breakPoint = {};
+    breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
+    breakPoint.bpInfo = bpInfo;
+#ifdef Q_OS_WIN
+    breakPoint.nThreadID = findThreadInfoByID(hThread).nThreadID;
+#endif
+    return addBreakPoint(breakPoint);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1095,70 +1150,25 @@ bool XInfoDB::resumeThread_Handle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::suspendOtherThreads(X_ID nThreadId)
-{
-    bool bResult = false;
-
-    QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
-
-    qint32 nCount = pListThreads->count();
-
-    // Suspend all other threads
-    for (qint32 i = 0; i < nCount; i++) {
-        if (nThreadId != pListThreads->at(i).nThreadID) {
-#ifdef Q_OS_WIN
-            suspendThread_Handle(pListThreads->at(i).hThread);
-#endif
-            bResult = true;
-        }
-    }
-
-    return bResult;
-}
-#endif
-#ifdef USE_XPROCESS
-bool XInfoDB::resumeOtherThreads(X_ID nThreadId)
-{
-    bool bResult = false;
-
-    QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
-
-    qint32 nCount = pListThreads->count();
-
-    for (qint32 i = 0; i < nCount; i++) {
-        if (nThreadId != pListThreads->at(i).nThreadID) {
-#ifdef Q_OS_WIN
-            resumeThread_Handle(pListThreads->at(i).hThread);
-#endif
-            bResult = true;
-        }
-    }
-
-    return bResult;
-}
-#endif
-#ifdef USE_XPROCESS
 bool XInfoDB::suspendAllThreads()
 {
     bool bResult = false;
 
     g_pMutexThread->lock();
 
-    QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
-
-    qint32 nCount = pListThreads->count();
+    qint32 nCount = g_listThreadInfos.count();
 
     // TODO Check if already suspended
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        if (pListThreads->at(i).threadStatus == THREAD_STATUS_RUNNING) {
-            if (suspendThread_Handle(pListThreads->at(i).hThread)) {
-                setThreadStatus(pListThreads->at(i).nThreadID, THREAD_STATUS_PAUSED);
+        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_RUNNING) {
+            if (suspendThread_Handle(g_listThreadInfos.at(i).hThread)) {
+                g_listThreadInfos[i].threadStatus = THREAD_STATUS_PAUSED;
             }
         }
 #endif
 #ifdef Q_OS_LINUX
-        if (syscall(SYS_tgkill, g_processInfo.nProcessID, pListThreads->at(i).nThreadID, SIGSTOP) != -1) {
+        if (syscall(SYS_tgkill, g_processInfo.nProcessID, g_listThreadInfos.at(i).nThreadID, SIGSTOP) != -1) {
             //            int thread_status=0;
 
             //            if(waitpid(pListThreads->at(i).nThreadID,&thread_status,__WALL)!=-1)
@@ -1184,22 +1194,20 @@ bool XInfoDB::resumeAllThreads()
 
     g_pMutexThread->lock();
 
-    QList<XInfoDB::THREAD_INFO> *pListThreads = getThreadInfos();
-
-    qint32 nCount = pListThreads->count();
+    qint32 nCount = g_listThreadInfos.count();
 
     // Resume all other threads
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        if (pListThreads->at(i).threadStatus == THREAD_STATUS_PAUSED) {
-            if (resumeThread_Handle(pListThreads->at(i).hThread)) {
-                setThreadStatus(pListThreads->at(i).nThreadID, THREAD_STATUS_RUNNING);
+        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (resumeThread_Handle(g_listThreadInfos.at(i).hThread)) {
+                g_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
             }
         }
 #endif
 #ifdef Q_OS_LINUX
         // TODO
-        ptrace(PTRACE_CONT, pListThreads->at(i).nThreadID, 0, 0);
+        ptrace(PTRACE_CONT, g_listThreadInfos.at(i).nThreadID, 0, 0);
 #endif
 
         bResult = true;
@@ -2196,6 +2204,9 @@ bool XInfoDB::disableBreakPoint(QString sUUID)
             } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
                        (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
+            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
+                // mb TODO
+                bResult = true;
             }
         }
     }

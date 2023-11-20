@@ -312,6 +312,7 @@ public:
 
     enum THREAD_STATUS {
         THREAD_STATUS_UNKNOWN = 0,
+        THREAD_STATUS_CURRENT,
         THREAD_STATUS_PAUSED,
         THREAD_STATUS_RUNNING  // TODO
     };
@@ -500,6 +501,7 @@ public:
     bool disableBreakPoint(QString sUUID);
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
+    BREAKPOINT findBreakPointByThreadID(X_ID nThreadID, BPT bpType);
     BREAKPOINT findBreakPointByUUID(QString sUUID);
     qint32 getThreadBreakpointsCount(X_ID nThreadID);
     QList<BREAKPOINT> *getBreakpoints();
@@ -534,18 +536,17 @@ public:
     //    bool stepInto(XProcess::HANDLEID handleThread);
     //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
-    bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP);
-    bool stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);
-    bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP);
-    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);
+    bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo);
+    bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
     bool _setStep_Handle(X_HANDLE hThread);
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
     bool suspendThread_Handle(X_HANDLE hThread);
     bool resumeThread_Id(X_ID nThreadId);
     bool resumeThread_Handle(X_HANDLE hThread);
-    bool suspendOtherThreads(X_ID nThreadId);  // TODO Check
-    bool resumeOtherThreads(X_ID nThreadId);   // TODO Check
     bool suspendAllThreads();
     bool resumeAllThreads();
     FUNCTION_INFO getFunctionInfo(X_HANDLE hThread, const QString &sName);
