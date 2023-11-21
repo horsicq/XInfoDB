@@ -38,8 +38,9 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-    // setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
+//      setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
     g_pDevice = nullptr;
@@ -664,6 +665,25 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(QString sUUID)
 }
 #endif
 #ifdef USE_XPROCESS
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByRegion(XADDR nAddress, qint64 nSize)
+{
+    BREAKPOINT result = {};
+    result.nAddress = -1;
+
+    qint32 nNumberOfRecords = g_listBreakpoints.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        if (XBinary::_isAddressCrossed(g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nDataSize, nAddress, nSize)) {
+            result = g_listBreakpoints.at(i);
+
+            break;
+        }
+    }
+
+    return result;
+}
+#endif
+#ifdef USE_XPROCESS
 qint32 XInfoDB::getThreadBreakpointsCount(X_ID nThreadID)
 {
     qint32 nResult = 0;
@@ -976,7 +996,7 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo)
     breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
     breakPoint.bpInfo = bpInfo;
 #ifdef Q_OS_WIN
-    breakPoint.nThreadID = findThreadInfoByID(hThread).nThreadID;
+    breakPoint.nThreadID = findThreadInfoByHandle(hThread).nThreadID;
 #endif
     return addBreakPoint(breakPoint);
 }

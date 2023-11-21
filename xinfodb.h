@@ -269,7 +269,7 @@ public:
         BPT_CODE_SOFTWARE_INT3LONG,
         BPT_CODE_SOFTWARE_UD0,
         BPT_CODE_SOFTWARE_UD2,
-        BPT_CODE_SOFTWARE_SYSTEM,
+        BPT_CODE_SYSTEM,
         BPT_CODE_STEP_FLAG,
         BPT_CODE_STEP_TO_RESTORE,
         BPT_CODE_HARDWARE_FREE,  // Check free Debug register
@@ -503,6 +503,7 @@ public:
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
     BREAKPOINT findBreakPointByThreadID(X_ID nThreadID, BPT bpType);
     BREAKPOINT findBreakPointByUUID(QString sUUID);
+    BREAKPOINT findBreakPointByRegion(XADDR nAddress, qint64 nSize);
     qint32 getThreadBreakpointsCount(X_ID nThreadID);
     QList<BREAKPOINT> *getBreakpoints();
 #ifdef Q_OS_WIN
