@@ -299,11 +299,12 @@ public:
     struct BREAKPOINT {
         // TODO bIsValid
         XADDR nAddress;
+        qint64 nSize;
         X_ID nThreadID;
         qint32 nCount;
         BPT bpType;
         BPI bpInfo;
-        QString sInfo;
+        QString sNote;
         qint32 nDataSize;
         char origData[4];  // TODO consts check
         char bpData[4];

@@ -38,8 +38,8 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
 //      setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 #endif
@@ -836,7 +836,7 @@ bool XInfoDB::removeFunctionHook(const QString &sFunctionName)
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
 
-        if (breakPoint.sInfo == sFunctionName) {
+        if (breakPoint.sNote == sFunctionName) {
             g_listBreakpoints.removeAt(i);
         }
     }
@@ -966,7 +966,7 @@ bool XInfoDB::setSingleStep(X_HANDLE hThread, const QString &sInfo)
     XInfoDB::BREAKPOINT breakPoint = {};
     breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
     breakPoint.bpInfo = XInfoDB::BPI_STEPINTO;
-    breakPoint.sInfo = sInfo;
+    breakPoint.sNote = sInfo;
 #ifdef Q_OS_WIN
     getThreadBreakpoints()->insert(hThread, breakPoint);
 #endif
@@ -2116,6 +2116,8 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         } else {
             g_listBreakpoints.removeLast();
         }
+    } else if (_breakPoint.bpType == BPT_CODE_STEP_FLAG) {
+        bResult = _setStep_Id(_breakPoint.nThreadID);
     }
 
     return bResult;
@@ -2188,11 +2190,7 @@ bool XInfoDB::enableBreakPoint(QString sUUID)
                        (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
             } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
-                if (getThreadBreakpointsCount(g_listBreakpoints.at(i).nThreadID) == 1) {
-                    bResult = _setStep_Id(g_listBreakpoints.at(i).nThreadID);
-                } else {
-                    bResult = true;
-                }
+                bResult = _setStep_Id(g_listBreakpoints.at(i).nThreadID);
             }
 
             break;
