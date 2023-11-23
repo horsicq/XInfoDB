@@ -38,10 +38,20 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
+
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
     setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
-//      setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD2);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSD);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSB);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSD);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
+//    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
@@ -487,7 +497,6 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
 
     return listResult;
 }
-
 #ifdef USE_XPROCESS
 void XInfoDB::setDefaultBreakpointType(BPT bpType)
 {
@@ -531,7 +540,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
         breakPoint.nAddress = nNextAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
         breakPoint.bpInfo = bpInfo;
-        breakPoint.nCount = 1;
+        breakPoint.bOneShot = true;
 
         bResult = addBreakPoint(breakPoint);
     } else {
@@ -539,7 +548,6 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
         breakPoint.nAddress = nNextAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
         breakPoint.bpInfo = bpInfo;
-        breakPoint.nCount = 1;
 
         bResult = addBreakPoint(breakPoint);
     }
@@ -560,7 +568,6 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
         breakPoint.nAddress = nNextAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
         breakPoint.bpInfo = bpInfo;
-        breakPoint.nCount = 1;
 
         bResult = addBreakPoint(breakPoint);
     } else {
@@ -568,7 +575,6 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
         breakPoint.nAddress = nNextAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
         breakPoint.bpInfo = bpInfo;
-        breakPoint.nCount = 1;
 
         bResult = addBreakPoint(breakPoint);
     }
@@ -704,7 +710,7 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
 {
     bool bResult = false;
 
-    BREAKPOINT bp = findBreakPointByAddress(nAddress, BPT_CODE_SOFTWARE_DEFAULT);
+    BREAKPOINT bp = findBreakPointByRegion(nAddress, 1);
 
     if (bp.sUUID != "") {
         if (removeBreakPoint(bp.sUUID)) {
@@ -714,7 +720,6 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
         XInfoDB::BREAKPOINT breakPoint = {};
         breakPoint.nAddress = nAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
-        breakPoint.nCount = -1;
 
         if (addBreakPoint(breakPoint)) {
             bResult = true;
@@ -722,6 +727,17 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
     }
 
     return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+QString XInfoDB::bptToString(BPT bpType)
+{
+    QString sResult = tr("Unknown");
+#ifdef Q_PROCESSOR_X86
+    if (bpType == BPT_CODE_SOFTWARE_INT1) sResult = QString("INT1");
+    else if (bpType == BPT_CODE_SOFTWARE_INT3) sResult = QString("INT3");
+#endif
+    return sResult;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -961,19 +977,6 @@ quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::setSingleStep(X_HANDLE hThread, const QString &sInfo)
-{
-    XInfoDB::BREAKPOINT breakPoint = {};
-    breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
-    breakPoint.bpInfo = XInfoDB::BPI_STEPINTO;
-    breakPoint.sNote = sInfo;
-#ifdef Q_OS_WIN
-    getThreadBreakpoints()->insert(hThread, breakPoint);
-#endif
-    return _setStep_Handle(hThread);
-}
-#endif
-#ifdef USE_XPROCESS
 XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 {
     XADDR nResult = -1;
@@ -1002,22 +1005,6 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
-{
-    // TODO Threads statuses
-    if (bAddThreadBP) {
-        XInfoDB::BREAKPOINT breakPoint = {};
-        breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
-        breakPoint.bpInfo = bpInfo;
-#ifdef Q_OS_WIN
-        getThreadBreakpoints()->insert(hThread, breakPoint);
-#endif
-    }
-
-    return _setStep_Handle(hThread);
-}
-#endif
-#ifdef USE_XPROCESS
 bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
 {
     bool bResult = false;
@@ -1038,6 +1025,17 @@ bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
     }
 
     return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo)
+{
+    XInfoDB::BREAKPOINT breakPoint = {};
+    breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
+    breakPoint.bpInfo = bpInfo;
+    breakPoint.nThreadID = nThreadId;
+
+    return addBreakPoint(breakPoint);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1226,8 +1224,11 @@ bool XInfoDB::resumeAllThreads()
         }
 #endif
 #ifdef Q_OS_LINUX
-        // TODO
-        ptrace(PTRACE_CONT, g_listThreadInfos.at(i).nThreadID, 0, 0);
+        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (ptrace(PTRACE_CONT, g_listThreadInfos.at(i).nThreadID, 0, 0) != -1) {
+                g_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+            }
+        }
 #endif
 
         bResult = true;
@@ -2059,10 +2060,6 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         _breakPoint.bpType = g_bpTypeDefault;
     }
 
-    if (_breakPoint.nCount == 0) {
-        _breakPoint.nCount = -1;
-    }
-
     if (_breakPoint.sUUID == "") {
         _breakPoint.sUUID = XBinary::generateUUID();
     }
@@ -2116,7 +2113,7 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         } else {
             g_listBreakpoints.removeLast();
         }
-    } else if (_breakPoint.bpType == BPT_CODE_STEP_FLAG) {
+    } else if ((_breakPoint.bpType == BPT_CODE_STEP_TO_RESTORE) || (_breakPoint.bpType == BPT_CODE_STEP_FLAG)) {
         bResult = _setStep_Id(_breakPoint.nThreadID);
     }
 
@@ -2239,12 +2236,6 @@ QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 }
 #endif
 #ifdef USE_XPROCESS
-#ifdef Q_OS_WIN
-QMap<X_HANDLE, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
-{
-    return &g_mapThreadBreakpoints;
-}
-#endif
 #ifdef Q_OS_LINUX
 QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 {
@@ -2541,7 +2532,7 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 #ifdef USE_XPROCESS
 QString XInfoDB::regIdToString(XREG reg)
 {
-    QString sResult = "Unknown";
+    QString sResult = tr("Unknown");
 
     if (reg == XREG_NONE) sResult = QString("");
 #ifdef Q_PROCESSOR_X86

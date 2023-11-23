@@ -255,6 +255,9 @@ public:
     enum BPT {
         BPT_UNKNOWN = 0,
         BPT_PROCESS_STOP,
+        BPT_CODE_SYSTEM,
+        BPT_CODE_STEP_FLAG,
+        BPT_CODE_STEP_TO_RESTORE,
         BPT_CODE_SOFTWARE_DEFAULT,
         BPT_CODE_SOFTWARE_INT1,
         BPT_CODE_SOFTWARE_INT3,  // for X86 0xCC Check for ARM Check invalid opcodes
@@ -269,9 +272,6 @@ public:
         BPT_CODE_SOFTWARE_INT3LONG,
         BPT_CODE_SOFTWARE_UD0,
         BPT_CODE_SOFTWARE_UD2,
-        BPT_CODE_SYSTEM,
-        BPT_CODE_STEP_FLAG,
-        BPT_CODE_STEP_TO_RESTORE,
         BPT_CODE_HARDWARE_FREE,  // Check free Debug register
         BPT_CODE_HARDWARE_DR0,
         BPT_CODE_HARDWARE_DR1,
@@ -301,7 +301,7 @@ public:
         XADDR nAddress;
         qint64 nSize;
         X_ID nThreadID;
-        qint32 nCount;
+        bool bOneShot;
         BPT bpType;
         BPI bpInfo;
         QString sNote;
@@ -507,13 +507,11 @@ public:
     BREAKPOINT findBreakPointByRegion(XADDR nAddress, qint64 nSize);
     qint32 getThreadBreakpointsCount(X_ID nThreadID);
     QList<BREAKPOINT> *getBreakpoints();
-#ifdef Q_OS_WIN
-    QMap<X_HANDLE, BREAKPOINT> *getThreadBreakpoints();
-#endif
 #ifdef Q_OS_LINUX
     QMap<X_ID, BREAKPOINT> *getThreadBreakpoints();
 #endif
     bool breakpointToggle(XADDR nAddress);
+    static QString bptToString(BPT bpType);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
@@ -534,12 +532,11 @@ public:
     THREAD_INFO findThreadInfoByHandle(X_HANDLE hThread);
 #endif
     quint64 getFunctionAddress(const QString &sFunctionName);
-    bool setSingleStep(X_HANDLE hThread, const QString &sInfo = "");  // TODO mb remove
     //    bool stepInto(XProcess::HANDLEID handleThread);
     //    bool resumeThread(XProcess::HANDLEID handleThread);
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
     bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo);
-    bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepInto_Id(X_ID nThreadId, BPI bpInfo);
     bool stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
     bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP); // TODO remove
     bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
@@ -883,11 +880,8 @@ private:
     XInfoDB::PROCESS_INFO g_processInfo;
     QList<BREAKPOINT> g_listBreakpoints;
     BPT g_bpTypeDefault;
-#ifdef Q_OS_WIN
-    QMap<X_HANDLE, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
-#endif
 #ifdef Q_OS_LINUX
-    QMap<X_ID, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList
+    QMap<X_ID, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList TODO remove
 #endif
     //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS,
     //    ThreadID/BP TODO QList
