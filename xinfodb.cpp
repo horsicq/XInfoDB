@@ -528,7 +528,7 @@ X_HANDLE XInfoDB::getCurrentThreadHandle()
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo)
 {
     bool bResult = false;
 
@@ -544,12 +544,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP)
 
         bResult = addBreakPoint(breakPoint);
     } else {
-        XInfoDB::BREAKPOINT breakPoint = {};
-        breakPoint.nAddress = nNextAddress;
-        breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
-        breakPoint.bpInfo = bpInfo;
-
-        bResult = addBreakPoint(breakPoint);
+        bResult = stepInto_Handle(hThread, bpInfo);
     }
 
     return bResult;
@@ -734,8 +729,30 @@ QString XInfoDB::bptToString(BPT bpType)
 {
     QString sResult = tr("Unknown");
 #ifdef Q_PROCESSOR_X86
-    if (bpType == BPT_CODE_SOFTWARE_INT1) sResult = QString("INT1");
-    else if (bpType == BPT_CODE_SOFTWARE_INT3) sResult = QString("INT3");
+    if (bpType == BPT_CODE_SOFTWARE_INT1) sResult = QString("INT1(0xF1)");
+    else if (bpType == BPT_CODE_SOFTWARE_INT3) sResult = QString("INT3(0xCC)");
+    else if (bpType == BPT_CODE_SOFTWARE_HLT) sResult = QString("HLT");
+    else if (bpType == BPT_CODE_SOFTWARE_CLI) sResult = QString("CLI");
+    else if (bpType == BPT_CODE_SOFTWARE_STI) sResult = QString("STI");
+    else if (bpType == BPT_CODE_SOFTWARE_INSB) sResult = QString("INSB");
+    else if (bpType == BPT_CODE_SOFTWARE_INSD) sResult = QString("INSD");
+    else if (bpType == BPT_CODE_SOFTWARE_OUTSB) sResult = QString("OUTSD");
+    else if (bpType == BPT_CODE_SOFTWARE_OUTSD) sResult = QString("OUTSD");
+    else if (bpType == BPT_CODE_SOFTWARE_INT1LONG) sResult = QString("INT1 LONG");
+    else if (bpType == BPT_CODE_SOFTWARE_INT3LONG) sResult = QString("INT3 LONG");
+    else if (bpType == BPT_CODE_SOFTWARE_UD0) sResult = QString("UD0");
+    else if (bpType == BPT_CODE_SOFTWARE_UD2) sResult = QString("UD2");
+#endif
+    return sResult;
+}
+#endif
+#ifdef USE_XPROCESS
+QString XInfoDB::bpiToString(BPI bpInfo)
+{
+    QString sResult = tr("Unknown");
+#ifdef Q_PROCESSOR_X86
+    if (bpInfo == BPI_FUNCTIONENTER) sResult = tr("Function enter");
+    if (bpInfo == BPI_FUNCTIONLEAVE) sResult = tr("Function leave");
 #endif
     return sResult;
 }
@@ -1002,29 +1019,6 @@ bool XInfoDB::stepInto_Handle(X_HANDLE hThread, BPI bpInfo)
     breakPoint.nThreadID = findThreadInfoByHandle(hThread).nThreadID;
 #endif
     return addBreakPoint(breakPoint);
-}
-#endif
-#ifdef USE_XPROCESS
-bool XInfoDB::stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
-{
-    bool bResult = false;
-
-    if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
-        if (bAddThreadBP) {
-            XInfoDB::BREAKPOINT breakPoint = {};
-            breakPoint.bpType = XInfoDB::BPT_CODE_STEP_FLAG;
-            breakPoint.bpInfo = bpInfo;
-#ifdef Q_OS_LINUX
-            getThreadBreakpoints()->insert(nThreadId, breakPoint);
-#endif
-        }
-
-        if (_setStep_Id(nThreadId)) {
-            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING); // TODO remove
-        }
-    }
-
-    return bResult;
 }
 #endif
 #ifdef USE_XPROCESS

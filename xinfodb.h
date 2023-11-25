@@ -512,6 +512,7 @@ public:
 #endif
     bool breakpointToggle(XADDR nAddress);
     static QString bptToString(BPT bpType);
+    static QString bpiToString(BPI bpInfo);
 
     void addSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
     void removeSharedObjectInfo(XInfoDB::SHAREDOBJECT_INFO *pSharedObjectInfo);
@@ -537,8 +538,7 @@ public:
     XADDR getAddressNextInstructionAfterCall(XADDR nAddress);
     bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo);
     bool stepInto_Id(X_ID nThreadId, BPI bpInfo);
-    bool stepInto_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
-    bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo);
     bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
     bool _setStep_Handle(X_HANDLE hThread);
     bool _setStep_Id(X_ID nThreadId);
