@@ -39,7 +39,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef USE_XPROCESS
     g_processInfo = {};
 
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
     setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
@@ -1079,20 +1079,20 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId)
         }
     }
 #endif
-//#ifdef Q_OS_LINUX
-//    errno = 0;
+    // #ifdef Q_OS_LINUX
+    //     errno = 0;
 
-//    long int nRet = ptrace(PTRACE_SINGLESTEP, nThreadId, 0, 0);
+    //    long int nRet = ptrace(PTRACE_SINGLESTEP, nThreadId, 0, 0);
 
-//    if (nRet == 0) {
-//        bResult = true;
-//    } else {
-//#ifdef QT_DEBUG
-//        qDebug("ptrace failed: %s", strerror(errno));
-//        // TODO error signal
-//#endif
-//    }
-//#endif
+    //    if (nRet == 0) {
+    //        bResult = true;
+    //    } else {
+    // #ifdef QT_DEBUG
+    //        qDebug("ptrace failed: %s", strerror(errno));
+    //        // TODO error signal
+    // #endif
+    //    }
+    // #endif
     return bResult;
 }
 #endif

@@ -539,7 +539,7 @@ public:
     bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo);
     bool stepInto_Id(X_ID nThreadId, BPI bpInfo);
     bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo);
-    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP); // TODO remove
+    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);  // TODO remove
     bool _setStep_Handle(X_HANDLE hThread);
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
