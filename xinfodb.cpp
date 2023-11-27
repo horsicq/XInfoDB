@@ -738,10 +738,10 @@ QString XInfoDB::bptToString(BPT bpType)
     else if (bpType == BPT_CODE_SOFTWARE_INSD) sResult = QString("INSD");
     else if (bpType == BPT_CODE_SOFTWARE_OUTSB) sResult = QString("OUTSD");
     else if (bpType == BPT_CODE_SOFTWARE_OUTSD) sResult = QString("OUTSD");
-    else if (bpType == BPT_CODE_SOFTWARE_INT1LONG) sResult = QString("INT1 LONG");
-    else if (bpType == BPT_CODE_SOFTWARE_INT3LONG) sResult = QString("INT3 LONG");
-    else if (bpType == BPT_CODE_SOFTWARE_UD0) sResult = QString("UD0");
-    else if (bpType == BPT_CODE_SOFTWARE_UD2) sResult = QString("UD2");
+    else if (bpType == BPT_CODE_SOFTWARE_INT1LONG) sResult = QString("INT1 LONG (2 bytes)");
+    else if (bpType == BPT_CODE_SOFTWARE_INT3LONG) sResult = QString("INT3 LONG (2 bytes)");
+    else if (bpType == BPT_CODE_SOFTWARE_UD0) sResult = QString("UD0 (2 bytes)");
+    else if (bpType == BPT_CODE_SOFTWARE_UD2) sResult = QString("UD2 (2 bytes)");
 #endif
     return sResult;
 }
