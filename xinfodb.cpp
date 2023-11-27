@@ -39,9 +39,9 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef USE_XPROCESS
     g_processInfo = {};
 
-    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
@@ -49,7 +49,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSB);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSD);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG);
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG); // Checked Win
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
 //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
@@ -551,7 +551,7 @@ bool XInfoDB::stepOver_Handle(X_HANDLE hThread, BPI bpInfo)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP)
+bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo)
 {
     bool bResult = false;
 
@@ -752,7 +752,11 @@ QString XInfoDB::bpiToString(BPI bpInfo)
     QString sResult = tr("Unknown");
 #ifdef Q_PROCESSOR_X86
     if (bpInfo == BPI_FUNCTIONENTER) sResult = tr("Function enter");
-    if (bpInfo == BPI_FUNCTIONLEAVE) sResult = tr("Function leave");
+    else if (bpInfo == BPI_FUNCTIONLEAVE) sResult = tr("Function leave");
+    else if (bpInfo == BPI_STEPINTO) sResult = tr("Step into");
+    else if (bpInfo == BPI_STEPOVER) sResult = tr("Step over");
+    else if (bpInfo == BPI_TRACEINTO) sResult = tr("Trace into");
+    else if (bpInfo == BPI_TRACEOVER) sResult = tr("Trace over");
 #endif
     return sResult;
 }
@@ -1136,7 +1140,7 @@ bool XInfoDB::resumeThread_Id(X_ID nThreadId)
 
     if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
 #ifdef Q_OS_LINUX
-        if (ptrace(PTRACE_CONT, nThreadId, 0, 0)) {
+        if (ptrace(PTRACE_CONT, nThreadId, 0, 0) != -1) {
             bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
         }
 #endif

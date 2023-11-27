@@ -255,7 +255,7 @@ public:
     enum BPT {
         BPT_UNKNOWN = 0,
         BPT_PROCESS_STOP,
-        BPT_CODE_SYSTEM,
+        BPT_CODE_SYSTEM_EXCEPTION,
         BPT_CODE_STEP_FLAG,
         BPT_CODE_STEP_TO_RESTORE,
         BPT_CODE_SOFTWARE_DEFAULT,
@@ -539,7 +539,7 @@ public:
     bool stepInto_Handle(X_HANDLE hThread, BPI bpInfo);
     bool stepInto_Id(X_ID nThreadId, BPI bpInfo);
     bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo);
-    bool stepOver_Id(X_ID nThreadId, BPI bpInfo, bool bAddThreadBP);  // TODO remove
+    bool stepOver_Id(X_ID nThreadId, BPI bpInfo);
     bool _setStep_Handle(X_HANDLE hThread);
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
