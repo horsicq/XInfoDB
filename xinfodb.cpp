@@ -40,9 +40,9 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_processInfo = {};
 
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
+//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSD);
