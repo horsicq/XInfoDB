@@ -304,7 +304,7 @@ public:
         bool bOneShot;
         BPT bpType;
         BPI bpInfo;
-        QString sNote;
+        QVariant vInfo;
         qint32 nDataSize;
         char origData[4];  // TODO consts check
         char bpData[4];
@@ -379,7 +379,7 @@ public:
         XADDR nExceptionAddress;
         XInfoDB::BPT bpType;
         XInfoDB::BPI bpInfo;
-        QString sInfo;
+        QVariant vInfo;
         X_ID nProcessID;
 #ifdef Q_OS_WIN
         X_HANDLE hProcess;
