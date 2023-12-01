@@ -3018,7 +3018,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
-            XCapstone::DISASM_RESULT _disasmResult = XCapstone::disasm_ex(g_handle, getDisasmMode(), baBuffer.data(), baBuffer.size(), record.nAddress);
+            XCapstone::DISASM_RESULT _disasmResult = XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
                 record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS);
@@ -3941,7 +3941,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                         }
 
                         if (nSize > 0) {
-                            XCapstone::DISASM_RESULT disasmResult = XCapstone::disasm_ex(g_handle, disasmMode, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                            XCapstone::DISASM_RESULT disasmResult = XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                             if (disasmResult.bIsValid) {
                                 {
