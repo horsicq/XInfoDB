@@ -320,7 +320,7 @@ XCapstone::DISASM_RESULT XInfoDB::disasm(XADDR nAddress)
 {
     QByteArray baArray = read_array(nAddress, 16);
 
-    return XCapstone::disasm_ex(g_handle, getDisasmMode(), baArray.data(), baArray.size(), nAddress);
+    return XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT,baArray.data(), baArray.size(), nAddress);
 }
 #endif
 #ifdef USE_XPROCESS
