@@ -39,16 +39,16 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 #ifdef USE_XPROCESS
     g_processInfo = {};
 
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSD);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSB);
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSD);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG); // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSD);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSB);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSD);
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG);  // Checked Win
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG); // Checked Win
 //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
 //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
@@ -3018,7 +3018,8 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
-            XCapstone::DISASM_RESULT _disasmResult = XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
+            XCapstone::DISASM_RESULT _disasmResult =
+                XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
                 record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS);
@@ -3941,7 +3942,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                         }
 
                         if (nSize > 0) {
-                            XCapstone::DISASM_RESULT disasmResult = XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                            XCapstone::DISASM_RESULT disasmResult =
+                                XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                             if (disasmResult.bIsValid) {
                                 {
