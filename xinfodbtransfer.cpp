@@ -72,6 +72,8 @@ bool XInfoDBTransfer::process()
 
             if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
+                    g_pXInfoDB->clearRecordInfoCache();
+
                     if (!(g_pXInfoDB->isSymbolsPresent())) {
                         g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.fileType, g_pPdStruct);
                     }

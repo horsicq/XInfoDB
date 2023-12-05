@@ -40,18 +40,18 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_processInfo = {};
 
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
-    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
-    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSB);
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INSD);
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSB);
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_OUTSD);
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG);  // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG); // Checked Win
-//    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
-//    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1LONG);  // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3LONG); // Checked Win
+    //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
+    //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
     g_pDevice = nullptr;
     g_handle = 0;
