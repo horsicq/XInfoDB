@@ -359,6 +359,7 @@ public:
         qint64 nProcessID;
         qint64 nThreadID;
         qint64 nExitCode;
+        QString sFileName;
     };
 
     struct SHAREDOBJECT_INFO  // DLL on Windows
@@ -581,6 +582,7 @@ public:
     XADDR getCurrentStackPointer_Handle(X_HANDLE hThread);
     XADDR getCurrentStackPointer_Id(X_ID nThreadId);
     bool setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue);
+    bool isFunctionReturnAddress(XADDR nAddress);
 
     bool isAddressValid(XADDR nAddress);
 
@@ -743,7 +745,8 @@ public:
     void clearAllTables();
     void clearDb();
     void vacuumDb();
-    void _addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _addSymbolsFromFile(QIODevice *pDevice, bool bIsImage = false,
+                             XADDR nModuleAddress = -1, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
                         XBinary::PDSTRUCT *pPdStruct);
 

@@ -74,8 +74,9 @@ bool XInfoDBTransfer::process()
                 if (pDevice) {
                     g_pXInfoDB->clearRecordInfoCache();
 
-                    if (!(g_pXInfoDB->isSymbolsPresent())) {
-                        g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.fileType, g_pPdStruct);
+                    if ((!(g_pXInfoDB->isSymbolsPresent())) || (g_transferType == COMMAND_ANALYZEALL)) {
+                        g_pXInfoDB->_addSymbolsFromFile(pDevice,  g_options.bIsImage,
+                                                        g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                     }
 
                     g_pXInfoDB->initDisasmDb();
@@ -109,7 +110,7 @@ bool XInfoDBTransfer::process()
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
-                    g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.fileType, g_pPdStruct);
+                    g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                 }
             }
 

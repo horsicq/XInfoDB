@@ -114,6 +114,7 @@ void XInfoMenu::actionExport()
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
             XInfoDBTransfer::OPTIONS options = {};
             options.sFileName = _sFileName;
+            options.nModuleAddress = -1;
 
             dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);
 
@@ -132,6 +133,7 @@ void XInfoMenu::actionImport()
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
             XInfoDBTransfer::OPTIONS options = {};
             options.sFileName = _sFileName;
+            options.nModuleAddress = -1;
 
             dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
 
@@ -147,6 +149,7 @@ void XInfoMenu::actionClear()
         if (QMessageBox::question(g_pParent, tr("Database"), tr("Are you sure?")) == QMessageBox::Yes) {
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
             XInfoDBTransfer::OPTIONS options = {};
+            options.nModuleAddress = -1;
 
             dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_CLEAR, options);
 

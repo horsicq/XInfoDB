@@ -2443,6 +2443,19 @@ bool XInfoDB::setCurrentStackPointer_Handle(X_HANDLE hThread, XADDR nValue)
 }
 #endif
 #ifdef USE_XPROCESS
+bool XInfoDB::isFunctionReturnAddress(XADDR nAddress)
+{
+    bool bResult = false;
+
+    if (isAddressValid(nAddress)) {
+        bResult = false;
+    }
+    // TODO
+
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
 bool XInfoDB::isAddressValid(XADDR nAddress)
 {
     bool bResult = false;
@@ -3545,7 +3558,7 @@ void XInfoDB::vacuumDb()
 #endif
 }
 
-void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pMutexSQL->lock();
 
@@ -3586,7 +3599,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
 
     // TODO progressBar
     if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
-        XELF elf(pDevice);
+        XELF elf(pDevice, bIsImage, nModuleAddress);
 
         if (elf.isValid()) {
             XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap();
@@ -3612,11 +3625,11 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
                 qint64 nStringTableOffset = XBinary::addressToOffset(&memoryMap, listStrTab.at(0).nValue);
                 qint64 nStringTableSize = listStrSize.at(0).nValue;
 
-                _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct);
+                _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct); // TODO delta
             }
         }
     } else if (XBinary::checkFileType(XBinary::FT_PE, fileType)) {
-        XPE pe(pDevice);
+        XPE pe(pDevice, bIsImage, nModuleAddress);
 
         if (pe.isValid()) {
             QSet<XADDR> stAddresses;
@@ -3624,7 +3637,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
             XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
 
             _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
-            _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
+            _addFunction(memoryMap.nEntryPointAddress , 0, "EntryPoint");
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
 
@@ -3645,7 +3658,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
                         _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
-                        _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
+                        _addExportSymbol(nAddress,  _export.listPositions.at(i).sFunctionName);  // TODO ordinals
                         _addFunction(nAddress, 0, _export.listPositions.at(i).sFunctionName);
                     }
                 }
@@ -3691,7 +3704,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, XBinary::FT fileType, XBin
             // TODO More
         }
     } else if (XBinary::checkFileType(XBinary::FT_MACHO, fileType)) {
-        XMACH mach(pDevice);
+        XMACH mach(pDevice, bIsImage, nModuleAddress);
 
         if (mach.isValid()) {
             QSet<XADDR> stAddresses;

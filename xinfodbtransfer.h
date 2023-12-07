@@ -44,6 +44,8 @@ public:
         XBinary::FT fileType;
         QString sFileName;
         QIODevice *pDevice;
+        bool bIsImage;
+        XADDR nModuleAddress;
         XADDR nAddress;
         qint64 nSize;
         qint64 nCount;
