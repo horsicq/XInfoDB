@@ -699,7 +699,9 @@ public:
         quint64 nLocation;
         LT locationType;
         qint64 nSize;
+        QColor colText;
         QColor colBackground;
+        QString sTemplate;
         QString sComment;
     };
 #endif
@@ -776,7 +778,7 @@ public:
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
     void updateFunctionSize(XADDR nAddress, qint64 nSize);
 #ifdef QT_GUI_LIB
-    QString _addBookmarkRecord(quint64 nLocation, LT locationType, qint64 nSize, QColor colBackground, const QString &sComment);  // mb TODO return UUID
+    QString _addBookmarkRecord(const BOOKMARKRECORD &record);
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords();
     QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize);
