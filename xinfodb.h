@@ -747,8 +747,8 @@ public:
     void clearAllTables();
     void clearDb();
     void vacuumDb();
-    void _addSymbolsFromFile(QIODevice *pDevice, bool bIsImage = false,
-                             XADDR nModuleAddress = -1, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _addSymbolsFromFile(QIODevice *pDevice, bool bIsImage = false, XADDR nModuleAddress = -1, XBinary::FT fileType = XBinary::FT_UNKNOWN,
+                             XBinary::PDSTRUCT *pPdStruct = nullptr);
     void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
                         XBinary::PDSTRUCT *pPdStruct);
 

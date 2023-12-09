@@ -75,8 +75,7 @@ bool XInfoDBTransfer::process()
                     g_pXInfoDB->clearRecordInfoCache();
 
                     if ((!(g_pXInfoDB->isSymbolsPresent())) || (g_transferType == COMMAND_ANALYZEALL)) {
-                        g_pXInfoDB->_addSymbolsFromFile(pDevice,  g_options.bIsImage,
-                                                        g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
+                        g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                     }
 
                     g_pXInfoDB->initDisasmDb();

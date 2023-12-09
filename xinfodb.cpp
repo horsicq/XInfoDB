@@ -40,7 +40,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_processInfo = {};
 
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
-    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3); // Checked Win
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);  // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
@@ -320,7 +320,7 @@ XCapstone::DISASM_RESULT XInfoDB::disasm(XADDR nAddress)
 {
     QByteArray baArray = read_array(nAddress, 16);
 
-    return XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT,baArray.data(), baArray.size(), nAddress);
+    return XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baArray.data(), baArray.size(), nAddress);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -3627,7 +3627,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
                 qint64 nStringTableOffset = XBinary::addressToOffset(&memoryMap, listStrTab.at(0).nValue);
                 qint64 nStringTableSize = listStrSize.at(0).nValue;
 
-                _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct); // TODO delta
+                _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct);  // TODO delta
             }
         }
     } else if (XBinary::checkFileType(XBinary::FT_PE, fileType)) {
@@ -3639,7 +3639,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
             XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
 
             _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
-            _addFunction(memoryMap.nEntryPointAddress , 0, "EntryPoint");
+            _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
 
@@ -3660,7 +3660,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
                         _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
-                        _addExportSymbol(nAddress,  _export.listPositions.at(i).sFunctionName);  // TODO ordinals
+                        _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
                         _addFunction(nAddress, 0, _export.listPositions.at(i).sFunctionName);
                     }
                 }
@@ -4838,7 +4838,9 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), false);
+    querySQL(&query,
+             QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
+             false);
 
     while (query.next()) {
         BOOKMARKRECORD record = {};
@@ -4913,15 +4915,8 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
                      "TEMPLATE = '%7' "
                      "COMMENT = '%8' "
                      "WHERE UUID = '%9'")
-                 .arg(s_sql_tableName[DBTABLE_BOOKMARKS],
-                      QString::number(record.nLocation),
-                      QString::number(record.locationType),
-                      QString::number(record.nSize),
-                      colorToString(record.colText),
-                      colorToString(record.colBackground),
-                      record.sTemplate,
-                      record.sComment,
-                      record.sUUID),
+                 .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize),
+                      colorToString(record.colText), colorToString(record.colBackground), record.sTemplate, record.sComment, record.sUUID),
              true);
 #else
     Q_UNUSED(record)
@@ -5709,7 +5704,8 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, DBTABLE_BOOKMARKS);
             createTable(pDatabaseDest, DBTABLE_BOOKMARKS);
 
-            querySQL(&queryRead, QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), false);
+            querySQL(&queryRead,
+                     QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
