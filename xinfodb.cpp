@@ -3622,28 +3622,50 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         if (elf.isValid()) {
             XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap();
 
-            QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList();
-
             if (memoryMap.nEntryPointAddress) {
                 _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);
                 _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
             }
 
-            QList<XELF::TAG_STRUCT> listTagStructs = elf.getTagStructs(&listProgramHeaders, &memoryMap);
+            {
+                QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList();
 
-            QList<XELF::TAG_STRUCT> listDynSym = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_SYMTAB);
-            QList<XELF::TAG_STRUCT> listStrTab = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRTAB);
-            QList<XELF::TAG_STRUCT> listStrSize = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRSZ);
-            // TODO relocs !!!
+                QList<XELF::TAG_STRUCT> listTagStructs = elf.getTagStructs(&listProgramHeaders, &memoryMap);
 
-            // TODO all sym Tables
-            if (listDynSym.count() && listStrTab.count() && listStrSize.count()) {
-                qint64 nSymTabOffset = XBinary::addressToOffset(&memoryMap, listDynSym.at(0).nValue);
-                qint64 nSymTabSize = elf.getSymTableSize(nSymTabOffset);
-                qint64 nStringTableOffset = XBinary::addressToOffset(&memoryMap, listStrTab.at(0).nValue);
-                qint64 nStringTableSize = listStrSize.at(0).nValue;
+                QList<XELF::TAG_STRUCT> listDynSym = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_SYMTAB);
+                QList<XELF::TAG_STRUCT> listStrTab = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRTAB);
+                QList<XELF::TAG_STRUCT> listStrSize = elf._getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRSZ);
+                // TODO relocs !!!
 
-                _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct);  // TODO delta
+                // TODO all sym Tables
+                if (listDynSym.count() && listStrTab.count() && listStrSize.count()) {
+                    qint64 nSymTabOffset = XBinary::addressToOffset(&memoryMap, listDynSym.at(0).nValue);
+                    qint64 nSymTabSize = elf.getSymTableSize(nSymTabOffset);
+                    qint64 nStringTableOffset = XBinary::addressToOffset(&memoryMap, listStrTab.at(0).nValue);
+                    qint64 nStringTableSize = listStrSize.at(0).nValue;
+
+                    _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct);  // TODO delta
+                }
+            }
+            {
+                qint32 nSectionTableInex = elf.getSectionStringTable();
+                QByteArray baStringTable = elf.getSection(nSectionTableInex);
+
+                QList<XELF_DEF::Elf_Shdr> listSectionHeaders = elf.getElf_ShdrList(200);
+
+                QList<XELF::SECTION_RECORD> listSectionRecords = elf.getSectionRecords(&listSectionHeaders, elf.isImage(), &baStringTable);
+
+                QList<XELF::SECTION_RECORD> listSymTab = elf._getSectionRecords(&listSectionRecords, ".symtab");
+                QList<XELF::SECTION_RECORD> listStrTab = elf._getSectionRecords(&listSectionRecords, ".strtab");
+
+                if (listSymTab.count() && listStrTab.count()) {
+                    qint64 nSymTabOffset = listSymTab.at(0).nOffset;
+                    qint64 nSymTabSize = listSymTab.at(0).nSize;
+                    qint64 nStringTableOffset = listStrTab.at(0).nOffset;
+                    qint64 nStringTableSize = listStrTab.at(0).nSize;
+
+                    _addELFSymbols(&elf, &memoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, pPdStruct);  // TODO delta
+                }
             }
         }
     } else if (XBinary::checkFileType(XBinary::FT_PE, fileType)) {
@@ -3708,7 +3730,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
                     XADDR nAddress = listTLSFunctions.at(i);
 
                     if (!stAddresses.contains(nAddress)) {
-                        QString sFunctionName = QString("tlsfunc_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
+                        QString sFunctionName = QString("tls_sub_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
                         _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
                         stAddresses.insert(nAddress);
 
@@ -3763,39 +3785,36 @@ void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint6
         qint32 nType = S_ELF64_ST_TYPE(record.st_info);
 
         if (nSymbolAddress) {
-            if ((nBind == 1) || (nBind == 2))  // GLOBAL,WEAK TODO consts
+            if ((nType == 0) || (nType == 1) || (nType == 2))  // NOTYPE,OBJECT,FUNC
+                                                               // TODO consts
             {
-                if ((nType == 0) || (nType == 1) || (nType == 2))  // NOTYPE,OBJECT,FUNC
-                                                                   // TODO consts
-                {
-                    //                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
+                //                                XInfoDB::ST symbolType = XInfoDB::ST_LABEL;
 
-                    //                                if (nType == 0)
-                    //                                    symbolType = XInfoDB::ST_LABEL;
-                    //                                else if (nType == 1)
-                    //                                    symbolType = XInfoDB::ST_OBJECT;
-                    //                                else if (nType == 2)
-                    //                                    symbolType = XInfoDB::ST_FUNCTION;
+                //                                if (nType == 0)
+                //                                    symbolType = XInfoDB::ST_LABEL;
+                //                                else if (nType == 1)
+                //                                    symbolType = XInfoDB::ST_OBJECT;
+                //                                else if (nType == 2)
+                //                                    symbolType = XInfoDB::ST_FUNCTION;
 
-                    QString sSymbolName = pELF->getStringFromIndex(nStringsTableOffset, nStringsTableSize, record.st_name);
+                QString sSymbolName = pELF->getStringFromIndex(nStringsTableOffset, nStringsTableSize, record.st_name);
 
-                    if (XBinary::isAddressValid(pMemoryMap, nSymbolAddress)) {
-                        if (!isSymbolPresent(nSymbolAddress)) {
-                            //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
-                            _addSymbol(nSymbolAddress, 0, sSymbolName, SS_FILE);
-                            // TODO Add symbol ranges;
-                        }
-
-                        if (nType == 2) {
-                            if (!isFunctionPresent(nSymbolAddress)) {
-                                _addFunction(nSymbolAddress, nSymbolSize, sSymbolName);
-                            }
-                        }
-                    } else {
-#ifdef QT_DEBUG
-                        qDebug("%s", sSymbolName.toLatin1().data());
-#endif
+                if (XBinary::isAddressValid(pMemoryMap, nSymbolAddress)) {
+                    if (!isSymbolPresent(nSymbolAddress)) {
+                        //                                        _addSymbol(nSymbolAddress, nSymbolSize, 0, sSymbolName, symbolType, XInfoDB::SS_FILE);
+                        _addSymbol(nSymbolAddress, 0, sSymbolName, SS_FILE);
+                        // TODO Add symbol ranges;
                     }
+
+                    if (nType == 2) {
+                        if (!isFunctionPresent(nSymbolAddress)) {
+                            _addFunction(nSymbolAddress, nSymbolSize, sSymbolName);
+                        }
+                    }
+                } else {
+#ifdef QT_DEBUG
+                    qDebug("%s", sSymbolName.toLatin1().data());
+#endif
                 }
             }
         }
@@ -4291,14 +4310,12 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             //                    sVarName = "qword";
             //                }
 
-            if (record.nSize == 0) {
-                record.nSize = 1;
-            }
-
             bool bAdd = false;
 
-            if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
-                bAdd = true;
+            if (record.nSize) {
+                if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
+                    bAdd = true;
+                }
             }
 
             if (bAdd) {
@@ -4316,8 +4333,6 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                     showRecord.dbstatus = DBSTATUS_PROCESS;
                     _addShowRecord(showRecord);
                 }
-            } else {
-                record.nSize = 0;
             }
 
             if (!isSymbolPresent(record.nAddress)) {
