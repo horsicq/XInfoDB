@@ -280,10 +280,16 @@ public:
         BPT_CODE_MEMORY
     };
 
+    enum BPM {
+        BPM_EXECUTE = 0,
+        BPM_MEMORY
+    };
+
     enum BPI {
         BPI_UNKNOWN = 0,
         BPI_SYSTEM,
         BPI_USER,
+        BPI_TOGGLE,
         BPI_PROCESSENTRYPOINT,
         BPI_PROGRAMENTRYPOINT,
         BPI_TLSFUNCTION,  // TODO
@@ -303,6 +309,7 @@ public:
         X_ID nThreadID;
         bool bOneShot;
         BPT bpType;
+        BPM bpMode;
         BPI bpInfo;
         QVariant vInfo;
         qint32 nDataSize;
@@ -512,6 +519,7 @@ public:
     QMap<X_ID, BREAKPOINT> *getThreadBreakpoints();
 #endif
     bool breakpointToggle(XADDR nAddress);
+    bool breakpointRemove(XADDR nAddress);
     static QString bptToString(BPT bpType);
     static QString bpiToString(BPI bpInfo);
 

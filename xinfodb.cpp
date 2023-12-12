@@ -702,7 +702,7 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
 
     BREAKPOINT bp = findBreakPointByRegion(nAddress, 1);
 
-    if (bp.sUUID != "") {
+    if (bp.bpInfo == XInfoDB::BPI_TOGGLE) {
         if (removeBreakPoint(bp.sUUID)) {
             bResult = true;
         }
@@ -710,12 +710,28 @@ bool XInfoDB::breakpointToggle(XADDR nAddress)
         XInfoDB::BREAKPOINT breakPoint = {};
         breakPoint.nAddress = nAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
+        breakPoint.bpInfo = XInfoDB::BPI_TOGGLE;
 
         if (addBreakPoint(breakPoint)) {
             bResult = true;
         }
     }
 
+    return bResult;
+}
+#endif
+#ifdef USE_XPROCESS
+bool XInfoDB::breakpointRemove(XADDR nAddress)
+{
+    bool bResult = false;
+
+    BREAKPOINT bp = findBreakPointByRegion(nAddress, 1);
+
+    if (bp.sUUID != "") {
+        if (removeBreakPoint(bp.sUUID)) {
+            bResult = true;
+        }
+    }
     return bResult;
 }
 #endif
