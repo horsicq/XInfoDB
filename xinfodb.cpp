@@ -3051,7 +3051,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
                 XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
-                record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS);
+                record.sCode += " " + convertOpcodeString(_disasmResult, XBinary::SYNTAX_DEFAULT, RI_TYPE_SYMBOLADDRESS);
             }
         }
 
@@ -6019,29 +6019,41 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const RI_TYPE &riType)
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
     if (disasmResult.relType) {
-        QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(disasmResult.nXrefToRelative), riType);
-
-        if (sReplace != "") {
-            QString sOrigin = QString("0x%1").arg(QString::number(disasmResult.nXrefToRelative, 16));
-            sResult = disasmResult.sString.replace(sOrigin, sReplace);
-            // TODO Check UpperCase
-        }
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, syntax, riType, disasmOptions);
     }
 
     if (disasmResult.memType) {
-        QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(disasmResult.nXrefToMemory), riType);
-
-        if (sReplace != "") {
-            QString sOrigin = QString("0x%1").arg(QString::number(disasmResult.nXrefToMemory, 16));
-            sResult = disasmResult.sString.replace(sOrigin, sReplace);
-            // TODO Check UpperCase
-        }
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToMemory, syntax, riType, disasmOptions);
     }
+
+    return sResult;
+}
+
+QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::SYNTAX syntax, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+{
+    QString sResult = sString;
+
+    QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
+    QString sOrigin;
+
+    if ((syntax == XBinary::SYNTAX_DEFAULT) || (syntax == XBinary::SYNTAX_INTEL)) {
+        sOrigin = QString("0x%1").arg(QString::number(nAddress, 16));
+    } else if (syntax == XBinary::SYNTAX_MASM) {
+        sOrigin = QString("%1h").arg(QString::number(nAddress, 16));
+    } else if (syntax == XBinary::SYNTAX_ATT) {
+        sOrigin = QString("0x%1").arg(QString::number(nAddress, 16));
+    }
+
+    if (disasmOptions.bIsUppercase) {
+        sOrigin = sOrigin.toUpper();
+    }
+
+    sResult = sResult.replace(sOrigin, sReplace);
 
     return sResult;
 }
