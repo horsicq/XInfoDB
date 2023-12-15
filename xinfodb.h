@@ -795,7 +795,7 @@ public:
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
 #endif
 
-    SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bAprox);
+    SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);

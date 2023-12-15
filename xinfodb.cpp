@@ -4981,14 +4981,14 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
 }
 #endif
 
-XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bAprox)
+XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bIsAprox)
 {
     XInfoDB::SHOWRECORD result = {};
 
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
     g_pMutexSQL->lock();
-    if (!bAprox) {
+    if (!bIsAprox) {
         querySQL(&query,
                  QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS = %2")
                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
