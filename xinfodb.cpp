@@ -5014,7 +5014,7 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bIsApro
     g_pMutexSQL->unlock();
 #else
     Q_UNUSED(nAddress)
-    Q_UNUSED(bAprox)
+    Q_UNUSED(bIsAprox)
 #endif
 
     return result;
