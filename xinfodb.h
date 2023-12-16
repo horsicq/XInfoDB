@@ -811,6 +811,7 @@ public:
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
+    QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize);
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus);
@@ -845,8 +846,8 @@ public:
     static QColor stringToColor(const QString &sCode);
     static QString colorToString(QColor color);
 #endif
-    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions = XCapstone::DISASM_OPTIONS());
-    QString _convertOpcodeString(QString sString, XADDR nAddress, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions);
+    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions = XCapstone::DISASM_OPTIONS());
+    QString _convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 public slots:

@@ -3051,7 +3051,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
                 XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
-                record.sCode += " " + convertOpcodeString(_disasmResult, XBinary::SYNTAX_DEFAULT, RI_TYPE_SYMBOLADDRESS);
+                record.sCode += " " + convertOpcodeString(_disasmResult, getDisasmMode(), XBinary::SYNTAX_DEFAULT, RI_TYPE_SYMBOLADDRESS);
             }
         }
 
@@ -5334,6 +5334,39 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
     return listResult;
 }
 
+QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint64 nSize)
+{
+    QList<XInfoDB::SHOWRECORD> listResult;
+#ifdef QT_SQL_LIB
+    QSqlQuery query(g_dataBase);
+
+    querySQL(&query,
+             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS >= %2 AND (ADDRESS + SIZE) < %3 ORDER BY ADDRESS")
+                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
+             false);
+
+    while (query.next()) {
+        SHOWRECORD record = {};
+        record.bValid = true;
+        record.nAddress = query.value(0).toULongLong();
+        record.nOffset = query.value(1).toLongLong();
+        record.nSize = query.value(2).toLongLong();
+        record.recordType = (RT)query.value(3).toULongLong();
+        record.nRefTo = query.value(4).toULongLong();
+        record.nRefFrom = query.value(5).toULongLong();
+        record.nBranch = query.value(6).toULongLong();
+        record.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+
+        listResult.append(record);
+    }
+#else
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+#endif
+
+    return listResult;
+}
+
 QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus)
 {
     QList<XADDR> listResult;
@@ -6019,35 +6052,27 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
     if (disasmResult.relType) {
-        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, syntax, riType, disasmOptions);
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, disasmMode, syntax, riType, disasmOptions);
     }
 
     if (disasmResult.memType) {
-        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToMemory, syntax, riType, disasmOptions);
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToMemory, disasmMode, syntax, riType, disasmOptions);
     }
 
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::SYNTAX syntax, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 
     QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
-    QString sOrigin;
-
-    if ((syntax == XBinary::SYNTAX_DEFAULT) || (syntax == XBinary::SYNTAX_INTEL)) {
-        sOrigin = QString("0x%1").arg(QString::number(nAddress, 16));
-    } else if (syntax == XBinary::SYNTAX_MASM) {
-        sOrigin = QString("%1h").arg(QString::number(nAddress, 16));
-    } else if (syntax == XBinary::SYNTAX_ATT) {
-        sOrigin = QString("0x%1").arg(QString::number(nAddress, 16));
-    }
+    QString sOrigin = XCapstone::getNumberString(disasmMode, nAddress, syntax);
 
     if (disasmOptions.bIsUppercase) {
         sOrigin = sOrigin.toUpper();
