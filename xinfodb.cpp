@@ -6052,7 +6052,8 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
+                                     const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
@@ -6067,7 +6068,8 @@ QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBin
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType,
+                                      const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 

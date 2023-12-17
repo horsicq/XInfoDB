@@ -846,8 +846,10 @@ public:
     static QColor stringToColor(const QString &sCode);
     static QString colorToString(QColor color);
 #endif
-    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions = XCapstone::DISASM_OPTIONS());
-    QString _convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions);
+    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
+                                const XCapstone::DISASM_OPTIONS &disasmOptions = XCapstone::DISASM_OPTIONS());
+    QString _convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
+                                 const XCapstone::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 public slots:
