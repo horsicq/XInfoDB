@@ -80,7 +80,7 @@ bool XInfoDBTransfer::process()
 
                     g_pXInfoDB->initDisasmDb();
 
-                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, pDevice);
+                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, XBinary::MAPMODE_UNKNOWN, pDevice);
 
                     XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
 

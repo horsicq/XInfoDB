@@ -103,7 +103,7 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
     XCapstone::closeHandle(&g_handle);
     XCapstone::openHandle(g_disasmMode, &g_handle, true);
 
-    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, g_pDevice);
+    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, XBinary::MAPMODE_UNKNOWN, g_pDevice);
 
     g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
     g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
