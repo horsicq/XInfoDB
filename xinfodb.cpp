@@ -3628,7 +3628,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
             }
 
             {
-                QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList();
+                QList<XELF_DEF::Elf_Phdr> listProgramHeaders = elf.getElf_PhdrList(1000);
 
                 QList<XELF::TAG_STRUCT> listTagStructs = elf.getTagStructs(&listProgramHeaders, &memoryMap);
 
