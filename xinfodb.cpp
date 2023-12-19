@@ -3620,7 +3620,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         XELF elf(pDevice, bIsImage, nModuleAddress);
 
         if (elf.isValid()) {
-            XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap();
+            XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
             if (memoryMap.nEntryPointAddress) {
                 _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);
@@ -3674,7 +3674,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         if (pe.isValid()) {
             QSet<XADDR> stAddresses;
 
-            XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap();
+            XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
             _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
             _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
@@ -3749,7 +3749,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         if (mach.isValid()) {
             QSet<XADDR> stAddresses;
 
-            XBinary::_MEMORY_MAP memoryMap = mach.getMemoryMap();
+            XBinary::_MEMORY_MAP memoryMap = mach.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
             _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
             _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
