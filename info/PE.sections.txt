@@ -92,11 +92,13 @@
 .debug_str|compiler|mingw/cygwin DEBUG
 .debug|compiler|Debug info Section
 .decode|packer|MEW10
+._deh|compiler|DMD Dlang structured exception handling
 .delete|demo|
 .depack|packer|dePack
 .didata|compiler|Delay Import Section
 .didat|compiler|Delay Import Section
 .dotfix|protector|DotFix Nice Protect
+.dp|compiler|DMD
 .drectve|compiler|Directive section (temporary|demo|linker removes it after processing it
 .drectve|compiler|mingw/cygwin
 .dswlab|pe tool|VMUnpacker
@@ -181,6 +183,7 @@
 .loadcon|protector|Themida/Winlicense
 .load|demo|
 .mackt|tool|ImpRec-created section
+.minfo|compiler|DMD/ldc module info section
 .mnbvcx1|loader|Most likely associated with Firseria PUP downloaders
 .mnbvcx2|loader|Most likely associated with Firseria PUP downloaders
 .mslrh|protector|MSLRH
@@ -256,6 +259,7 @@
 .themida|protector|Themida/Winlicense
 .tls$|compiler|Thread Local Storage Section
 .tls|compiler|Thread Local Storage Section
+.tp|compiler|DMD
 .trace|demo|
 .tsuarch|loader|TSULoader
 .tsustub|loader|TSULoader
