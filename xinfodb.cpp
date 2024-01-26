@@ -3781,7 +3781,7 @@ void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint6
         XADDR nSymbolAddress = record.st_value;
         quint64 nSymbolSize = record.st_size;
 
-        //qint32 nBind = S_ELF64_ST_BIND(record.st_info);
+        // qint32 nBind = S_ELF64_ST_BIND(record.st_info);
         qint32 nType = S_ELF64_ST_TYPE(record.st_info);
 
         if (nSymbolAddress) {
