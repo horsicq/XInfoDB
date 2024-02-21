@@ -6175,7 +6175,7 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QList<REG_RECORD> *pListRegs, XREG reg)
 
     qint32 nNumberOfRecords = pListRegs->count();
 
-    for (int i = 0; i < nNumberOfRecords; i++) {
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (pListRegs->at(i).reg == _reg) {
             result = pListRegs->at(i).value;
             break;
