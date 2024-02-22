@@ -6201,7 +6201,7 @@ void XInfoDB::_setRegCache(QList<REG_RECORD> *pListRegs, XREG reg, XBinary::XVAR
     bool bFound = false;
     qint32 nNumberOfRecords = pListRegs->count();
 
-    for (int i = 0; i < nNumberOfRecords; i++) {
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
         if (pListRegs->at(i).reg == reg) {
             REG_RECORD record = {};
             record.reg = reg;
