@@ -30,14 +30,17 @@ public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
     enum COMMAND {
-        COMMAND_ANALYZEALL = 0,
+        COMMAND_UNKNOWN = 0,
+        COMMAND_ANALYZEALL,
         COMMAND_ANALYZE,
         COMMAND_SYMBOLS,  // TODO reload
         COMMAND_DISASM,
         COMMAND_REMOVE,
         COMMAND_CLEAR,
         COMMAND_EXPORT,
-        COMMAND_IMPORT
+        COMMAND_IMPORT,
+        COMMAND_SCANFORIAT,
+        COMMAND_GETIAT
     };
 
     struct OPTIONS {
@@ -49,9 +52,18 @@ public:
         XADDR nAddress;
         qint64 nSize;
         qint64 nCount;
+#ifdef USE_XPROCESS
+        X_ID nProcessID;
+#endif
+    };
+
+    struct RESULT {
+        XADDR nAddress;
+        qint64 nSize;
     };
 
     void setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPTIONS &options, XBinary::PDSTRUCT *pPdStruct);
+    void setData(COMMAND transferType, const OPTIONS &options, RESULT *pResult, XBinary::PDSTRUCT *pPdStruct);
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:
@@ -65,6 +77,7 @@ private:
     XInfoDB *g_pXInfoDB;
     COMMAND g_transferType;
     OPTIONS g_options;
+    RESULT *g_pResult;
     XBinary::PDSTRUCT *g_pPdStruct;
 };
 

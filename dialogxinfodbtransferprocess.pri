@@ -12,7 +12,6 @@ SOURCES += \
     $$PWD/xinfomenu.cpp
 
 FORMS += \
-    $$PWD/dialogxinfodbtransferprocess.ui \
     $$PWD/xinfodboptionswidget.ui
 
 !contains(XCONFIG, xinfodbtransfer) {

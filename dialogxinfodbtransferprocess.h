@@ -35,7 +35,11 @@ public:
     ~DialogXInfoDBTransferProcess();
 
     void setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options);
+    void setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, XInfoDBTransfer::RESULT *pResult, XBinary::PDSTRUCT *pPdStruct);
     static void saveDatabase(XInfoDB *pXInfoDB);
+
+private:
+    void updateTitle(XInfoDBTransfer::COMMAND command);
 
 private:
     XInfoDBTransfer *g_pTransfer;

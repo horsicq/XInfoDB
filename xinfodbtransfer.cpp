@@ -25,6 +25,7 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
     g_pXInfoDB = nullptr;
     g_transferType = COMMAND_ANALYZEALL;
     g_options = {};
+    g_pResult = nullptr;
     g_pPdStruct = nullptr;
 }
 
@@ -33,6 +34,14 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPT
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
     g_options = options;
+    g_pPdStruct = pPdStruct;
+}
+
+void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, RESULT *pResult, XBinary::PDSTRUCT *pPdStruct)
+{
+    g_transferType = transferType;
+    g_options = options;
+    g_pResult = pResult;
     g_pPdStruct = pPdStruct;
 }
 
