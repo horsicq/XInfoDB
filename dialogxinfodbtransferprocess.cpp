@@ -30,7 +30,6 @@ DialogXInfoDBTransferProcess::DialogXInfoDBTransferProcess(QWidget *pParent) : X
     connect(g_pThread, SIGNAL(started()), g_pTransfer, SLOT(process()));
     connect(g_pTransfer, SIGNAL(completed(qint64)), this, SLOT(onCompleted(qint64)));
     connect(g_pTransfer, SIGNAL(errorMessage(QString)), this, SLOT(errorMessageSlot(QString)));
-    //    connect(g_pTransfer,SIGNAL(progressValueChanged(qint32)),this,SLOT(onProgressValueChanged(qint32)));
 }
 
 DialogXInfoDBTransferProcess::~DialogXInfoDBTransferProcess()
