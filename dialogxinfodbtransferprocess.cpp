@@ -49,14 +49,24 @@ void DialogXInfoDBTransferProcess::setData(XInfoDB *pXInfoDB, XInfoDBTransfer::C
     g_pThread->start();
 }
 
-void DialogXInfoDBTransferProcess::setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, XInfoDBTransfer::RESULT *pResult, XBinary::PDSTRUCT *pPdStruct)
+void DialogXInfoDBTransferProcess::setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, XInfoDBTransfer::RESULT *pResult)
 {
     updateTitle(command);
 
     g_pTransfer->setData(command, options, pResult, getPdStruct());
     g_pThread->start();
 }
+#ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+void DialogXInfoDBTransferProcess::setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, QList<XPE::IMPORT_RECORD> *pListImports)
+{
+    updateTitle(command);
 
+    g_pTransfer->setData(command, options, pListImports, getPdStruct());
+    g_pThread->start();
+}
+#endif
+#endif
 void DialogXInfoDBTransferProcess::saveDatabase(XInfoDB *pXInfoDB)
 {
     if (pXInfoDB) {
@@ -85,6 +95,8 @@ void DialogXInfoDBTransferProcess::updateTitle(XInfoDBTransfer::COMMAND command)
         sTitle = tr("Import");
     } else if (command == XInfoDBTransfer::COMMAND_SCANFORIAT) {
         sTitle = tr("Scan for IAT");
+    } else if (command == XInfoDBTransfer::COMMAND_GETIAT) {
+        sTitle = tr("Get IAT");
     }
 
     setWindowTitle(sTitle);

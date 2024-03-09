@@ -35,7 +35,12 @@ public:
     ~DialogXInfoDBTransferProcess();
 
     void setData(XInfoDB *pXInfoDB, XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options);
-    void setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, XInfoDBTransfer::RESULT *pResult, XBinary::PDSTRUCT *pPdStruct);
+    void setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, XInfoDBTransfer::RESULT *pResult);
+#ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    void setData(XInfoDBTransfer::COMMAND command, const XInfoDBTransfer::OPTIONS &options, QList<XPE::IMPORT_RECORD> *pListImports);
+#endif
+#endif
     static void saveDatabase(XInfoDB *pXInfoDB);
 
 private:

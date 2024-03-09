@@ -64,6 +64,11 @@ public:
 
     void setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPTIONS &options, XBinary::PDSTRUCT *pPdStruct);
     void setData(COMMAND transferType, const OPTIONS &options, RESULT *pResult, XBinary::PDSTRUCT *pPdStruct);
+#ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    void setData(COMMAND transferType, const OPTIONS &options, QList<XPE::IMPORT_RECORD> *pListImports, XBinary::PDSTRUCT *pPdStruct);
+#endif
+#endif
     //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
 
 public slots:
@@ -79,6 +84,11 @@ private:
     OPTIONS g_options;
     RESULT *g_pResult;
     XBinary::PDSTRUCT *g_pPdStruct;
+#ifdef USE_XPROCESS
+#ifdef Q_OS_WIN
+    QList<XPE::IMPORT_RECORD> *g_pListImports;
+#endif
+#endif
 };
 
 #endif  // XINFODBTRANSFER_H
