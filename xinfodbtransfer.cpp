@@ -162,40 +162,102 @@ bool XInfoDBTransfer::process()
     } else if (g_transferType == COMMAND_GETIAT) {
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-        QMap<XADDR, QString> mapFunctions;
+        // QMap<XADDR, QString> mapFunctions;
+        QList<XInfoDB::IAT_RECORD> listIATrecords;
+        QSet<QString> stModules;
 
         QList<XProcess::MODULE> listModules = XProcess::getModulesList(g_options.nProcessID, g_pPdStruct);
+        qint32 nNumberOfModules = listModules.count();
 
         {
+    #ifndef Q_OS_WIN64
+            // bool bIs64 = false;
+            qint32 nStep = 4;
+    #else
+            // bool bIs64 = true;
+            qint32 nStep = 8;
+    #endif
             qint32 _nFreeIndexScan = XBinary::getFreeIndex(g_pPdStruct);
-            qint32 nNumberOfModules = listModules.count();
+            XBinary::setPdStructInit(g_pPdStruct, _nFreeIndexScan, g_options.nSize);
 
-            XBinary::setPdStructTotal(g_pPdStruct, _nFreeIndexScan, nNumberOfModules);
+            XADDR nRegionAddress = S_ALIGN_DOWN64(g_options.nAddress, nStep);
+            qint64 nRegionSize = S_ALIGN_UP64(g_options.nSize, nStep);
 
-            for (qint32 i = 0; (i < nNumberOfModules) && (!(g_pPdStruct->bIsStop)); i++) {
-                XBinary::setPdStructStatus(g_pPdStruct, _nFreeIndexScan, listModules.at(i).sName);
+            XProcess xprocess(g_options.nProcessID, nRegionAddress, nRegionSize);
 
-                XProcess xprocess(g_options.nProcessID, listModules.at(i).nAddress, listModules.at(i).nSize);
+            if (xprocess.open(QIODevice::ReadOnly)) {
+                XBinary binary(&xprocess, true, nRegionAddress);
 
-                if (xprocess.open(QIODevice::ReadOnly)) {
-                    XPE pe(&xprocess, true, listModules.at(i).nAddress);
+                for (qint64 i = 0; (i < nRegionSize) && (!(g_pPdStruct->bIsStop)); i += nStep) {
+                    XADDR nValue = 0;
+                    if (nStep == 4) {
+                        nValue = binary.read_uint32(i);
+                    } else {
+                        nValue = binary.read_uint64(i);
+                    }
 
-                    if (pe.isValid(g_pPdStruct)) {
-                        XPE::EXPORT_HEADER exportHeader = pe.getExport(false, g_pPdStruct);
+                    if (nValue) {
+                        for (qint32 j = 0; (j < nNumberOfModules) && (!(g_pPdStruct->bIsStop)); j++) {
+                            if ((nValue >= listModules.at(j).nAddress) && (nValue < listModules.at(j).nAddress + listModules.at(j).nSize)) {
+                                XInfoDB::IAT_RECORD iatRecord = {};
+                                iatRecord.nAddress = nRegionAddress + i;
+                                iatRecord.nValue = nValue;
 
-                        qint32 nNumberOfPositions = exportHeader.listPositions.count();
-
-                        for (qint32 j = 0; j < nNumberOfPositions; j++) {
-                            QString sFunctionName = exportHeader.listPositions.at(j).sFunctionName;
-                            if (sFunctionName == "") {
-                                sFunctionName = QString::number(exportHeader.listPositions.at(j).nOrdinal);
+                                listIATrecords.append(iatRecord);
+                                stModules.insert(listModules.at(j).sName);
                             }
-
-                            mapFunctions.insert(exportHeader.listPositions.at(j).nAddress, exportHeader.sName + "#" + sFunctionName);
                         }
                     }
 
-                    xprocess.close();
+                    XBinary::setPdStructCurrent(g_pPdStruct, _nFreeIndexScan, i);
+                }
+
+                xprocess.close();
+            }
+
+            XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
+    #endif
+        }
+
+        qint32 nNumberOfIAT = listIATrecords.count();
+
+        {
+            qint32 _nFreeIndexScan = XBinary::getFreeIndex(g_pPdStruct);
+
+            XBinary::setPdStructInit(g_pPdStruct, _nFreeIndexScan, nNumberOfModules);
+
+            for (qint32 i = 0; (i < nNumberOfModules) && (!(g_pPdStruct->bIsStop)); i++) {
+                QString sLibraryName = listModules.at(i).sName;
+                XBinary::setPdStructStatus(g_pPdStruct, _nFreeIndexScan, sLibraryName);
+
+                // TODO option deep scan
+                if (stModules.contains(sLibraryName)) {
+                    XADDR _nAddress = listModules.at(i).nAddress;
+                    qint64 _nSize = listModules.at(i).nSize * 2; // TODO fix kernel32
+                    XProcess xprocess(g_options.nProcessID, _nAddress, _nSize);
+
+                    if (xprocess.open(QIODevice::ReadOnly)) {
+                        XPE pe(&xprocess, true, listModules.at(i).nAddress);
+
+                        if (pe.isValid(g_pPdStruct)) {
+                            QList<XADDR> listAddresses = pe.getExportFunctionAddressesList(g_pPdStruct);
+
+                            for (qint32 j = 0; j < nNumberOfIAT; j++) {
+                                qint32 nIndex = listAddresses.indexOf(listIATrecords.at(j).nValue);
+
+                                if (nIndex != -1) {
+                                    if (listIATrecords[j].sLibrary != "") {
+                                        listIATrecords[j].sLibrary.append("#");
+                                    }
+
+                                    listIATrecords[j].sLibrary.append(sLibraryName); // TODO
+                                    listIATrecords[j].sFunction.append("FOUND"); // TODO
+                                }
+                            }
+                        }
+
+                        xprocess.close();
+                    }
                 }
 
                 XBinary::setPdStructCurrent(g_pPdStruct, _nFreeIndexScan, i);
@@ -204,25 +266,6 @@ bool XInfoDBTransfer::process()
             XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
         }
 
-
-        // TODO
-        XADDR nStartAddress = g_options.nAddress;
-        qint64 nSize = g_options.nSize;
-
-#ifndef Q_OS_WIN64
-        // bool bIs64 = false;
-        qint32 nStep = 4;
-#else
-        // bool bIs64 = true;
-        qint32 nStep = 8;
-#endif
-        qint32 _nFreeIndexScan = XBinary::getFreeIndex(g_pPdStruct);
-        XBinary::setPdStructInit(g_pPdStruct, _nFreeIndexScan, nSize/nStep);
-
-        // TODO
-
-        XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
-#endif
 #endif
     }
 

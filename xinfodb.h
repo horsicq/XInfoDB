@@ -437,6 +437,13 @@ public:
     };
 #endif
 
+    struct IAT_RECORD {
+        XADDR nAddress;
+        XADDR nValue;
+        QString sLibrary;
+        QString sFunction;
+    };
+
     explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
 
