@@ -240,18 +240,34 @@ bool XInfoDBTransfer::process()
                         XPE pe(&xprocess, true, listModules.at(i).nAddress);
 
                         if (pe.isValid(g_pPdStruct)) {
-                            QList<XADDR> listAddresses = pe.getExportFunctionAddressesList(g_pPdStruct);
+                            XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap(XBinary::MAPMODE_UNKNOWN, g_pPdStruct);
+                            XPE_DEF::IMAGE_EXPORT_DIRECTORY ied = pe.getExportDirectory();
 
-                            for (qint32 j = 0; j < nNumberOfIAT; j++) {
-                                qint32 nIndex = listAddresses.indexOf(listIATrecords.at(j).nValue);
+                            QList<XADDR> listAddresses = pe.getExportFunctionAddressesList(&memoryMap, &ied, g_pPdStruct);
+                            QList<quint16> listNameOrdinals = pe.getExportNameOrdinalsList(&memoryMap, &ied, g_pPdStruct);
+                            QList<XADDR> listNames = pe.getExportNamesList(&memoryMap, &ied, g_pPdStruct);
 
-                                if (nIndex != -1) {
-                                    if (listIATrecords[j].sLibrary != "") {
-                                        listIATrecords[j].sLibrary.append("#");
+                            for (qint32 j = 0; (j < nNumberOfIAT) && (!(g_pPdStruct->bIsStop)); j++) {
+                                qint32 nOrdinal = listAddresses.indexOf(listIATrecords.at(j).nValue);
+
+                                if (nOrdinal != -1) {
+                                    qint32 nNameIndex = listNameOrdinals.indexOf(nOrdinal);
+
+                                    QString sFunction;
+
+                                    if (nNameIndex != -1) {
+                                        if (nNameIndex < listNames.count()) {
+                                            sFunction = pe.read_ansiString(listNames.at(nNameIndex) - memoryMap.nModuleAddress);
+                                        }
+                                    } else {
+                                        sFunction = QString::number(nOrdinal + ied.Base);
                                     }
 
-                                    listIATrecords[j].sLibrary.append(sLibraryName); // TODO
-                                    listIATrecords[j].sFunction.append("FOUND"); // TODO
+                                    if (listIATrecords[j].sFunction != "") {
+                                        listIATrecords[j].sFunction.append("|");
+                                    }
+
+                                    listIATrecords[j].sFunction.append(QString("%1#%2").arg(sLibraryName, sFunction));
                                 }
                             }
                         }

@@ -440,8 +440,7 @@ public:
     struct IAT_RECORD {
         XADDR nAddress;
         XADDR nValue;
-        QString sLibrary;
-        QString sFunction;
+        QString sFunction; // Library#Function / Library#Ordinal
     };
 
     explicit XInfoDB(QObject *pParent = nullptr);
