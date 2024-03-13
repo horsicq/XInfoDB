@@ -263,13 +263,31 @@ bool XInfoDBTransfer::process()
                                         sFunction = QString::number(nOrdinal + ied.Base);
                                     }
 
-                                    if (listIATrecords[j].sFunction != "") {
-                                        listIATrecords[j].sFunction.append("|");
-                                    }
-
-                                    listIATrecords[j].sFunction.append(QString("%1#%2").arg(sLibraryName, sFunction));
+                                    listIATrecords[j].sFunction = QString("%1#%2").arg(sLibraryName, sFunction);
                                 }
                             }
+                    #ifdef QT_DEBUG
+                            qDebug("%s", sLibraryName.toLatin1().data());
+                            qint32 nNumberOfNames = listNames.count();
+
+                            for (qint32 k = 0; k < nNumberOfNames; k++) {
+                                quint16 nOrdinal = listNameOrdinals.at(k);
+                                XADDR nAddress = listAddresses.at(nOrdinal);
+
+                                QString sFunction = pe.read_ansiString(listNames.at(k) - memoryMap.nModuleAddress);
+
+                                quint32 nForwardRVA = nAddress - memoryMap.nModuleAddress;
+
+                                XPE_DEF::IMAGE_DATA_DIRECTORY idd = pe.getOptionalHeader_DataDirectory(XPE_DEF::S_IMAGE_DIRECTORY_ENTRY_EXPORT);
+
+                                QString sForward;
+                                if ((idd.VirtualAddress <= nForwardRVA) && (nForwardRVA < (idd.VirtualAddress + idd.Size))) {
+                                    sForward = pe.read_ansiString(nForwardRVA);
+                                }
+
+                                qDebug("%llX %s -> %s ", nAddress,  sFunction.toLatin1().data(), sForward.toLatin1().data());
+                            }
+                    #endif
                         }
 
                         xprocess.close();
