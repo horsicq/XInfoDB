@@ -130,7 +130,7 @@ bool XInfoDBTransfer::process()
                     }
                     // TODO sort records
                 }
-             } else if (g_transferType == COMMAND_SYMBOLS) {
+            } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
                     g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
@@ -158,7 +158,7 @@ bool XInfoDBTransfer::process()
     }
 
     if (g_transferType == COMMAND_SCANFORIAT) {
-                // TODO
+        // TODO
     } else if (g_transferType == COMMAND_GETIAT) {
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -170,13 +170,13 @@ bool XInfoDBTransfer::process()
         qint32 nNumberOfModules = listModules.count();
 
         {
-    #ifndef Q_OS_WIN64
+#ifndef Q_OS_WIN64
             // bool bIs64 = false;
             qint32 nStep = 4;
-    #else
+#else
             // bool bIs64 = true;
             qint32 nStep = 8;
-    #endif
+#endif
             qint32 _nFreeIndexScan = XBinary::getFreeIndex(g_pPdStruct);
             XBinary::setPdStructInit(g_pPdStruct, _nFreeIndexScan, g_options.nSize);
 
@@ -216,7 +216,7 @@ bool XInfoDBTransfer::process()
             }
 
             XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
-    #endif
+#endif
         }
 
         qint32 nNumberOfIAT = listIATrecords.count();
@@ -233,7 +233,7 @@ bool XInfoDBTransfer::process()
                 // TODO option deep scan
                 if (stModules.contains(sLibraryName)) {
                     XADDR _nAddress = listModules.at(i).nAddress;
-                    qint64 _nSize = listModules.at(i).nSize * 2; // TODO fix kernel32
+                    qint64 _nSize = listModules.at(i).nSize * 2;  // TODO fix kernel32
                     XProcess xprocess(g_options.nProcessID, _nAddress, _nSize);
 
                     if (xprocess.open(QIODevice::ReadOnly)) {
@@ -266,7 +266,7 @@ bool XInfoDBTransfer::process()
                                     listIATrecords[j].sFunction = QString("%1#%2").arg(sLibraryName, sFunction);
                                 }
                             }
-                    #ifdef QT_DEBUG
+#ifdef QT_DEBUG
                             qDebug("%s", sLibraryName.toLatin1().data());
                             qint32 nNumberOfNames = listNames.count();
 
@@ -285,9 +285,9 @@ bool XInfoDBTransfer::process()
                                     sForward = pe.read_ansiString(nForwardRVA);
                                 }
 
-                                qDebug("%llX %s -> %s ", nAddress,  sFunction.toLatin1().data(), sForward.toLatin1().data());
+                                qDebug("%llX %s -> %s ", nAddress, sFunction.toLatin1().data(), sForward.toLatin1().data());
                             }
-                    #endif
+#endif
                         }
 
                         xprocess.close();
