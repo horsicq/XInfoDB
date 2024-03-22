@@ -440,7 +440,7 @@ QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName)
     return listResult;
 }
 
-XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti)
+XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti)
 {
     STRRECORD result = {};
 
@@ -449,32 +449,38 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, const Q
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         QString sRecord = pListStrings->at(i);
 
-        if (sRecord.contains("|")) {
-            QString sValue = sRecord.section("|", 0, -3);
+        if ((strDB == STRDB_PESECTIONS) || (strDB == STRDB_ELFSECTIONS)) {
+            if (sRecord.contains("|")) {
+                QString sValue = sRecord.section("|", 0, -3);
 
-            if (sString == sValue) {
-                QString sType = sRecord.section("|", -2, -2);
-                QString _sString = sRecord.section("|", -1, -1);
+                if (sString == sValue) {
+                    QString sType = sRecord.section("|", -2, -2);
+                    QString _sString = sRecord.section("|", -1, -1);
 
-                if (result.sDescription != "") {
-                    result.sDescription += " | ";
-                }
+                    if (result.sDescription != "") {
+                        result.sDescription += " | ";
+                    }
 
-                if (sType != "") {
-                    result.sDescription += QString("(%1) ").arg(XFormats::translateType(sType));
-                }
+                    if (sType != "") {
+                        result.sDescription += QString("(%1) ").arg(XFormats::translateType(sType));
+                    }
 
-                result.sDescription += _sString;
+                    result.sDescription += _sString;
 
-                if (result.sString == "") {
-                    result.sString = _sString;
-                    result.sType = sType;
-                }
+                    if (result.sString == "") {
+                        result.sString = _sString;
+                        result.sType = sType;
+                    }
 
-                if (!bIsMulti) {
-                    break;
+                    if (!bIsMulti) {
+                        break;
+                    }
                 }
             }
+        } else if (strDB == STRDB_LIBRARIES) {
+            // TODO
+        } else if (strDB == STRDB_FUNCTIONS) {
+            // TODO
         }
     }
 

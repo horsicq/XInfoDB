@@ -480,19 +480,23 @@ public:
 
     enum STRDB {
         STRDB_UNKNOWN = 0,
-        STRDB_PESECTIONS
+        STRDB_LIBRARIES,
+        STRDB_FUNCTIONS,
+        STRDB_PESECTIONS,
+        STRDB_ELFSECTIONS
     };
 
     static QList<QString> getStringsFromFile(const QString &sFileName);
 
     struct STRRECORD {
         QString sString;
+        QString sTags;
         QString sType;
         QString sDescription;
     };
 
-    static STRRECORD handleStringDB(QList<QString> *pListStrings, const QString &sString, bool bIsMulti);
-    static QList<QString> loadStrDB(const QString &sPath, STRDB strDB);
+    static STRRECORD handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti); // TODO pdStruct
+    static QList<QString> loadStrDB(const QString &sPath, STRDB strDB); // TODO pdStruct
 #ifdef USE_XPROCESS
     void setDefaultBreakpointType(BPT bpType);
     void setProcessInfo(PROCESS_INFO processInfo);
