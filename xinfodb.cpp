@@ -1841,6 +1841,9 @@ void XInfoDB::updateMemoryRegionsList()
 #ifdef Q_OS_LINUX
     quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Id(g_processInfo.nProcessID);
 #endif
+#ifdef Q_OS_MAC
+    quint32 nMemoryRegionsHash = 0;  // TODO
+#endif
     if (g_statusCurrent.nMemoryRegionsHash != nMemoryRegionsHash) {
         g_statusCurrent.nMemoryRegionsHash = nMemoryRegionsHash;
 #ifdef Q_OS_WIN

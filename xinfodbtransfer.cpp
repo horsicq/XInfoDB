@@ -216,7 +216,6 @@ bool XInfoDBTransfer::process()
             }
 
             XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
-#endif
         }
 
         qint32 nNumberOfIAT = listIATrecords.count();
@@ -299,7 +298,7 @@ bool XInfoDBTransfer::process()
 
             XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndexScan);
         }
-
+#endif
 #endif
     }
 
