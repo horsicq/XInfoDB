@@ -114,8 +114,11 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
 
     initDB();
 
-    initHexDb();
-    initDisasmDb();  // TODO Check
+    if (disasmMode == XBinary::DM_DATA) {
+        initHexDb();
+    } else {
+        initDisasmDb();  // TODO Check
+    }
 
     // reloadView();
 }
