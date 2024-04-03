@@ -350,7 +350,7 @@ public:
         XADDR nStartAddress;
         XADDR nThreadLocalBase;
 #ifdef Q_OS_LINUX
-        void *hProcessMemoryIO;
+        qint32 hProcessMemoryIO;
         void *hProcessMemoryQuery;
 #endif
 #ifdef Q_OS_WIN
