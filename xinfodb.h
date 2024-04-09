@@ -652,7 +652,7 @@ public:
     enum RT {
         RT_UNKNOWN = 0,
         RT_CODE,
-        RT_DATA,
+        RT_INTDATATYPE,
         RT_VIRTUAL
     };
 
@@ -775,7 +775,7 @@ public:
         XBinary::_MEMORY_MAP *pMemoryMap;
         XADDR nStartAddress;
         quint32 nCount;
-        bool bIsInit;
+        bool bAll;
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
@@ -823,13 +823,13 @@ public:
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
     QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize);
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
-    QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus);
+    QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus);
 
-    QList<XADDR> getExportSymbolAddresses();
-    QList<XADDR> getImportSymbolAddresses();
-    QList<XADDR> getTLSSymbolAddresses();
-    QList<XADDR> getFunctionAddresses();
+    QList<XADDR> getExportSymbolAddresses(); // TODO PDSTRUCT
+    QList<XADDR> getImportSymbolAddresses(); // TODO PDSTRUCT
+    QList<XADDR> getTLSSymbolAddresses(); // TODO PDSTRUCT
+    QList<XADDR> getFunctionAddresses(); // TODO PDSTRUCT
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);

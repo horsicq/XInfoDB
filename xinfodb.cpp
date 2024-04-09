@@ -3877,7 +3877,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         mrCode = XBinary::getMemoryRecordByAddress(analyzeOptions.pMemoryMap, analyzeOptions.pMemoryMap->nEntryPointAddress);
     }
 
-    if (analyzeOptions.bIsInit) {
+    if (analyzeOptions.bAll) {
         //_addSymbols(analyzeOptions.pDevice, analyzeOptions.pMemoryMap->fileType, pPdStruct);
 
         QList<XADDR> listFunctionAddresses;
@@ -3912,17 +3912,6 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             QList<XADDR> listImportAddresses = getImportSymbolAddresses();
             qint32 nNumberOfRecords = listImportAddresses.count();
             qint32 nSize = 4;
-            //            QString sVarName = "db";
-            //            if (mode == XBinary::MODE_16) {
-            //                nSize = 2;
-            //                sVarName = "word";
-            //            } else if (mode == XBinary::MODE_32) {
-            //                nSize = 4;
-            //                sVarName = "dword";
-            //            } else if (mode == XBinary::MODE_64) {
-            //                nSize = 8;
-            //                sVarName = "qword";
-            //            }
 
             for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
                 XADDR nAddress = listImportAddresses.at(i);
@@ -3933,7 +3922,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                     showRecord.nAddress = nAddress;
                     showRecord.nOffset = nOffset;
                     showRecord.nSize = nSize;
-                    showRecord.recordType = RT_DATA;
+                    showRecord.recordType = RT_INTDATATYPE;
                     showRecord.nRefTo = 0;
                     showRecord.nRefFrom = 0;
                     showRecord.nBranch = 0;
@@ -3946,6 +3935,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             g_dataBase.commit();
 #endif
         }
+        // TODO Scan code section
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
         if (!(pPdStruct->bIsStop)) {
             vacuumDb();
@@ -4079,7 +4069,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                         listEntries.append(_entry);
                                     }
 
-                                    if (!(analyzeOptions.bIsInit)) {
+                                    if (!(analyzeOptions.bAll)) {
                                         // TODO relative if code code
                                     }
                                 }
@@ -4304,7 +4294,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #endif
         QSqlQuery query(g_dataBase);
 
-        QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables(DBSTATUS_PROCESS);
+        QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables(DBSTATUS_PROCESS, pPdStruct);
         qint32 nNumberOfVariables = listVariables.count();
 
         for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfVariables); i++) {
@@ -4338,7 +4328,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                     showRecord.nAddress = record.nAddress;
                     showRecord.nOffset = nOffset;
                     showRecord.nSize = record.nSize;
-                    showRecord.recordType = RT_DATA;
+                    showRecord.recordType = RT_INTDATATYPE;
                     showRecord.nRefTo = 0;
                     showRecord.nRefFrom = 0;
                     showRecord.nBranch = 0;
@@ -4378,7 +4368,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     // Update references
-    if (analyzeOptions.bIsInit) {
+    if (analyzeOptions.bAll) {
         if (!(pPdStruct->bIsStop)) {
 #ifdef QT_SQL_LIB
             g_dataBase.transaction();
@@ -5415,7 +5405,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
     return listResult;
 }
 
-QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbstatus)
+QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XBinary::ADDRESSSIZE> listResult;
 #ifdef QT_SQL_LIB
@@ -5431,7 +5421,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XBinary::ADDRESSSIZE record = {};
         record.nAddress = query.value(0).toULongLong();
         record.nSize = query.value(1).toLongLong();
@@ -6092,7 +6082,9 @@ QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::
         sOrigin = sOrigin.toUpper();
     }
 
-    sResult = sResult.replace(sOrigin, sReplace);
+    if (sReplace != "") {
+        sResult = sResult.replace(sOrigin, sReplace);
+    }
 
     return sResult;
 }

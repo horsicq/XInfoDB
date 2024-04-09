@@ -109,13 +109,13 @@ bool XInfoDBTransfer::process()
                     XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
 
                     if (g_transferType == COMMAND_ANALYZEALL) {
-                        analyzeOptions.bIsInit = true;
+                        analyzeOptions.bAll = true;
                         analyzeOptions.nStartAddress = -1;
                     } else if (g_transferType == COMMAND_ANALYZE) {
-                        analyzeOptions.bIsInit = false;
+                        analyzeOptions.bAll = false;
                         analyzeOptions.nStartAddress = g_options.nAddress;
                     } else if (g_transferType == COMMAND_DISASM) {
-                        analyzeOptions.bIsInit = false;
+                        analyzeOptions.bAll = false;
                         analyzeOptions.nStartAddress = g_options.nAddress;
                         analyzeOptions.nCount = 1;
                     }
