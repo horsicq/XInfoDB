@@ -4216,7 +4216,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         }
         {
             // Branches
-            QList<XBinary::ADDRESSSIZE> listBranches = getBranches(DBSTATUS_PROCESS);
+            QList<XBinary::ADDRESSSIZE> listBranches = getBranches(DBSTATUS_PROCESS, pPdStruct);
             qint32 nNumberOfBranches = listBranches.count();
 
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -5434,7 +5434,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
     return listResult;
 }
 
-QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus)
+QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XBinary::ADDRESSSIZE> listResult;
 #ifdef QT_SQL_LIB
@@ -5450,7 +5450,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus)
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XBinary::ADDRESSSIZE record = {};
         record.nAddress = query.value(0).toULongLong();
         record.nSize = query.value(1).toULongLong() - record.nAddress;

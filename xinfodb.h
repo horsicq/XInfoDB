@@ -824,7 +824,7 @@ public:
     QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize);
     QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
-    QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus);
+    QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
 
     QList<XADDR> getExportSymbolAddresses(); // TODO PDSTRUCT
     QList<XADDR> getImportSymbolAddresses(); // TODO PDSTRUCT
