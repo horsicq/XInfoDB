@@ -3882,7 +3882,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         QList<XADDR> listFunctionAddresses;
 
-        listFunctionAddresses.append(getFunctionAddresses());
+        listFunctionAddresses.append(getFunctionAddresses(pPdStruct));
 
         qint32 nNumberOfRecords = listFunctionAddresses.count();
 
@@ -5520,7 +5520,7 @@ QList<XADDR> XInfoDB::getTLSSymbolAddresses()
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getFunctionAddresses()
+QList<XADDR> XInfoDB::getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5530,7 +5530,7 @@ QList<XADDR> XInfoDB::getFunctionAddresses()
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XADDR nAddress = query.value(0).toULongLong();
 
         listResult.append(nAddress);

@@ -829,7 +829,7 @@ public:
     QList<XADDR> getExportSymbolAddresses();  // TODO PDSTRUCT
     QList<XADDR> getImportSymbolAddresses();  // TODO PDSTRUCT
     QList<XADDR> getTLSSymbolAddresses();     // TODO PDSTRUCT
-    QList<XADDR> getFunctionAddresses();      // TODO PDSTRUCT
+    QList<XADDR> getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct);
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);
