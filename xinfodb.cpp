@@ -4754,6 +4754,8 @@ void XInfoDB::_clearAnalyze()
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
+    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), true);
+    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_COMMENTS]), true);
     querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
 #endif
 }
@@ -5501,7 +5503,7 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses()
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getTLSSymbolAddresses()
+QList<XADDR> XInfoDB::getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5511,7 +5513,7 @@ QList<XADDR> XInfoDB::getTLSSymbolAddresses()
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XADDR nAddress = query.value(0).toULongLong();
 
         listResult.append(nAddress);
