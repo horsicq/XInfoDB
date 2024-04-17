@@ -826,7 +826,7 @@ public:
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
 
-    QList<XADDR> getExportSymbolAddresses();  // TODO PDSTRUCT
+    QList<XADDR> getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct);
     QList<XADDR> getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct);
     QList<XADDR> getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct);
     QList<XADDR> getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct);

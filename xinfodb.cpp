@@ -5465,7 +5465,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDS
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getExportSymbolAddresses()
+QList<XADDR> XInfoDB::getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5475,7 +5475,7 @@ QList<XADDR> XInfoDB::getExportSymbolAddresses()
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XADDR nAddress = query.value(0).toULongLong();
 
         listResult.append(nAddress);
