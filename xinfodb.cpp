@@ -3909,7 +3909,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #endif
             QSqlQuery query(g_dataBase);
 
-            QList<XADDR> listImportAddresses = getImportSymbolAddresses();
+            QList<XADDR> listImportAddresses = getImportSymbolAddresses(pPdStruct);
             qint32 nNumberOfRecords = listImportAddresses.count();
             qint32 nSize = 4;
 
@@ -5484,7 +5484,7 @@ QList<XADDR> XInfoDB::getExportSymbolAddresses()
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getImportSymbolAddresses()
+QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5494,7 +5494,7 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses()
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XADDR nAddress = query.value(0).toULongLong();
 
         listResult.append(nAddress);
