@@ -4191,7 +4191,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         {
             // Calls
-            QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_CALL, DBSTATUS_PROCESS);
+            QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_CALL, DBSTATUS_PROCESS, pPdStruct);
             qint32 nNumberOfLabels = listLabels.count();
 
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4257,7 +4257,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #ifdef QT_SQL_LIB
         g_dataBase.transaction();
 #endif
-        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_ALL, DBSTATUS_PROCESS);
+        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
         qint32 nNumberOfLabels = listLabels.count();
 
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -5371,7 +5371,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus)
+QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5395,7 +5395,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
 
     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         XADDR nAddress = query.value(0).toULongLong();
 
         listResult.append(nAddress);
@@ -5403,6 +5403,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
 #else
     Q_UNUSED(relType)
     Q_UNUSED(dbstatus)
+    Q_UNUSED(pPdStruct)
 #endif
     return listResult;
 }

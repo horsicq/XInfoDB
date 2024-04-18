@@ -820,9 +820,9 @@ public:
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
-    QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount);
-    QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize);
-    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus);
+    QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount); // TODO PDSTRUCT
+    QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize); // TODO PDSTRUCT
+    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
 
