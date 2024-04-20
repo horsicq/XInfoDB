@@ -5305,7 +5305,7 @@ void XInfoDB::updateShowRecordLine(XADDR nAddress, qint64 nLine)
 #endif
 }
 
-QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
+QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::SHOWRECORD> listResult;
 #ifdef QT_SQL_LIB
@@ -5316,7 +5316,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nCount)),
              false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         SHOWRECORD record = {};
         record.bValid = true;
         record.nAddress = query.value(0).toULongLong();
@@ -5338,8 +5338,14 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount)
     return listResult;
 }
 
-QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint64 nSize)
+QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
     QList<XInfoDB::SHOWRECORD> listResult;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
@@ -5349,7 +5355,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
              false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         SHOWRECORD record = {};
         record.bValid = true;
         record.nAddress = query.value(0).toULongLong();
