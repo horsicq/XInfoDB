@@ -200,6 +200,7 @@
 .nsp0|packer|NsPack
 .nsp1|packer|NsPack
 .nsp2|packer|NsPack
+.obfh|obfuscator|Macro-only library for compile-time obfuscating 
 .orpc|compiler|Code section inside rpcrt4.dll
 .packed|packer|RLPack
 .packed|packer|Unknown Packer
