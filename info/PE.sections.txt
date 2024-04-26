@@ -212,7 +212,7 @@
 .pinclie|tool|Added by the PIN tool
 .pklstb|demo|
 .profile|tool|NightHawk C2 framework (by MDSec)
-.ps4|protector|StarForce
+.ps4|protector|StarForce Version 4.X+
 .qtmetad|library|Qt
 .rdata|compiler|Read-only initialized Data Section  (MS and Borland)
 .reacto|protector|.NET Reactor
@@ -231,8 +231,7 @@
 .sdata|protector|.NET Reactor
 .seau|sfx|SeauSFX
 .sedata|protector|Safengine Shielden
-.sforce3|protector|StarForce
-.sforce3|protector|StarForce
+.sforce3|protector|StarForce version 3.X
 .shared|compiler|Shared section
 .shoooo|packer|KByS
 .shrink0|protector|Shrinker
