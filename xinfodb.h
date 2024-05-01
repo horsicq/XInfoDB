@@ -303,7 +303,7 @@ public:
     };
 
     struct BREAKPOINT {
-        bool bIsEnable; // TODO
+        bool bIsEnable;  // TODO
         XADDR nAddress;
         qint64 nSize;
         X_ID nThreadID;
