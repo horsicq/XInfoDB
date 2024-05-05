@@ -21,7 +21,6 @@
 #ifndef XINFOMENU_H
 #define XINFOMENU_H
 
-#include <QObject>
 #include <QMenu>
 #include "dialogxinfodbtransferprocess.h"
 
