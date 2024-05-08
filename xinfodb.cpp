@@ -424,15 +424,21 @@ QString XInfoDB::read_utf8String(qint64 nOffset, quint64 nMaxSize)
     return g_binary.read_utf8String(nOffset, nMaxSize);
 }
 #endif
-QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName)
+QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PDSTRUCT *pPdStruct)
 {
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
     QList<QString> listResult;
 
     QFile inputFile(sFileName);
 
     if (inputFile.open(QIODevice::ReadOnly)) {
         QTextStream in(&inputFile);
-        while (!in.atEnd()) {
+        while ((!in.atEnd()) && (!(pPdStruct->bIsStop))) {
             QString sLine = in.readLine();
 
             listResult.append(sLine);
@@ -501,7 +507,7 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
     }
 
     if (sStrDBFileName != "") {
-        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName);
+        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName); // TODO PDStruct
     }
 
     return listResult;

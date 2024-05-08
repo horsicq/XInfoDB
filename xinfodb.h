@@ -486,7 +486,7 @@ public:
         STRDB_ELFSECTIONS
     };
 
-    static QList<QString> getStringsFromFile(const QString &sFileName);
+    static QList<QString> getStringsFromFile(const QString &sFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
     struct STRRECORD {
         QString sString;
