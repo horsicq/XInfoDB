@@ -496,8 +496,14 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB s
     return result;
 }
 
-QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
+QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB, XBinary::PDSTRUCT *pPdStruct)
 {
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
     QList<QString> listResult;
 
     QString sStrDBFileName;
@@ -507,7 +513,7 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB)
     }
 
     if (sStrDBFileName != "") {
-        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName); // TODO PDStruct
+        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName, pPdStruct);
     }
 
     return listResult;

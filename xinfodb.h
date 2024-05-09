@@ -496,7 +496,7 @@ public:
     };
 
     static STRRECORD handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti);  // TODO pdStruct
-    static QList<QString> loadStrDB(const QString &sPath, STRDB strDB);                                                 // TODO pdStruct
+    static QList<QString> loadStrDB(const QString &sPath, STRDB strDB, XBinary::PDSTRUCT *pPdStruct = nullptr);
 #ifdef USE_XPROCESS
     void setDefaultBreakpointType(BPT bpType);
     void setProcessInfo(PROCESS_INFO processInfo);
