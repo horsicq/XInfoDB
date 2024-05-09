@@ -449,13 +449,19 @@ QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PD
     return listResult;
 }
 
-XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti)
+XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti, XBinary::PDSTRUCT *pPdStruct)
 {
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
     STRRECORD result = {};
 
     qint32 nNumberOfRecords = pListStrings->count();
 
-    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+    for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
         QString sRecord = pListStrings->at(i);
 
         if ((strDB == STRDB_PESECTIONS) || (strDB == STRDB_ELFSECTIONS)) {
