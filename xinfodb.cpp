@@ -4885,17 +4885,23 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 }
 #endif
 #ifdef QT_GUI_LIB
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
 #ifdef QT_SQL_LIB
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
     QSqlQuery query(g_dataBase);
 
     querySQL(&query,
              QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
              false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         BOOKMARKRECORD record = {};
 
         record.sUUID = query.value(0).toString();
@@ -4916,10 +4922,17 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords()
 }
 #endif
 #ifdef QT_GUI_LIB
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize)
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
 #ifdef QT_SQL_LIB
+    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+
+    if (!pPdStruct) {
+        pPdStruct = &pdStructEmpty;
+    }
+
+
     QSqlQuery query(g_dataBase);
 
     querySQL(&query,
@@ -4929,7 +4942,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT
                  .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize), QString::number(locationType)),
              false);
 
-    while (query.next()) {
+    while (query.next() && (!(pPdStruct->bIsStop))) {
         BOOKMARKRECORD record = {};
 
         record.sUUID = query.value(0).toString();

@@ -798,8 +798,8 @@ public:
 #ifdef QT_GUI_LIB
     QString _addBookmarkRecord(const BOOKMARKRECORD &record);
     bool _removeBookmarkRecord(const QString &sUUID);
-    QList<BOOKMARKRECORD> getBookmarkRecords();
-    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize);
+    QList<BOOKMARKRECORD> getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct = nullptr);
+    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
