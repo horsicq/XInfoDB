@@ -4932,7 +4932,6 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT
         pPdStruct = &pdStructEmpty;
     }
 
-
     QSqlQuery query(g_dataBase);
 
     querySQL(&query,
