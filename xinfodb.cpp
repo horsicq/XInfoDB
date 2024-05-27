@@ -2165,7 +2165,7 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::removeBreakPoint(QString sUUID)
+bool XInfoDB::removeBreakPoint(const QString &sUUID)
 {
     bool bResult = false;
 

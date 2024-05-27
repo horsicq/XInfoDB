@@ -514,7 +514,7 @@ public:
     QList<XProcess::MODULE> *getCurrentModulesList();
     QList<XProcess::THREAD_INFO> *getCurrentThreadsList();
     bool addBreakPoint(const BREAKPOINT &breakPoint);
-    bool removeBreakPoint(QString sUUID);
+    bool removeBreakPoint(const QString &sUUID);
     bool isBreakPointPresent(const BREAKPOINT &breakPoint);
     bool enableBreakPoint(QString sUUID);
     bool disableBreakPoint(QString sUUID);
