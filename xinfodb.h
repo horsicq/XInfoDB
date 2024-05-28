@@ -516,7 +516,7 @@ public:
     bool addBreakPoint(const BREAKPOINT &breakPoint);
     bool removeBreakPoint(const QString &sUUID);
     bool isBreakPointPresent(const BREAKPOINT &breakPoint);
-    bool enableBreakPoint(QString sUUID);
+    bool enableBreakPoint(const QString &sUUID);
     bool disableBreakPoint(QString sUUID);
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
