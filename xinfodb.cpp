@@ -3645,7 +3645,6 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
     g_dataBase.transaction();
 #endif
 
-    // TODO progressBar
     if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
         XELF elf(pDevice, bIsImage, nModuleAddress);
 
