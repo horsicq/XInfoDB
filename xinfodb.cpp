@@ -4905,7 +4905,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pP
 
         record.sUUID = query.value(0).toString();
         record.nLocation = query.value(1).toULongLong();
-        record.locationType = (LT)query.value(2).toLongLong();
+        record.locationType = (XBinary::LT)query.value(2).toLongLong();
         record.nSize = query.value(3).toLongLong();
         record.colText = stringToColor(query.value(4).toString());
         record.colBackground = stringToColor(query.value(5).toString());
@@ -4921,7 +4921,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pP
 }
 #endif
 #ifdef QT_GUI_LIB
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
+QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
 #ifdef QT_SQL_LIB
@@ -4945,7 +4945,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, LT
 
         record.sUUID = query.value(0).toString();
         record.nLocation = query.value(1).toULongLong();
-        record.locationType = (LT)query.value(2).toLongLong();
+        record.locationType = (XBinary::LT)query.value(2).toLongLong();
         record.nSize = query.value(3).toLongLong();
         record.colText = stringToColor(query.value(4).toString());
         record.colBackground = stringToColor(query.value(5).toString());

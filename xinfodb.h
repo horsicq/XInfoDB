@@ -661,12 +661,6 @@ public:
         DBSTATUS_PROCESS
     };
 
-    enum LT {
-        LT_UNKNOWN = 0,
-        LT_OFFSET,
-        LT_ADDRESS
-    };
-
     enum SS {
         SS_FILE,
         SS_ANALYZE
@@ -715,7 +709,7 @@ public:
     struct BOOKMARKRECORD {
         QString sUUID;
         quint64 nLocation;
-        LT locationType;
+        XBinary::LT locationType;
         qint64 nSize;
         QColor colText;
         QColor colBackground;
@@ -799,7 +793,7 @@ public:
     QString _addBookmarkRecord(const BOOKMARKRECORD &record);
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct = nullptr);
-    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
