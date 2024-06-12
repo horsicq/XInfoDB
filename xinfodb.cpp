@@ -2242,7 +2242,7 @@ bool XInfoDB::enableBreakPoint(const QString &sUUID)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::disableBreakPoint(QString sUUID)
+bool XInfoDB::disableBreakPoint(const QString &sUUID)
 {
     bool bResult = false;
 
