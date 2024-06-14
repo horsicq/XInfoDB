@@ -669,7 +669,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByThreadID(X_ID nThreadID, BPT bpType
 }
 #endif
 #ifdef USE_XPROCESS
-XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(QString sUUID)
+XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(const QString &sUUID)
 {
     BREAKPOINT result = {};
     result.nAddress = -1;

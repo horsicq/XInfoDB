@@ -521,7 +521,7 @@ public:
     BREAKPOINT findBreakPointByAddress(XADDR nAddress, BPT bpType);
     BREAKPOINT findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType);  // TODO try in *nix
     BREAKPOINT findBreakPointByThreadID(X_ID nThreadID, BPT bpType);
-    BREAKPOINT findBreakPointByUUID(QString sUUID);
+    BREAKPOINT findBreakPointByUUID(const QString &sUUID);
     BREAKPOINT findBreakPointByRegion(XADDR nAddress, qint64 nSize);
     qint32 getThreadBreakpointsCount(X_ID nThreadID);
     QList<BREAKPOINT> *getBreakpoints();
