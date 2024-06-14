@@ -852,7 +852,7 @@ public:
 #endif
     QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
                                 const XCapstone::DISASM_OPTIONS &disasmOptions = XCapstone::DISASM_OPTIONS());
-    QString _convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
+    QString _convertOpcodeString(const QString &sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
                                  const XCapstone::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();

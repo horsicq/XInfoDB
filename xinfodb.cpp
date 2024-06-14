@@ -6108,7 +6108,7 @@ QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBin
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(QString sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType,
+QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType,
                                       const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
