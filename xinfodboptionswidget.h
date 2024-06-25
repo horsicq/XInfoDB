@@ -21,8 +21,7 @@
 #ifndef XINFODBOPTIONSWIDGET_H
 #define XINFODBOPTIONSWIDGET_H
 
-#include <QWidget>
-
+#include "xshortcutswidget.h"
 #include "xbinary.h"
 #include "xoptions.h"
 
@@ -30,12 +29,14 @@ namespace Ui {
 class XInfoDBOptionsWidget;
 }
 
-class XInfoDBOptionsWidget : public QWidget {
+class XInfoDBOptionsWidget : public XShortcutsWidget {
     Q_OBJECT
 
 public:
     explicit XInfoDBOptionsWidget(QWidget *pParent = nullptr);
     ~XInfoDBOptionsWidget();
+
+    virtual void adjustView();
 
     void setOptions(XOptions *pOptions);
 
@@ -47,6 +48,9 @@ public slots:
 
 private slots:
     void on_toolButtonInfoPath_clicked();
+
+protected:
+    virtual void registerShortcuts(bool bState);
 
 private:
     Ui::XInfoDBOptionsWidget *ui;

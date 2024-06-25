@@ -22,7 +22,7 @@
 
 #include "ui_xinfodboptionswidget.h"
 
-XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : QWidget(pParent), ui(new Ui::XInfoDBOptionsWidget)
+XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : XShortcutsWidget(pParent), ui(new Ui::XInfoDBOptionsWidget)
 {
     ui->setupUi(this);
 
@@ -34,6 +34,11 @@ XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : QWidget(pParent),
 XInfoDBOptionsWidget::~XInfoDBOptionsWidget()
 {
     delete ui;
+}
+
+void XInfoDBOptionsWidget::adjustView()
+{
+    // TODO
 }
 
 void XInfoDBOptionsWidget::setOptions(XOptions *pOptions)
@@ -68,4 +73,9 @@ void XInfoDBOptionsWidget::on_toolButtonInfoPath_clicked()
     if (!sDirectoryName.isEmpty()) {
         ui->lineEditInfoPath->setText(sDirectoryName);
     }
+}
+
+void XInfoDBOptionsWidget::registerShortcuts(bool bState)
+{
+    Q_UNUSED(bState)
 }
