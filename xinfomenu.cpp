@@ -20,8 +20,10 @@
  */
 #include "xinfomenu.h"
 
-XInfoMenu::XInfoMenu()
+XInfoMenu::XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions)
 {
+    g_pShortcuts = pShortcuts;
+    g_pXOptions = pXOptions;
     g_pParent = nullptr;
     g_pMenu = nullptr;
     //    g_pActionAnalyze = nullptr;
@@ -112,6 +114,7 @@ void XInfoMenu::actionExport()
 
         if (!_sFileName.isEmpty()) {
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
             XInfoDBTransfer::OPTIONS options = {};
             options.sFileName = _sFileName;
             options.nModuleAddress = -1;
@@ -131,6 +134,7 @@ void XInfoMenu::actionImport()
 
         if (!_sFileName.isEmpty()) {
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
             XInfoDBTransfer::OPTIONS options = {};
             options.sFileName = _sFileName;
             options.nModuleAddress = -1;
@@ -148,6 +152,7 @@ void XInfoMenu::actionClear()
     if (g_pXInfoDB) {
         if (QMessageBox::question(g_pParent, tr("Database"), tr("Are you sure?")) == QMessageBox::Yes) {
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
             XInfoDBTransfer::OPTIONS options = {};
             options.nModuleAddress = -1;
 

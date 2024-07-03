@@ -27,7 +27,7 @@
 class XInfoMenu : public QObject {
     Q_OBJECT
 public:
-    explicit XInfoMenu();
+    explicit XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions);
 
     QMenu *createMenu(QWidget *pParent);
     void setData(XInfoDB *pXInfoDB);
@@ -41,6 +41,8 @@ private slots:
     void actionClear();
 
 private:
+    XShortcuts *g_pShortcuts;
+    XOptions *g_pXOptions;
     QWidget *g_pParent;
     QMenu *g_pMenu;
     //    QAction *g_pActionAnalyze;
