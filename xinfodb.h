@@ -27,6 +27,7 @@
 #endif
 #include "xcapstone.h"
 #include "xformats.h"
+#include "xscanengine.h"
 #ifdef USE_XPROCESS
 #include "xprocess.h"
 #endif

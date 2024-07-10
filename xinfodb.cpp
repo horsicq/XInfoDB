@@ -477,7 +477,7 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB s
                     }
 
                     if (sType != "") {
-                        result.sDescription += QString("(%1) ").arg(XFormats::translateType(sType));
+                        result.sDescription += QString("(%1) ").arg(XScanEngine::translateType(sType));
                     }
 
                     result.sDescription += _sString;
