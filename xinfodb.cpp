@@ -5535,6 +5535,8 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
         listResult.append(nAddress);
     }
+#else
+    Q_UNUSED(pPdStruct)
 #endif
     return listResult;
 }
