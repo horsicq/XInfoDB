@@ -4914,7 +4914,8 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pP
 
         listResult.append(record);
     }
-
+#else
+    Q_UNUSED(pPdStruct)
 #endif
 
     return listResult;
