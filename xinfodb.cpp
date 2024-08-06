@@ -4545,18 +4545,8 @@ bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-
-    query.bindValue(0, record.nAddress);
-    query.bindValue(1, record.nOffset);
-    query.bindValue(2, record.nSize);
-    query.bindValue(3, record.recordType);
-    query.bindValue(4, record.nRefTo);
-    query.bindValue(5, record.nRefFrom);
-    query.bindValue(6, record.nBranch);
-    query.bindValue(7, record.dbstatus);
+    _addShowRecord_prepare(&query);
+    _addShowRecord_bind(&query, record);
 
     bResult = querySQL(&query, true);
 #else
@@ -4564,6 +4554,25 @@ bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
 #endif
 
     return bResult;
+}
+
+bool XInfoDB::_addShowRecord_prepare(QSqlQuery *pQuery)
+{
+    return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
+                                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+                               .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+}
+
+void XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
+{
+    pQuery->bindValue(0, record.nAddress);
+    pQuery->bindValue(1, record.nOffset);
+    pQuery->bindValue(2, record.nSize);
+    pQuery->bindValue(3, record.recordType);
+    pQuery->bindValue(4, record.nRefTo);
+    pQuery->bindValue(5, record.nRefFrom);
+    pQuery->bindValue(6, record.nBranch);
+    pQuery->bindValue(7, record.dbstatus);
 }
 #ifdef QT_SQL_LIB
 bool XInfoDB::_isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize)

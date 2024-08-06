@@ -775,6 +775,8 @@ public:
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(const SHOWRECORD &record);
+    bool _addShowRecord_prepare(QSqlQuery *pQuery);
+    void _addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
 #ifdef QT_SQL_LIB
