@@ -4555,14 +4555,15 @@ bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
 
     return bResult;
 }
-
+#ifdef QT_SQL_LIB
 bool XInfoDB::_addShowRecord_prepare(QSqlQuery *pQuery)
 {
     return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
                                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
                                .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
 }
-
+#endif
+#ifdef QT_SQL_LIB
 void XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
 {
     pQuery->bindValue(0, record.nAddress);
@@ -4574,6 +4575,7 @@ void XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
     pQuery->bindValue(6, record.nBranch);
     pQuery->bindValue(7, record.dbstatus);
 }
+#endif
 #ifdef QT_SQL_LIB
 bool XInfoDB::_isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize)
 {
