@@ -779,7 +779,7 @@ public:
     void _completeDbAnalyze();
 #ifdef QT_SQL_LIB
     bool _addShowRecord_prepare(QSqlQuery *pQuery);
-    void _addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record);
+    bool _addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record);
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
     void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
     void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);

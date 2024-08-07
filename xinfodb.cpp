@@ -3852,6 +3852,12 @@ void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint6
 
 bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct)
 {
+#ifdef QT_DEBUG
+    #ifdef QT_DEBUG
+        QElapsedTimer timer;
+        timer.start();
+    #endif
+#endif
     // mb TODO get all symbol info if init
     bool bResult = false;
 #ifdef QT_SQL_LIB
@@ -4535,6 +4541,10 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     Q_UNUSED(pPdStruct)
 #endif
 
+#ifdef QT_DEBUG
+        qDebug("Analyze all %lld",timer.elapsed());
+#endif
+
     return bResult;
 }
 
@@ -4546,9 +4556,8 @@ bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
     QSqlQuery query(g_dataBase);
 
     _addShowRecord_prepare(&query);
-    _addShowRecord_bind(&query, record);
+   bResult =  _addShowRecord_bind(&query, record);
 
-    bResult = querySQL(&query, true);
 #else
     Q_UNUSED(record)
 #endif
@@ -4564,7 +4573,7 @@ bool XInfoDB::_addShowRecord_prepare(QSqlQuery *pQuery)
 }
 #endif
 #ifdef QT_SQL_LIB
-void XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
+bool XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
 {
     pQuery->bindValue(0, record.nAddress);
     pQuery->bindValue(1, record.nOffset);
@@ -4574,6 +4583,8 @@ void XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
     pQuery->bindValue(5, record.nRefFrom);
     pQuery->bindValue(6, record.nBranch);
     pQuery->bindValue(7, record.dbstatus);
+
+    return querySQL(pQuery, true);
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -4642,23 +4653,12 @@ void XInfoDB::_completeDbAnalyze()
 #ifdef QT_SQL_LIB
 void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
 {
-    pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                        .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    _addShowRecord_prepare(pQuery);
 
     qint32 nNumberOfRecords = pListRecords->count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        pQuery->bindValue(0, pListRecords->at(i).nAddress);
-        pQuery->bindValue(1, pListRecords->at(i).nOffset);
-        pQuery->bindValue(2, pListRecords->at(i).nSize);
-        pQuery->bindValue(3, pListRecords->at(i).recordType);
-        pQuery->bindValue(4, pListRecords->at(i).nRefTo);
-        pQuery->bindValue(5, pListRecords->at(i).nRefFrom);
-        pQuery->bindValue(6, pListRecords->at(i).nBranch);
-        pQuery->bindValue(7, pListRecords->at(i).dbstatus);
-
-        querySQL(pQuery, true);
+        _addShowRecord_bind(pQuery, pListRecords->at(i));
     }
 }
 #endif
