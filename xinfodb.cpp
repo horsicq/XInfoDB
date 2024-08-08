@@ -5658,6 +5658,8 @@ QList<XADDR> XInfoDB::getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct)
 
         listResult.append(nAddress);
     }
+#else
+    Q_UNUSED(pPdStruct)
 #endif
     return listResult;
 }
