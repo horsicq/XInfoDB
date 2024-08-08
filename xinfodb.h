@@ -780,9 +780,15 @@ public:
 #ifdef QT_SQL_LIB
     bool _addShowRecord_prepare(QSqlQuery *pQuery);
     bool _addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record);
+    bool _isShowRecordPresent_prepare1(QSqlQuery *pQuery);
+    bool _isShowRecordPresent_prepare2(QSqlQuery *pQuery);
+    bool _isShowRecordPresent_bind1(QSqlQuery *pQuery, XADDR nAddress);
+    bool _isShowRecordPresent_bind(QSqlQuery *pQuery1, QSqlQuery *pQuery2, XADDR nAddress, qint64 nSize);
+    bool _addRelRecord_prepare(QSqlQuery *pQuery);
+    bool _addRelRecord_bind(QSqlQuery *pQuery, const RELRECORD &record);
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
-    void _addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
-    void _addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
+    void _addShowRecords_bind(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
+    void _addRelRecords_bind(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
     quint64 _getBranchNumber();
 #endif
     QList<RELRECORD> getRelRecords(DBSTATUS dbstatus);

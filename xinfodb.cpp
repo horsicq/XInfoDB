@@ -3853,10 +3853,8 @@ void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint6
 bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct)
 {
 #ifdef QT_DEBUG
-    #ifdef QT_DEBUG
-        QElapsedTimer timer;
-        timer.start();
-    #endif
+    QElapsedTimer timer;
+    timer.start();
 #endif
     // mb TODO get all symbol info if init
     bool bResult = false;
@@ -3965,243 +3963,259 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         }
     }
 
-    qint64 nNumberOfOpcodes = 0;
+    {
+        // 5331
+        // 4173
+        qint32 N_BUFFERSIZE = 10000;
 
-    QList<SHOWRECORD> listShowRecords;
-    QList<RELRECORD> listRelRecords;
-    QSet<XADDR> stShowRecords;
+        qint64 nNumberOfOpcodes = 0;
 
-    QSqlQuery query(g_dataBase);
+        QList<SHOWRECORD> listShowRecords;
+        QList<RELRECORD> listRelRecords;
+        QSet<XADDR> stShowRecords;
 
-    while (!(pPdStruct->bIsStop)) {
-        //        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
-        if (!listEntries.isEmpty()) {
-            XADDR nEntryAddress = 0;
-            qint32 nCurrentBranch = 0;
+        listShowRecords.reserve(N_BUFFERSIZE);
+        listRelRecords.reserve(N_BUFFERSIZE);
+        stShowRecords.reserve(N_BUFFERSIZE);
 
-            bool bSuspect = false;
+        QSqlQuery queryRel(g_dataBase);
+        QSqlQuery queryShowRecords(g_dataBase);
+        QSqlQuery queryPresent(g_dataBase);
 
+        _addRelRecord_prepare(&queryRel);
+        _addShowRecord_prepare(&queryShowRecords);
+        _isShowRecordPresent_prepare1(&queryPresent);
+
+        while (!(pPdStruct->bIsStop)) {
+            //        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
             if (!listEntries.isEmpty()) {
-                nCurrentBranch = listEntries.first().nBranch;
-                nEntryAddress = listEntries.first().nAddress;
-            } /*else if (!listSuspect.isEmpty()) {
-                nEntryAddress = listSuspect.first();
-                nBranch++;
-                nCurrentBranch = nBranch;
-                bSuspect = true;
-            }*/
+                XADDR nEntryAddress = 0;
+                qint32 nCurrentBranch = 0;
 
-            XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
+                bool bSuspect = false;
 
-            XADDR nCurrentAddress = nEntryAddress;
+                if (!listEntries.isEmpty()) {
+                    nCurrentBranch = listEntries.first().nBranch;
+                    nEntryAddress = listEntries.first().nAddress;
+                } /*else if (!listSuspect.isEmpty()) {
+                    nEntryAddress = listSuspect.first();
+                    nBranch++;
+                    nCurrentBranch = nBranch;
+                    bSuspect = true;
+                }*/
 
-            while (!(pPdStruct->bIsStop)) {
-                if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent(&query, nCurrentAddress, 1))) {
-                    qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nCurrentAddress);
+                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
 
-                    if (nOffset != -1) {
-                        qint64 nSize = 16;
+                XADDR nCurrentAddress = nEntryAddress;
 
-                        nSize = qMin(nTotalSize - nOffset, nSize);
+                while (!(pPdStruct->bIsStop)) {
+                    if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent_bind1(&queryPresent, nCurrentAddress))) {
+                        qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nCurrentAddress);
 
-                        nSize = binary.read_array(nOffset, byte_buffer, nSize);
+                        if (nOffset != -1) {
+                            qint64 nSize = 16;
 
-                        if (dmFamily == XBinary::DMFAMILY_X86) {
-                            if (nSize >= 2) {
-                                // mb TODO optional
-                                // add byte ptr [rax], al
-                                if ((*((quint16 *)byte_buffer) == 0) && (nCurrentAddress != analyzeOptions.nStartAddress)) {
-                                    break;
-                                }
-                            }
-                        }
+                            nSize = qMin(nTotalSize - nOffset, nSize);
 
-                        if (nSize > 0) {
-                            XCapstone::DISASM_RESULT disasmResult =
-                                XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                            nSize = binary.read_array(nOffset, byte_buffer, nSize);
 
-                            if (disasmResult.bIsValid) {
-                                {
-                                    quint64 _nCurrentBranch = nCurrentBranch;
-
-                                    if (bSuspect) {
-                                        if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
-                                            _nCurrentBranch = 0;
-                                        } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
-                                            _nCurrentBranch = 0;
-                                        }
-                                    }
-
-                                    quint64 nRefTo = 0;
-
-                                    if (disasmResult.relType) {
-                                        nRefTo++;
-                                    }
-
-                                    if (disasmResult.memType) {
-                                        nRefTo++;
-                                    }
-
-                                    SHOWRECORD showRecord = {};
-                                    showRecord.bValid = true;
-                                    showRecord.nAddress = disasmResult.nAddress;
-                                    showRecord.nOffset = nOffset;
-                                    showRecord.nSize = disasmResult.nSize;
-                                    showRecord.recordType = RT_CODE;
-                                    showRecord.nRefTo = nRefTo;
-                                    showRecord.nRefFrom = 0;
-                                    showRecord.nBranch = _nCurrentBranch;
-                                    showRecord.dbstatus = DBSTATUS_PROCESS;
-                                    listShowRecords.append(showRecord);
-
-                                    if (disasmResult.relType || disasmResult.memType) {
-                                        RELRECORD relRecord = {};
-                                        relRecord.nAddress = disasmResult.nAddress;
-                                        relRecord.relType = disasmResult.relType;
-                                        relRecord.nXrefToRelative = disasmResult.nXrefToRelative;
-                                        relRecord.memType = disasmResult.memType;
-                                        relRecord.nXrefToMemory = disasmResult.nXrefToMemory;
-                                        relRecord.nMemorySize = disasmResult.nMemorySize;
-                                        relRecord.dbstatus = DBSTATUS_PROCESS;
-                                        listRelRecords.append(relRecord);
-                                    }
-
-                                    nNumberOfOpcodes++;
-
-                                    if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                            if (dmFamily == XBinary::DMFAMILY_X86) {
+                                if (nSize >= 2) {
+                                    // mb TODO optional
+                                    // add byte ptr [rax], al
+                                    if ((*((quint16 *)byte_buffer) == 0) && (nCurrentAddress != analyzeOptions.nStartAddress)) {
                                         break;
                                     }
                                 }
+                            }
 
-                                stShowRecords.insert(nCurrentAddress);
+                            if (nSize > 0) {
+                                XCapstone::DISASM_RESULT disasmResult =
+                                    XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
-                                nCurrentAddress += disasmResult.nSize;
-                                XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
+                                if (disasmResult.bIsValid) {
+                                    {
+                                        quint64 _nCurrentBranch = nCurrentBranch;
 
-                                if (disasmResult.relType) {
-                                    if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
-                                        nBranch++;
+                                        if (bSuspect) {
+                                            if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
+                                                _nCurrentBranch = 0;
+                                            } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                                                _nCurrentBranch = 0;
+                                            }
+                                        }
+
+                                        quint64 nRefTo = 0;
+
+                                        if (disasmResult.relType) {
+                                            nRefTo++;
+                                        }
+
+                                        if (disasmResult.memType) {
+                                            nRefTo++;
+                                        }
+
+                                        SHOWRECORD showRecord = {};
+                                        showRecord.bValid = true;
+                                        showRecord.nAddress = disasmResult.nAddress;
+                                        showRecord.nOffset = nOffset;
+                                        showRecord.nSize = disasmResult.nSize;
+                                        showRecord.recordType = RT_CODE;
+                                        showRecord.nRefTo = nRefTo;
+                                        showRecord.nRefFrom = 0;
+                                        showRecord.nBranch = _nCurrentBranch;
+                                        showRecord.dbstatus = DBSTATUS_PROCESS;
+                                        listShowRecords.append(showRecord);
+
+                                        if (disasmResult.relType || disasmResult.memType) {
+                                            RELRECORD relRecord = {};
+                                            relRecord.nAddress = disasmResult.nAddress;
+                                            relRecord.relType = disasmResult.relType;
+                                            relRecord.nXrefToRelative = disasmResult.nXrefToRelative;
+                                            relRecord.memType = disasmResult.memType;
+                                            relRecord.nXrefToMemory = disasmResult.nXrefToMemory;
+                                            relRecord.nMemorySize = disasmResult.nMemorySize;
+                                            relRecord.dbstatus = DBSTATUS_PROCESS;
+                                            listRelRecords.append(relRecord);
+                                        }
+
+                                        nNumberOfOpcodes++;
+
+                                        if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                                            break;
+                                        }
+                                    }
+
+                                    stShowRecords.insert(nCurrentAddress);
+
+                                    nCurrentAddress += disasmResult.nSize;
+                                    XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
+
+                                    if (disasmResult.relType) {
+                                        if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
+                                            nBranch++;
+                                            _ENTRY _entry = {};
+                                            _entry.nAddress = disasmResult.nXrefToRelative;
+                                            _entry.nBranch = nBranch;
+                                            listEntries.append(_entry);
+                                        } else {
+                                            _ENTRY _entry = {};
+                                            _entry.nAddress = disasmResult.nXrefToRelative;
+                                            _entry.nBranch = nCurrentBranch;
+                                            listEntries.append(_entry);
+                                        }
+
+                                        if (!(analyzeOptions.bAll)) {
+                                            // TODO relative if code code
+                                        }
+                                    }
+
+                                    if (stShowRecords.count() > N_BUFFERSIZE) {  // TODO Consts
                                         _ENTRY _entry = {};
-                                        _entry.nAddress = disasmResult.nXrefToRelative;
-                                        _entry.nBranch = nBranch;
-                                        listEntries.append(_entry);
-                                    } else {
-                                        _ENTRY _entry = {};
-                                        _entry.nAddress = disasmResult.nXrefToRelative;
+                                        _entry.nAddress = nCurrentAddress;
                                         _entry.nBranch = nCurrentBranch;
                                         listEntries.append(_entry);
+
+                                        break;
                                     }
 
-                                    if (!(analyzeOptions.bAll)) {
-                                        // TODO relative if code code
+                                    // TODO Check mb int3
+                                    if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
+                                        //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
+                                        //                                    mrCode.nSize))) {
+                                        //                                        listSuspect.append(nCurrentAddress);
+                                        //                                    }
+                                        break;
                                     }
-                                }
 
-                                if (stShowRecords.count() > 10000) {  // TODO Consts
-                                    _ENTRY _entry = {};
-                                    _entry.nAddress = nCurrentAddress;
-                                    _entry.nBranch = nCurrentBranch;
-                                    listEntries.append(_entry);
+                                    if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                                        break;
+                                    }
 
-                                    break;
-                                }
-
-                                // TODO Check mb int3
-                                if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
-                                    //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
-                                    //                                    mrCode.nSize))) {
-                                    //                                        listSuspect.append(nCurrentAddress);
+                                    if (XCapstone::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
+                                        break;
+                                    }
+                                    //                                if (dmFamily == XBinary::DMFAMILY_X86) {
+                                    //                                    // TODO Check
+                                    //                                    if ((disasmResult.sMnemonic == "ret") || (disasmResult.sMnemonic == "retn") ||
+                                    //                                    (disasmResult.sMnemonic == "jmp")) {
+                                    //                                        stEntries.insert(nCurrentAddress); // TODO optional
+                                    //                                        break;
                                     //                                    }
+                                    //                                } else if ((dmFamily == XBinary::DMFAMILY_ARM) || (dmFamily == XBinary::DMFAMILY_ARM64)) {
+                                    //                                    // TODO Check
+                                    //                                    if ((disasmResult.sMnemonic == "b")) {
+                                    //                                        stEntries.insert(nCurrentAddress); // TODO optional
+                                    //                                        break;
+                                    //                                    }
+                                    //                                }
+                                } else {
                                     break;
                                 }
-
-                                if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
-                                    break;
-                                }
-
-                                if (XCapstone::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
-                                    break;
-                                }
-                                //                                if (dmFamily == XBinary::DMFAMILY_X86) {
-                                //                                    // TODO Check
-                                //                                    if ((disasmResult.sMnemonic == "ret") || (disasmResult.sMnemonic == "retn") ||
-                                //                                    (disasmResult.sMnemonic == "jmp")) {
-                                //                                        stEntries.insert(nCurrentAddress); // TODO optional
-                                //                                        break;
-                                //                                    }
-                                //                                } else if ((dmFamily == XBinary::DMFAMILY_ARM) || (dmFamily == XBinary::DMFAMILY_ARM64)) {
-                                //                                    // TODO Check
-                                //                                    if ((disasmResult.sMnemonic == "b")) {
-                                //                                        stEntries.insert(nCurrentAddress); // TODO optional
-                                //                                        break;
-                                //                                    }
-                                //                                }
                             } else {
                                 break;
                             }
                         } else {
+                            if (nCurrentAddress == nEntryAddress) {
+                                // Virtual
+                                SHOWRECORD showRecord = {};
+                                showRecord.nAddress = nCurrentAddress;
+                                showRecord.nOffset = -1;
+                                showRecord.nSize = 1;
+                                //                            showRecord.sRecText1 = "db";
+                                //                            showRecord.sRecText2 = "0x01 dup (?)";
+                                showRecord.recordType = RT_VIRTUAL;
+                                showRecord.nRefTo = 0;
+                                showRecord.nRefFrom = 0;
+                                showRecord.dbstatus = DBSTATUS_PROCESS;
+                                listShowRecords.append(showRecord);
+
+                                nNumberOfOpcodes++;
+
+                                if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                                    break;
+                                }
+                            }
+
                             break;
                         }
                     } else {
-                        if (nCurrentAddress == nEntryAddress) {
-                            // Virtual
-                            SHOWRECORD showRecord = {};
-                            showRecord.nAddress = nCurrentAddress;
-                            showRecord.nOffset = -1;
-                            showRecord.nSize = 1;
-                            //                            showRecord.sRecText1 = "db";
-                            //                            showRecord.sRecText2 = "0x01 dup (?)";
-                            showRecord.recordType = RT_VIRTUAL;
-                            showRecord.nRefTo = 0;
-                            showRecord.nRefFrom = 0;
-                            showRecord.dbstatus = DBSTATUS_PROCESS;
-                            listShowRecords.append(showRecord);
-
-                            nNumberOfOpcodes++;
-
-                            if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
-                                break;
-                            }
-                        }
-
                         break;
                     }
-                } else {
-                    break;
                 }
-            }
 
-            if (!bSuspect) {
-                if (listEntries.first().nAddress == nEntryAddress) {
-                    listEntries.removeFirst();
-                }
-            } /*else {
-                if (listSuspect.first() == nEntryAddress) {
-                    listSuspect.removeFirst();
-                }
-            }*/
+                if (!bSuspect) {
+                    if (listEntries.first().nAddress == nEntryAddress) {
+                        listEntries.removeFirst();
+                    }
+                } /*else {
+                    if (listSuspect.first() == nEntryAddress) {
+                        listSuspect.removeFirst();
+                    }
+                }*/
 
-            if (listEntries.isEmpty() || (listShowRecords.count() > 10000)) {
+                if (listEntries.isEmpty() || (listShowRecords.count() > N_BUFFERSIZE)) {
 #ifdef QT_SQL_LIB
-                g_dataBase.transaction();
+                    g_dataBase.transaction();
 #endif
-                // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr("Save"));
-                _addShowRecords(&query, &listShowRecords);
-                _addRelRecords(&query, &listRelRecords);
+                    // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr("Save"));
+                    _addShowRecords_bind(&queryShowRecords, &listShowRecords);
+                    _addRelRecords_bind(&queryRel, &listRelRecords);
 #ifdef QT_SQL_LIB
-                g_dataBase.commit();
+                    g_dataBase.commit();
 #endif
-                listShowRecords.clear();
-                listRelRecords.clear();
-                stShowRecords.clear();
+                    listShowRecords.clear();
+                    listRelRecords.clear();
+                    stShowRecords.clear();
+                }
+            } else {
+                break;
             }
-        } else {
-            break;
         }
-    }
 
-    if (!(pPdStruct->bIsStop)) {
-        vacuumDb();
+        if (!(pPdStruct->bIsStop)) {
+            vacuumDb();
+        }
     }
 
     if (!(pPdStruct->bIsStop)) {
@@ -4542,7 +4556,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #endif
 
 #ifdef QT_DEBUG
-        qDebug("Analyze all %lld",timer.elapsed());
+    qDebug("Analyze all %lld", timer.elapsed());
 #endif
 
     return bResult;
@@ -4556,7 +4570,7 @@ bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
     QSqlQuery query(g_dataBase);
 
     _addShowRecord_prepare(&query);
-   bResult =  _addShowRecord_bind(&query, record);
+    bResult = _addShowRecord_bind(&query, record);
 
 #else
     Q_UNUSED(record)
@@ -4583,6 +4597,77 @@ bool XInfoDB::_addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record)
     pQuery->bindValue(5, record.nRefFrom);
     pQuery->bindValue(6, record.nBranch);
     pQuery->bindValue(7, record.dbstatus);
+
+    return querySQL(pQuery, true);
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_isShowRecordPresent_prepare1(QSqlQuery *pQuery)
+{
+    return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_isShowRecordPresent_prepare2(QSqlQuery *pQuery)
+{
+    return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_isShowRecordPresent_bind1(QSqlQuery *pQuery, XADDR nAddress)
+{
+    bool bResult = false;
+
+    pQuery->bindValue(0, nAddress);
+
+    if (querySQL(pQuery, false)) {
+        bResult = pQuery->next();
+    }
+
+    return bResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_isShowRecordPresent_bind(QSqlQuery *pQuery1, QSqlQuery *pQuery2, XADDR nAddress, qint64 nSize)
+{
+    bool bResult = false;
+
+    if (nSize <= 1) {
+        pQuery1->bindValue(0, nAddress);
+
+        if (querySQL(pQuery1, false)) {
+            bResult = pQuery1->next();
+        }
+    } else {
+        pQuery2->bindValue(0, nAddress);
+        pQuery2->bindValue(1, nAddress + nSize);
+
+        if (querySQL(pQuery2, false)) {
+            bResult = pQuery2->next();
+        }
+    }
+
+    return bResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_addRelRecord_prepare(QSqlQuery *pQuery)
+{
+    return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
+                                   "VALUES (?, ?, ?, ?, ?, ?, ?)")
+                               .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::_addRelRecord_bind(QSqlQuery *pQuery, const RELRECORD &record)
+{
+    pQuery->bindValue(0, record.nAddress);
+    pQuery->bindValue(1, record.relType);
+    pQuery->bindValue(2, record.nXrefToRelative);
+    pQuery->bindValue(3, record.memType);
+    pQuery->bindValue(4, record.nXrefToMemory);
+    pQuery->bindValue(5, record.nMemorySize);
+    pQuery->bindValue(6, record.dbstatus);
 
     return querySQL(pQuery, true);
 }
@@ -4651,10 +4736,8 @@ void XInfoDB::_completeDbAnalyze()
 #endif
 }
 #ifdef QT_SQL_LIB
-void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
+void XInfoDB::_addShowRecords_bind(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
 {
-    _addShowRecord_prepare(pQuery);
-
     qint32 nNumberOfRecords = pListRecords->count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
@@ -4663,24 +4746,12 @@ void XInfoDB::_addShowRecords(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords
 }
 #endif
 #ifdef QT_SQL_LIB
-void XInfoDB::_addRelRecords(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords)
+void XInfoDB::_addRelRecords_bind(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords)
 {
-    pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
-                            "VALUES (?, ?, ?, ?, ?, ?, ?)")
-                        .arg(s_sql_tableName[DBTABLE_RELATIVS]));
-
     qint32 nNumberOfRecords = pListRecords->count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        pQuery->bindValue(0, pListRecords->at(i).nAddress);
-        pQuery->bindValue(1, pListRecords->at(i).relType);
-        pQuery->bindValue(2, pListRecords->at(i).nXrefToRelative);
-        pQuery->bindValue(3, pListRecords->at(i).memType);
-        pQuery->bindValue(4, pListRecords->at(i).nXrefToMemory);
-        pQuery->bindValue(5, pListRecords->at(i).nMemorySize);
-        pQuery->bindValue(6, pListRecords->at(i).dbstatus);
-
-        querySQL(pQuery, true);
+        _addRelRecord_bind(pQuery, pListRecords->at(i));
     }
 }
 #endif
