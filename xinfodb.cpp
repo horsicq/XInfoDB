@@ -5044,6 +5044,7 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XB
     Q_UNUSED(nLocation)
     Q_UNUSED(locationType)
     Q_UNUSED(nSize)
+    Q_UNUSED(pPdStruct)
 #endif
 
     return listResult;
