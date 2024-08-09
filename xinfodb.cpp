@@ -139,7 +139,10 @@ void XInfoDB::initDB()
         g_dataBase.setDatabaseName(":memory:");
         //        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
 #else
+#ifndef QT_DEBUG
         g_dataBase.setDatabaseName(":memory:");
+#endif
+        g_dataBase.setDatabaseName("/home/hors/local_db.db");
 #endif
         // #ifdef Q_OS_LINUX
         //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
