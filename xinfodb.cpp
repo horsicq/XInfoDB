@@ -5449,6 +5449,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount, 
 #else
     Q_UNUSED(nLine)
     Q_UNUSED(nCount)
+    Q_UNUSED(pPdStruct)
 #endif
 
     return listResult;
