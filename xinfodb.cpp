@@ -5556,6 +5556,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
     }
 #else
     Q_UNUSED(dbstatus)
+    Q_UNUSED(pPdStruct)
 #endif
     return listResult;
 }
