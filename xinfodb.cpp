@@ -5586,6 +5586,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDS
     }
 #else
     Q_UNUSED(dbstatus)
+    Q_UNUSED(pPdStruct)
 #endif
     return listResult;
 }
