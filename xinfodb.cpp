@@ -3603,9 +3603,9 @@ void XInfoDB::clearDb()
 void XInfoDB::vacuumDb()
 {
 #ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+    // QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("VACUUM"), false);
+    // querySQL(&query, QString("VACUUM"), false);
 #endif
 }
 
