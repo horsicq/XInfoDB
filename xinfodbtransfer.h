@@ -69,7 +69,7 @@ public:
     void setData(COMMAND transferType, const OPTIONS &options, QList<XPE::IMPORT_RECORD> *pListImports, XBinary::PDSTRUCT *pPdStruct);
 #endif
 #endif
-    //    bool loadFromFile(QString sFileName,XBinary::FT fileType);
+    //    bool loadFromFile(const QString &sFileName,XBinary::FT fileType);
 
 public slots:
     bool process();
