@@ -836,7 +836,6 @@ public:
 
     RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);
-
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 
     bool loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStruct = nullptr);
