@@ -851,7 +851,6 @@ public:
     bool copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct);
 #endif
     void testFunction();
-
     void setDebuggerState(bool bState);
     bool isDebugger();
 #ifdef QT_GUI_LIB
