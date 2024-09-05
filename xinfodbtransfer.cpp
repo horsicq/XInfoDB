@@ -153,7 +153,7 @@ bool XInfoDBTransfer::process()
         } else if (g_transferType == COMMAND_CLEAR) {
             g_pXInfoDB->_clearAnalyze();
             // TODO unset analyze all flag
-            // TODO unset dtatabase changed
+            // TODO unset datatabase changed
         }
     }
 
