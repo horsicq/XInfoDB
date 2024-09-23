@@ -312,7 +312,7 @@ public:
         BPT bpType;
         BPM bpMode;
         BPI bpInfo;
-        QVariant vInfo;
+        QVariant vInfo; // TODO rename
         qint32 nDataSize;
         char origData[4];  // TODO consts check
         char bpData[4];
