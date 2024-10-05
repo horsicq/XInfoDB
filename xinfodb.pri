@@ -29,6 +29,11 @@ SOURCES += \
     include($$PWD/../XCapstone/xcapstone.pri)
 }
 
+!contains(XCONFIG, xscanengine) {
+    XCONFIG += xscanengine
+    include($$PWD/../XScanEngine/xscanengine.pri)
+}
+
 DISTFILES += \
     $$PWD/LICENSE \
     $$PWD/README.md \
