@@ -723,10 +723,10 @@ public:
         QString sComment;
     };
 
-    bool isSymbolsPresent(); // TODO pdStruct
-    QList<SYMBOL> getAllSymbols(); // TODO pdStruct
-    QMap<quint32, QString> getSymbolModules(); // TODO pdStruct
-    QList<REFERENCE> getReferencesForAddress(XADDR nAddress); // TODO pdStruct
+    bool isSymbolsPresent();                                   // TODO pdStruct
+    QList<SYMBOL> getAllSymbols();                             // TODO pdStruct
+    QMap<quint32, QString> getSymbolModules();                 // TODO pdStruct
+    QList<REFERENCE> getReferencesForAddress(XADDR nAddress);  // TODO pdStruct
 
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
 
