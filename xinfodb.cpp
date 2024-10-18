@@ -212,7 +212,6 @@ void XInfoDB::_createTableNames()
     s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(XBinary::disasmIdToString(g_disasmMode)));
     s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
-    s_sql_tableName[DBTABLE_COMMENTS] = convertStringSQLTableName(QString("COMMENTS"));
 #endif
 }
 
@@ -3378,7 +3377,6 @@ void XInfoDB::initDisasmDb()
     createTable(&g_dataBase, DBTABLE_TLS);
     createTable(&g_dataBase, DBTABLE_FUNCTIONS);
     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    createTable(&g_dataBase, DBTABLE_COMMENTS);
 #endif
 }
 
@@ -3386,7 +3384,6 @@ void XInfoDB::initHexDb()
 {
 #ifdef QT_SQL_LIB
     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    createTable(&g_dataBase, DBTABLE_COMMENTS);
 #endif
 }
 #ifdef QT_SQL_LIB
@@ -3500,14 +3497,6 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          ")")
                      .arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
                  false);  // mb column BASE for share objects
-    } else if (dbTable == DBTABLE_COMMENTS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "LOCATION INTEGER PRIMARY KEY,"
-                         "COMMENT TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_COMMENTS]),
-                 false);  // mb column BASE for share objects
     } else if (dbTable == DBTABLE_FUNCTIONS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
@@ -3544,7 +3533,7 @@ bool XInfoDB::isDbPresent()
     bool bResult = false;
 #ifdef QT_SQL_LIB
     if (g_dataBase.isOpen()) {
-        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_COMMENTS) ||
+        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) ||
                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) ||
                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) ||
                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) ||
@@ -3558,7 +3547,6 @@ void XInfoDB::removeAllTables()
 {
 #ifdef QT_SQL_LIB
     removeTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    removeTable(&g_dataBase, DBTABLE_COMMENTS);
     removeTable(&g_dataBase, DBTABLE_SHOWRECORDS);
     removeTable(&g_dataBase, DBTABLE_RELATIVS);
     removeTable(&g_dataBase, DBTABLE_IMPORT);
@@ -3575,7 +3563,6 @@ void XInfoDB::clearAllTables()
 {
 #ifdef QT_SQL_LIB
     clearTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    clearTable(&g_dataBase, DBTABLE_COMMENTS);
     clearTable(&g_dataBase, DBTABLE_SHOWRECORDS);
     clearTable(&g_dataBase, DBTABLE_RELATIVS);
     clearTable(&g_dataBase, DBTABLE_IMPORT);
@@ -4861,7 +4848,6 @@ void XInfoDB::_clearAnalyze()
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), true);
-    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_COMMENTS]), true);
     querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
 #endif
 }
@@ -5927,30 +5913,6 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
                 queryWrite.bindValue(5, queryRead.value(5));
                 queryWrite.bindValue(6, queryRead.value(6));
                 queryWrite.bindValue(7, queryRead.value(7));
-
-                querySQL(&queryWrite, true);
-            }
-
-            pDatabaseDest->commit();
-        }
-    }
-
-    if (!(pPdStruct->bIsStop)) {
-        // DBTABLE_COMMENTS
-        if (isTablePresent(pDatabaseSource, DBTABLE_COMMENTS)) {
-            pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_COMMENTS);
-            createTable(pDatabaseDest, DBTABLE_COMMENTS);
-
-            querySQL(&queryRead, QString("SELECT LOCATION, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_COMMENTS]), false);
-
-            queryWrite.prepare(QString("INSERT INTO %1 (LOCATION, COMMENT) "
-                                       "VALUES (?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_COMMENTS]));
-
-            while (queryRead.next() && (!(pPdStruct->bIsStop))) {
-                queryWrite.bindValue(0, queryRead.value(0));
-                queryWrite.bindValue(1, queryRead.value(1));
 
                 querySQL(&queryWrite, true);
             }

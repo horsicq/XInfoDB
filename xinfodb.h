@@ -426,7 +426,6 @@ public:
 #ifdef QT_SQL_LIB
     enum DBTABLE {
         DBTABLE_BOOKMARKS = 0,
-        DBTABLE_COMMENTS,
         DBTABLE_SHOWRECORDS,
         DBTABLE_RELATIVS,
         DBTABLE_IMPORT,
@@ -714,14 +713,10 @@ public:
         qint64 nSize;
         QColor colText;
         QColor colBackground;
-        QString sTemplate;
+        QString sTemplate; // mb rename to sScript
         QString sComment;
     };
 #endif
-    struct COMMENTRECORD {
-        quint64 nLocation;
-        QString sComment;
-    };
 
     bool isSymbolsPresent();                                   // TODO pdStruct
     QList<SYMBOL> getAllSymbols();                             // TODO pdStruct
