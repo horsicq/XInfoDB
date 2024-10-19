@@ -3533,11 +3533,10 @@ bool XInfoDB::isDbPresent()
     bool bResult = false;
 #ifdef QT_SQL_LIB
     if (g_dataBase.isOpen()) {
-        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
+        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
+                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
     }
 #endif
     return bResult;

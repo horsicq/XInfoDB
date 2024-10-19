@@ -713,7 +713,7 @@ public:
         qint64 nSize;
         QColor colText;
         QColor colBackground;
-        QString sTemplate; // mb rename to sScript
+        QString sTemplate;  // mb rename to sScript
         QString sComment;
     };
 #endif
