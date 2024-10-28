@@ -67,6 +67,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 
 XInfoDB::~XInfoDB()
 {
+    clearDb();
     XCapstone::closeHandle(&g_handle);
 #ifdef QT_SQL_LIB
 #ifdef QT_DEBUG
@@ -5744,6 +5745,10 @@ bool XInfoDB::loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdS
         bResult = copyDb(&dataBase, &g_dataBase, pPdStruct);
 
         dataBase.close();
+
+        if (bResult) {
+            setDatabaseChanged(false);
+        }
     }
 
     dataBase = QSqlDatabase();

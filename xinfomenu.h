@@ -31,7 +31,10 @@ public:
 
     QMenu *createMenu(QWidget *pParent);
     void setData(XInfoDB *pXInfoDB);
+    void tryToSave();
+    void tryToLoad();
     void reset();
+    QString getDatabaseFileName();
 
 private slots:
     void updateMenu();
@@ -39,6 +42,8 @@ private slots:
     void actionExport();
     void actionImport();
     void actionClear();
+    void save(QString sFileName);
+    void load(QString sFileName);
 
 private:
     XShortcuts *g_pShortcuts;

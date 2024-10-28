@@ -72,9 +72,43 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB)
     }
 }
 
+void XInfoMenu::tryToSave()
+{
+    // TODO only changes
+    if (g_pXInfoDB->isDbPresent() && g_pXInfoDB->isDatabaseChanged()) {
+        QString _sFileName = getDatabaseFileName();
+
+        if (QMessageBox::question(g_pParent, tr("Database"), QString("%1 %2?").arg(tr("Save"), _sFileName)) == QMessageBox::Yes) {
+            save(_sFileName);
+        }
+    }
+}
+
+void XInfoMenu::tryToLoad()
+{
+    QString _sFileName = getDatabaseFileName();
+
+    if (XBinary::isFileExists(_sFileName)) {
+        if (QMessageBox::question(g_pParent, tr("Database"), QString("%1 %2?").arg(tr("Load"), _sFileName)) == QMessageBox::Yes) {
+            load(_sFileName);
+        }
+    }
+}
+
 void XInfoMenu::reset()
 {
     setData(nullptr);
+}
+
+QString XInfoMenu::getDatabaseFileName()
+{
+    QString sResult;
+
+    if (g_pXInfoDB) {
+        sResult = XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
+    }
+
+    return sResult;
 }
 
 void XInfoMenu::updateMenu()
@@ -109,19 +143,11 @@ void XInfoMenu::updateMenu()
 void XInfoMenu::actionExport()
 {
     if (g_pXInfoDB) {
-        QString _sFileName = XBinary::getDeviceDirectory(g_pXInfoDB->getDevice()) + QDir::separator() + XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
+        QString _sFileName = getDatabaseFileName();
         _sFileName = QFileDialog::getSaveFileName(g_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database"), tr("All files")));
 
         if (!_sFileName.isEmpty()) {
-            DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
-            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
-            XInfoDBTransfer::OPTIONS options = {};
-            options.sFileName = _sFileName;
-            options.nModuleAddress = -1;
-
-            dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);
-
-            dialogTransfer.showDialogDelay();
+            load(_sFileName);
         }
     }
 }
@@ -133,16 +159,7 @@ void XInfoMenu::actionImport()
         _sFileName = QFileDialog::getOpenFileName(g_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
 
         if (!_sFileName.isEmpty()) {
-            DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
-            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
-            XInfoDBTransfer::OPTIONS options = {};
-            options.sFileName = _sFileName;
-            options.nModuleAddress = -1;
-
-            dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
-
-            dialogTransfer.showDialogDelay();
-            g_pXInfoDB->reloadView();
+            save(_sFileName);
         }
     }
 }
@@ -162,4 +179,31 @@ void XInfoMenu::actionClear()
             g_pXInfoDB->reloadView();
         }
     }
+}
+
+void XInfoMenu::save(QString sFileName)
+{
+    DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
+    XInfoDBTransfer::OPTIONS options = {};
+    options.sFileName = sFileName;
+    options.nModuleAddress = -1;
+
+    dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
+
+    dialogTransfer.showDialogDelay();
+    g_pXInfoDB->reloadView();
+}
+
+void XInfoMenu::load(QString sFileName)
+{
+    DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
+    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
+    XInfoDBTransfer::OPTIONS options = {};
+    options.sFileName = sFileName;
+    options.nModuleAddress = -1;
+
+    dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);
+
+    dialogTransfer.showDialogDelay();
 }
