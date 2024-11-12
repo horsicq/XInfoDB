@@ -76,7 +76,7 @@ XInfoDB::~XInfoDB()
     if (g_dataBase.isOpen()) {
         g_dataBase.close();
         g_dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("memory_db");
+        QSqlDatabase::removeDatabase(g_sDatabaseName);
     }
 #endif
     delete g_pMutexSQL;
@@ -133,7 +133,8 @@ void XInfoDB::initDB()
 {
 #ifdef QT_SQL_LIB
     if (!g_dataBase.isOpen()) {
-        g_dataBase = QSqlDatabase::addDatabase("QSQLITE", "memory_db");
+        g_sDatabaseName = QString("memdb_%1").arg(XBinary::randomString(10));
+        g_dataBase = QSqlDatabase::addDatabase("QSQLITE", g_sDatabaseName);
 
         //        g_dataBase.setDatabaseName(":memory:");
 #ifdef Q_OS_WIN

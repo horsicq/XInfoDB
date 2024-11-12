@@ -935,6 +935,7 @@ private:
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
+    QString g_sDatabaseName;
     QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
