@@ -58,6 +58,12 @@ void XInfoDBOptionsWidget::setDefaultValues(XOptions *pOptions)
     pOptions->addID(XOptions::ID_INFO_PATH, "$data/info");
 }
 
+void XInfoDBOptionsWidget::reloadData(bool bSaveSelection)
+{
+    Q_UNUSED(bSaveSelection)
+    reload();
+}
+
 void XInfoDBOptionsWidget::reload()
 {
     g_pOptions->setLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
