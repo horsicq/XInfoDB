@@ -40,6 +40,7 @@
 
 class XInfoDB : public QObject {
     Q_OBJECT
+
 public:
     enum MODE {
         MODE_UNKNOWN = 0,
