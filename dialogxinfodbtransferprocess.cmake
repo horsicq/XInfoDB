@@ -1,8 +1,13 @@
 include_directories(${CMAKE_CURRENT_LIST_DIR})
 
-include(${CMAKE_CURRENT_LIST_DIR}/../FormatDialogs/xdialogprocess.cmake)
+if (NOT DEFINED XDIALOGPROCESS_SOURCES)
+    include(${CMAKE_CURRENT_LIST_DIR}/../FormatDialogs/xdialogprocess.cmake)
+    set(DIALOGXINFODBTRANSFERPROCESS_SOURCES ${DIALOGXINFODBTRANSFERPROCESS_SOURCES} ${XDIALOGPROCESS_SOURCES})
+endif()
+
 # TODO Check includes
 set(DIALOGXINFODBTRANSFERPROCESS_SOURCES
+    ${DIALOGXINFODBTRANSFERPROCESS_SOURCES}
     ${XDIALOGPROCESS_SOURCES}
     ${CMAKE_CURRENT_LIST_DIR}/dialogxinfodbtransferprocess.cpp
     ${CMAKE_CURRENT_LIST_DIR}/dialogxinfodbtransferprocess.h

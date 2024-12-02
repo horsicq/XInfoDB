@@ -5959,11 +5959,11 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             createTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
 
             querySQL(&queryRead,
-                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]),
+                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]),
                      false);
 
-            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTEXT1, RECTEXT2, RECTYPE, LINENUMBER, REFTO, REFFROM) "
-                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")
+            queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
+                                       "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
                                    .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
@@ -5973,8 +5973,8 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
                 queryWrite.bindValue(3, queryRead.value(3));
                 queryWrite.bindValue(4, queryRead.value(4));
                 queryWrite.bindValue(5, queryRead.value(5));
-                queryWrite.bindValue(4, queryRead.value(6));
-                queryWrite.bindValue(5, queryRead.value(7));
+                queryWrite.bindValue(6, queryRead.value(6));
+                queryWrite.bindValue(7, queryRead.value(7));
 
                 querySQL(&queryWrite, true);
             }
