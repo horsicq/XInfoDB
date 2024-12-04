@@ -3399,18 +3399,24 @@ bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 }
 #endif
 #ifdef QT_SQL_LIB
-bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable)
+bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, QString sTable)
 {
     bool bResult = false;
     QSqlQuery query(*pDatabase);
 
-    querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(s_sql_tableName[dbTable]), false);
+    querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(sTable), false);
 
     if (query.next()) {
         bResult = (query.value(0).toInt() != 0);
     }
 
     return bResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable)
+{
+    return isTableNotEmpty(pDatabase, s_sql_tableName[dbTable]);
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -3515,11 +3521,17 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
 }
 #endif
 #ifdef QT_SQL_LIB
-void XInfoDB::removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
+void XInfoDB::removeTable(QSqlDatabase *pDatabase, QString sTable)
 {
     QSqlQuery query(*pDatabase);
 
-    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(s_sql_tableName[dbTable]), false);
+    querySQL(&query, QString("DROP TABLE IF EXISTS %1").arg(sTable), false);
+}
+#endif
+#ifdef QT_SQL_LIB
+void XInfoDB::removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
+{
+    removeTable(pDatabase, s_sql_tableName[dbTable]);
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -3528,6 +3540,42 @@ void XInfoDB::clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     QSqlQuery query(*pDatabase);
 
     querySQL(&query, QString("DELETE FROM TABLE %1").arg(s_sql_tableName[dbTable]), false);
+}
+#endif
+#ifdef QT_SQL_LIB
+QString XInfoDB::getCreateSqlString(QSqlDatabase *pDatabase, QString sTable)
+{
+    QString sResult;
+
+    QSqlQuery query(*pDatabase);
+
+    querySQL(&query, QString("SELECT sql FROM sqlite_master WHERE type='table' AND name='%1'").arg(sTable), false);
+
+    if (query.next()) {
+        sResult = query.value(0).toString();
+    }
+
+    return sResult;
+}
+#endif
+#ifdef QT_SQL_LIB
+QList<QString> XInfoDB::getNotEmptyTables(QSqlDatabase *pDatabase)
+{
+    QList<QString> listResult;
+
+    QSqlQuery query(*pDatabase);
+
+    querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table'"), false);
+
+    while (query.next()) {
+        QString sTable = query.value(0).toString();
+
+        if (isTableNotEmpty(pDatabase, sTable)) {
+            listResult.append(sTable);
+        }
+    }
+
+    return listResult;
 }
 #endif
 bool XInfoDB::isDbPresent()
@@ -5890,24 +5938,59 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     // initDb(pDatabaseDest); // TODO replace to is Table exists ->
 
+    QString sBOOKMARKS;
+    QString sSYMBOLS;
+    QString sSHOWRECORDS;
+    QString sRELATIVS;
+    QString sEXPORT;
+    QString sIMPORT;
+    QString sTLS;
+    QString sFUNCTIONS;
+
     QSqlQuery queryRead(*pDatabaseSource);
     QSqlQuery queryWrite(*pDatabaseDest);
 
     bool bResult = false;
 
+    QList<QString> listTables = getNotEmptyTables(pDatabaseSource);
+
+    qint32 nNumberOfTables = listTables.count();
+
+    for (qint32 i = 0; i < nNumberOfTables; i++) {
+        QString sTable = listTables.at(i);
+
+        if (sTable.contains("BOOKMARK")) {
+            sBOOKMARKS = sTable;
+        } else if (sTable.contains("SYMBOLS")) {
+            sSYMBOLS = sTable;
+        } else if (sTable.contains("SHOWRECORDS")) {
+            sSHOWRECORDS = sTable;
+        } else if (sTable.contains("RELATIVS")) {
+            sRELATIVS = sTable;
+        } else if (sTable.contains("EXPORT")) {
+            sEXPORT = sTable;
+        } else if (sTable.contains("IMPORT")) {
+            sIMPORT = sTable;
+        } else if (sTable.contains("TLS")) {
+            sTLS = sTable;
+        } else if (sTable.contains("FUNCTIONS")) {
+            sFUNCTIONS = sTable;
+        }
+    }
+
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_BOOKMARKS
-        if (isTablePresent(pDatabaseSource, DBTABLE_BOOKMARKS)) {
+        if (sBOOKMARKS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_BOOKMARKS);
-            createTable(pDatabaseDest, DBTABLE_BOOKMARKS);
+            removeTable(pDatabaseDest, sBOOKMARKS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sBOOKMARKS), true);
 
             querySQL(&queryRead,
-                     QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), false);
+                     QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(sBOOKMARKS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+                                   .arg(sBOOKMARKS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -5928,16 +6011,16 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_SYMBOLS
-        if (isTablePresent(pDatabaseSource, DBTABLE_SYMBOLS)) {
+        if (sSYMBOLS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_SYMBOLS);
-            createTable(pDatabaseDest, DBTABLE_SYMBOLS);
+            removeTable(pDatabaseDest, sSYMBOLS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sSYMBOLS), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, MODULE, SYMTEXT FROM %1").arg(sSYMBOLS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT) "
                                        "VALUES (?, ?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+                                   .arg(sSYMBOLS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -5953,18 +6036,18 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_SHOWRECORDS
-        if (isTablePresent(pDatabaseSource, DBTABLE_SHOWRECORDS)) {
+        if (sSHOWRECORDS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
-            createTable(pDatabaseDest, DBTABLE_SHOWRECORDS);
+            removeTable(pDatabaseDest, sSHOWRECORDS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sSHOWRECORDS), true);
 
             querySQL(&queryRead,
-                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]),
+                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1").arg(sSHOWRECORDS),
                      false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+                                   .arg(sSHOWRECORDS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -5985,17 +6068,17 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_RELATIVS
-        if (isTablePresent(pDatabaseSource, DBTABLE_RELATIVS)) {
+        if (sRELATIVS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_RELATIVS);
-            createTable(pDatabaseDest, DBTABLE_RELATIVS);
+            removeTable(pDatabaseDest, sRELATIVS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sRELATIVS), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]),
+            querySQL(&queryRead, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1").arg(sRELATIVS),
                      false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
                                        "VALUES (?, ?, ?, ?, ?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+                                   .arg(sRELATIVS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -6014,16 +6097,16 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_IMPORT
-        if (isTablePresent(pDatabaseSource, DBTABLE_IMPORT)) {
+        if (sIMPORT != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_IMPORT);
-            createTable(pDatabaseDest, DBTABLE_IMPORT);
+            removeTable(pDatabaseDest, sIMPORT);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sIMPORT), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]), false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(sIMPORT), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                                        "VALUES (?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_IMPORT]));
+                                   .arg(sIMPORT));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -6038,16 +6121,16 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_EXPORT
-        if (isTablePresent(pDatabaseSource, DBTABLE_EXPORT)) {
+        if (sEXPORT != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_EXPORT);
-            createTable(pDatabaseDest, DBTABLE_EXPORT);
+            removeTable(pDatabaseDest, sEXPORT);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sEXPORT), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]), false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(sEXPORT), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                                        "VALUES (?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_EXPORT]));
+                                   .arg(sEXPORT));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -6062,16 +6145,16 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_TLS
-        if (isTablePresent(pDatabaseSource, DBTABLE_TLS)) {
+        if (sTLS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_TLS);
-            createTable(pDatabaseDest, DBTABLE_TLS);
+            removeTable(pDatabaseDest, sTLS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sTLS), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, ORIGNAME FROM %1").arg(sTLS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
                                        "VALUES (?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_TLS]));
+                                   .arg(sTLS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
@@ -6086,16 +6169,16 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
 
     if (!(pPdStruct->bIsStop)) {
         // DBTABLE_FUNCTIONS
-        if (isTablePresent(pDatabaseSource, DBTABLE_FUNCTIONS)) {
+        if (sFUNCTIONS != "") {
             pDatabaseDest->transaction();
-            removeTable(pDatabaseDest, DBTABLE_FUNCTIONS);
-            createTable(pDatabaseDest, DBTABLE_FUNCTIONS);
+            removeTable(pDatabaseDest, sFUNCTIONS);
+            querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sFUNCTIONS), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(sFUNCTIONS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) "
                                        "VALUES (?, ?, ?)")
-                                   .arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+                                   .arg(sFUNCTIONS));
 
             while (queryRead.next() && (!(pPdStruct->bIsStop))) {
                 queryWrite.bindValue(0, queryRead.value(0));
