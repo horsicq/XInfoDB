@@ -5985,8 +5985,7 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, sBOOKMARKS);
             querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sBOOKMARKS), true);
 
-            querySQL(&queryRead,
-                     QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(sBOOKMARKS), false);
+            querySQL(&queryRead, QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1").arg(sBOOKMARKS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
@@ -6041,9 +6040,7 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, sSHOWRECORDS);
             querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sSHOWRECORDS), true);
 
-            querySQL(&queryRead,
-                     QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1").arg(sSHOWRECORDS),
-                     false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1").arg(sSHOWRECORDS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
                                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
@@ -6073,8 +6070,7 @@ bool XInfoDB::copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest,
             removeTable(pDatabaseDest, sRELATIVS);
             querySQL(&queryWrite, getCreateSqlString(pDatabaseSource, sRELATIVS), true);
 
-            querySQL(&queryRead, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1").arg(sRELATIVS),
-                     false);
+            querySQL(&queryRead, QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1").arg(sRELATIVS), false);
 
             queryWrite.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE) "
                                        "VALUES (?, ?, ?, ?, ?, ?)")
