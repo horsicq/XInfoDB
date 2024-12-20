@@ -206,13 +206,14 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
-    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(XBinary::disasmIdToString(g_disasmMode)));
-    s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(XBinary::disasmIdToString(g_disasmMode)));
+    QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
+    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
+    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
+    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
+    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(sPrefix));
+    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(sPrefix));
+    s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(sPrefix));
+    s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(sPrefix));
     s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
 #endif
 }
@@ -3128,9 +3129,9 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
     query.bindValue(0, nAddress);
-    query.bindValue(1, nModule);
-    query.bindValue(2, sSymbol);
-    query.bindValue(3, symSource);
+    query.bindValue(2, nModule);
+    query.bindValue(3, sSymbol);
+    query.bindValue(4, (quint32)symSource);
 
     bResult = querySQL(&query, true);
 #else
@@ -3823,10 +3824,12 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 
             XBinary::_MEMORY_MAP memoryMap = mach.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
-            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
-            _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
+            if (memoryMap.nEntryPointAddress != -1) {
+                _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
+                _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
 
-            stAddresses.insert(memoryMap.nEntryPointAddress);
+                stAddresses.insert(memoryMap.nEntryPointAddress);
+            }
         }
     }
 
@@ -5893,6 +5896,7 @@ bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, bool bWrite)
 #ifdef QT_DEBUG
     if ((pSqlQuery->lastError().text() != " ") && (pSqlQuery->lastError().text() != "")) {
         qDebug("%s", pSqlQuery->lastQuery().toLatin1().data());
+        qDebug("%s", pSqlQuery->executedQuery().toLatin1().data());
         qDebug("%s", pSqlQuery->lastError().text().toLatin1().data());
     }
 #endif
