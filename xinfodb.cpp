@@ -144,6 +144,7 @@ void XInfoDB::initDB()
 #ifndef QT_DEBUG
         g_dataBase.setDatabaseName(":memory:");
 #endif
+        // g_dataBase.setDatabaseName(":memory:");
         g_dataBase.setDatabaseName("/home/hors/local_db.db");
 #endif
         // #ifdef Q_OS_LINUX
@@ -3128,10 +3129,10 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol
                           "VALUES (?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
-    query.bindValue(0, nAddress);
-    query.bindValue(2, nModule);
-    query.bindValue(3, sSymbol);
-    query.bindValue(4, (quint32)symSource);
+    query.addBindValue(nAddress);
+    query.addBindValue(nModule);
+    query.addBindValue(sSymbol);
+    query.addBindValue((quint32)symSource);
 
     bResult = querySQL(&query, true);
 #else
@@ -3685,9 +3686,9 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         fileType = XBinary::getPrefFileType(pDevice);
     }
 
-#ifdef QT_SQL_LIB
-    g_dataBase.transaction();
-#endif
+// #ifdef QT_SQL_LIB
+//     g_dataBase.transaction();
+// #endif
 
     if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
         XELF elf(pDevice, bIsImage, nModuleAddress);
@@ -3749,7 +3750,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 
             XBinary::_MEMORY_MAP memoryMap = pe.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
-            _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
+            // _addSymbol(memoryMap.nEntryPointAddress, 0, "EntryPoint", SS_FILE);  // TD mb tr
             _addFunction(memoryMap.nEntryPointAddress, 0, "EntryPoint");
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
@@ -3833,10 +3834,10 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         }
     }
 
-#ifdef QT_SQL_LIB
-    g_dataBase.commit();
-    vacuumDb();
-#endif
+// #ifdef QT_SQL_LIB
+//     g_dataBase.commit();
+//     vacuumDb();
+// #endif
 
     _sortSymbols();
 
@@ -4925,9 +4926,7 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) "
-                          "VALUES (?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) VALUES (?, ?, ?)").arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
 
     query.bindValue(0, nAddress);
     query.bindValue(1, nSize);

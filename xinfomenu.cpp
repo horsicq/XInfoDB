@@ -77,8 +77,9 @@ void XInfoMenu::tryToSave()
     // TODO only changes
     if (g_pXInfoDB->isDbPresent() && g_pXInfoDB->isDatabaseChanged()) {
         QString _sFileName = getDatabaseFileName();
+        QString _sString = QString("%1 \"%2\"?").arg(tr("Save"), _sFileName);
 
-        if (QMessageBox::question(g_pParent, tr("Database"), QString("%1 %2?").arg(tr("Save"), _sFileName)) == QMessageBox::Yes) {
+        if (QMessageBox::question(g_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
             save(_sFileName);
         }
     }
@@ -89,7 +90,9 @@ void XInfoMenu::tryToLoad()
     QString _sFileName = getDatabaseFileName();
 
     if (XBinary::isFileExists(_sFileName)) {
-        if (QMessageBox::question(g_pParent, tr("Database"), QString("%1 %2?").arg(tr("Load"), _sFileName)) == QMessageBox::Yes) {
+        QString _sString = QString("%1 \"%2\"?").arg(tr("Load"), _sFileName);
+
+        if (QMessageBox::question(g_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
             load(_sFileName);
         }
     }

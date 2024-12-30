@@ -98,11 +98,11 @@ bool XInfoDBTransfer::process()
                 if (pDevice) {
                     g_pXInfoDB->clearRecordInfoCache();
 
+                    g_pXInfoDB->initDisasmDb();
+
                     if ((!(g_pXInfoDB->isSymbolsPresent())) || (g_transferType == COMMAND_ANALYZEALL)) {
                         g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                     }
-
-                    g_pXInfoDB->initDisasmDb();
 
                     XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, XBinary::MAPMODE_UNKNOWN, pDevice);
 
