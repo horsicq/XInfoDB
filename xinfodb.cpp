@@ -3686,9 +3686,9 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         fileType = XBinary::getPrefFileType(pDevice);
     }
 
-// #ifdef QT_SQL_LIB
-//     g_dataBase.transaction();
-// #endif
+    // #ifdef QT_SQL_LIB
+    //     g_dataBase.transaction();
+    // #endif
 
     if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
         XELF elf(pDevice, bIsImage, nModuleAddress);
@@ -3834,10 +3834,10 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
         }
     }
 
-// #ifdef QT_SQL_LIB
-//     g_dataBase.commit();
-//     vacuumDb();
-// #endif
+    // #ifdef QT_SQL_LIB
+    //     g_dataBase.commit();
+    //     vacuumDb();
+    // #endif
 
     _sortSymbols();
 
