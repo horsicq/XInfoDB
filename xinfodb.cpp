@@ -3070,6 +3070,10 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 {
     QList<REFERENCE> listResult;
 #ifdef QT_SQL_LIB
+    XCapstone::DISASM_OPTIONS disasmOptions = {};
+    disasmOptions.disasmMode = getDisasmMode();
+    disasmOptions.syntax = XBinary::SYNTAX_DEFAULT;
+
     QSqlQuery query(g_dataBase);
 
     querySQL(&query,
@@ -3086,11 +3090,11 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
-            XCapstone::DISASM_RESULT _disasmResult =
-                XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baBuffer.data(), baBuffer.size(), record.nAddress);
+
+            XCapstone::DISASM_RESULT _disasmResult = XCapstone::disasm_ex(g_handle, baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
-                record.sCode += " " + convertOpcodeString(_disasmResult, getDisasmMode(), XBinary::SYNTAX_DEFAULT, RI_TYPE_SYMBOLADDRESS);
+                record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
             }
         }
 
@@ -3921,6 +3925,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
     XCapstone::DISASM_OPTIONS disasmOptions = {};
+    disasmOptions.disasmMode = getDisasmMode();
+    disasmOptions.syntax = XBinary::SYNTAX_DEFAULT;
 
     char byte_buffer[16];  // TODO const
     XBinary binary(analyzeOptions.pDevice);
@@ -4077,8 +4083,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             }
 
                             if (nSize > 0) {
+
                                 XCapstone::DISASM_RESULT disasmResult =
-                                    XCapstone::disasm_ex(g_handle, disasmMode, XBinary::SYNTAX_DEFAULT, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                                    XCapstone::disasm_ex(g_handle, byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                                 if (disasmResult.bIsValid) {
                                     {
@@ -6244,29 +6251,29 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const XInfoDB::RI_TYPE &riType,
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType,
                                      const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
     if (disasmResult.relType) {
-        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, disasmMode, syntax, riType, disasmOptions);
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, riType, disasmOptions);
     }
 
     if (disasmResult.memType) {
-        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToMemory, disasmMode, syntax, riType, disasmOptions);
+        sResult = _convertOpcodeString(sResult, disasmResult.nXrefToMemory, riType, disasmOptions);
     }
 
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, XBinary::DM disasmMode, XBinary::SYNTAX syntax, const RI_TYPE &riType,
+QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType,
                                       const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 
     QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
-    QString sOrigin = XCapstone::getNumberString(disasmMode, nAddress, syntax);
+    QString sOrigin = XCapstone::getNumberString(disasmOptions.disasmMode, nAddress, disasmOptions.syntax);
 
     if (disasmOptions.bIsUppercase) {
         sOrigin = sOrigin.toUpper();
