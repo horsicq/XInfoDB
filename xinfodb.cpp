@@ -4083,9 +4083,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             }
 
                             if (nSize > 0) {
-
-                                XCapstone::DISASM_RESULT disasmResult =
-                                    XCapstone::disasm_ex(g_handle, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                                XCapstone::DISASM_RESULT disasmResult = XCapstone::disasm_ex(g_handle, byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                                 if (disasmResult.bIsValid) {
                                     {
@@ -6251,8 +6249,7 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType,
-                                     const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
@@ -6267,8 +6264,7 @@ QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, cons
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType,
-                                      const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 
