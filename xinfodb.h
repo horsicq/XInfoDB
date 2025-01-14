@@ -25,7 +25,7 @@
 #ifdef QT_GUI_LIB
 #include <QColor>
 #endif
-#include "xcapstone.h"
+#include "xdisasmcore.h"
 #include "xformats.h"
 #include "xscanengine.h"
 #ifdef USE_XPROCESS
@@ -699,9 +699,9 @@ public:
 
     struct RELRECORD {
         XADDR nAddress;
-        XCapstone::RELTYPE relType;
+        XDisasmCore::RELTYPE relType;
         XADDR nXrefToRelative;
-        XCapstone::MEMTYPE memType;
+        XDisasmCore::MEMTYPE memType;
         XADDR nXrefToMemory;
         qint32 nMemorySize;
         DBSTATUS dbstatus;
@@ -825,7 +825,7 @@ public:
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
     QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct);
     QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    QList<XADDR> getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
+    QList<XADDR> getShowRecordRelAddresses(XDisasmCore::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
 
@@ -857,8 +857,8 @@ public:
     static QColor stringToColor(const QString &sCode);
     static QString colorToString(QColor color);
 #endif
-    QString convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions);
-    QString _convertOpcodeString(const QString &sString, XADDR nAddress, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions);
+    QString convertOpcodeString(XDisasmCore::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions);
+    QString _convertOpcodeString(const QString &sString, XADDR nAddress, const XInfoDB::RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 public slots:
@@ -929,7 +929,6 @@ private:
     XBinary g_binary;
     XBinary::FT g_fileType;
     XBinary::DM g_disasmMode;
-    csh g_handle;
     XBinary::_MEMORY_MAP g_MainModuleMemoryMap;
     XADDR g_nMainModuleAddress;
     quint64 g_nMainModuleSize;
@@ -937,6 +936,7 @@ private:
     QMap<quint32, QMutex *> g_mapIds;
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
+    XDisasmCore g_disasmCore;
 #ifdef QT_SQL_LIB
     QString g_sDatabaseName;
     QSqlDatabase g_dataBase;

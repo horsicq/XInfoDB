@@ -13,26 +13,21 @@ DEPENDPATH += $$PWD
     XCONFIG += use_archive
 }
 
+!contains(XCONFIG, xscanengine) {
+    XCONFIG += xscanengine
+    include($$PWD/../XScanEngine/xscanengine.pri)
+}
+
+!contains(XCONFIG, xdisasmcore) {
+    XCONFIG += xdisasmcore
+    include($$PWD/../XDisasmCore/xdisasmcore.pri)
+}
+
 HEADERS += \
     $$PWD/xinfodb.h
 
 SOURCES += \
     $$PWD/xinfodb.cpp
-
-!contains(XCONFIG, xformats) {
-    XCONFIG += xformats
-    include($$PWD/../Formats/xformats.pri)
-}
-
-!contains(XCONFIG, xcapstone) {
-    XCONFIG += xcapstone
-    include($$PWD/../XCapstone/xcapstone.pri)
-}
-
-!contains(XCONFIG, xscanengine) {
-    XCONFIG += xscanengine
-    include($$PWD/../XScanEngine/xscanengine.pri)
-}
 
 DISTFILES += \
     $$PWD/LICENSE \

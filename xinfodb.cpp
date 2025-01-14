@@ -54,7 +54,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
     g_pDevice = nullptr;
-    g_handle = 0;
     g_fileType = XBinary::FT_UNKNOWN;
     g_nMainModuleAddress = 0;
     g_nMainModuleSize = 0;
@@ -68,7 +67,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 XInfoDB::~XInfoDB()
 {
     clearDb();
-    XCapstone::closeHandle(&g_handle);
 #ifdef QT_SQL_LIB
 #ifdef QT_DEBUG
     qDebug("XInfoDB::~XInfoDB()");
@@ -101,8 +99,7 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
         g_disasmMode = XBinary::getDisasmMode(XFormats::getOsInfo(g_fileType, g_pDevice));
     }
 
-    XCapstone::closeHandle(&g_handle);
-    XCapstone::openHandle(g_disasmMode, &g_handle, true);
+    g_disasmCore.setMode(g_disasmMode);
 
     g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, XBinary::MAPMODE_UNKNOWN, g_pDevice);
 
@@ -3070,9 +3067,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 {
     QList<REFERENCE> listResult;
 #ifdef QT_SQL_LIB
-    XCapstone::DISASM_OPTIONS disasmOptions = {};
-    disasmOptions.disasmMode = getDisasmMode();
-    disasmOptions.syntax = XBinary::SYNTAX_DEFAULT;
+    XDisasmCore::DISASM_OPTIONS disasmOptions = {};
 
     QSqlQuery query(g_dataBase);
 
@@ -3091,7 +3086,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
 
-            XCapstone::DISASM_RESULT _disasmResult = XCapstone::disasm_ex(g_handle, baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
+            XDisasmCore::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
                 record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
@@ -3924,9 +3919,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
     // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
-    XCapstone::DISASM_OPTIONS disasmOptions = {};
-    disasmOptions.disasmMode = getDisasmMode();
-    disasmOptions.syntax = XBinary::SYNTAX_DEFAULT;
+    XDisasmCore::DISASM_OPTIONS disasmOptions = {};
 
     char byte_buffer[16];  // TODO const
     XBinary binary(analyzeOptions.pDevice);
@@ -4083,7 +4076,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             }
 
                             if (nSize > 0) {
-                                XCapstone::DISASM_RESULT disasmResult = XCapstone::disasm_ex(g_handle, byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                                XDisasmCore::DISASM_RESULT disasmResult = g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                                 if (disasmResult.bIsValid) {
                                     {
@@ -4280,7 +4273,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         {
             // Calls
-            QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_CALL, DBSTATUS_PROCESS, pPdStruct);
+            QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmCore::RELTYPE_CALL, DBSTATUS_PROCESS, pPdStruct);
             qint32 nNumberOfLabels = listLabels.count();
 
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4346,7 +4339,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #ifdef QT_SQL_LIB
         g_dataBase.transaction();
 #endif
-        QList<XADDR> listLabels = getShowRecordRelAddresses(XCapstone::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
+        QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmCore::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
         qint32 nNumberOfLabels = listLabels.count();
 
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4845,9 +4838,9 @@ QList<XInfoDB::RELRECORD> XInfoDB::getRelRecords(DBSTATUS dbstatus)
         RELRECORD record = {};
 
         record.nAddress = query.value(0).toULongLong();
-        record.relType = (XCapstone::RELTYPE)query.value(1).toULongLong();  // TODO
+        record.relType = (XDisasmCore::RELTYPE)query.value(1).toULongLong();  // TODO
         record.nXrefToRelative = query.value(2).toULongLong();
-        record.memType = (XCapstone::MEMTYPE)query.value(3).toULongLong();  // TODO
+        record.memType = (XDisasmCore::MEMTYPE)query.value(3).toULongLong();  // TODO
         record.nXrefToMemory = query.value(4).toULongLong();
         record.nMemorySize = query.value(5).toLongLong();
         record.dbstatus = (DBSTATUS)query.value(6).toLongLong();
@@ -5541,7 +5534,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
+QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmCore::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5549,12 +5542,12 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XCapstone::RELTYPE relType, DBST
 
     QString sSQL;
 
-    if (relType == XCapstone::RELTYPE_ALL) {
-        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_NONE));
-    } else if (relType == XCapstone::RELTYPE_JMP) {
+    if (relType == XDisasmCore::RELTYPE_ALL) {
+        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmCore::RELTYPE_NONE));
+    } else if (relType == XDisasmCore::RELTYPE_JMP) {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
-                   .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XCapstone::RELTYPE_JMP), QString::number(XCapstone::RELTYPE_JMP_COND),
-                        QString::number(XCapstone::RELTYPE_JMP_UNCOND));
+                   .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmCore::RELTYPE_JMP), QString::number(XDisasmCore::RELTYPE_JMP_COND),
+                        QString::number(XDisasmCore::RELTYPE_JMP_UNCOND));
     } else {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE = %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(relType));
     }
@@ -5736,9 +5729,9 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
-        result.relType = (XCapstone::RELTYPE)query.value(1).toULongLong();  // TODO
+        result.relType = (XDisasmCore::RELTYPE)query.value(1).toULongLong();  // TODO
         result.nXrefToRelative = query.value(2).toULongLong();
-        result.memType = (XCapstone::MEMTYPE)query.value(3).toULongLong();  // TODO
+        result.memType = (XDisasmCore::MEMTYPE)query.value(3).toULongLong();  // TODO
         result.nXrefToMemory = query.value(4).toULongLong();
         result.nMemorySize = query.value(5).toLongLong();
     }
@@ -6249,7 +6242,7 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::convertOpcodeString(XDisasmCore::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
@@ -6264,12 +6257,12 @@ QString XInfoDB::convertOpcodeString(XCapstone::DISASM_RESULT disasmResult, cons
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XCapstone::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 
     QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
-    QString sOrigin = XCapstone::getNumberString(disasmOptions.disasmMode, nAddress, disasmOptions.syntax);
+    QString sOrigin = g_disasmCore.getNumberString(nAddress);
 
     if (disasmOptions.bIsUppercase) {
         sOrigin = sOrigin.toUpper();
