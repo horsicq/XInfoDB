@@ -3282,6 +3282,8 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
     SYMBOL result = {};
 #ifdef QT_SQL_LIB
+    g_pMutexSQL->lock();
+
     QSqlQuery query(g_dataBase);
 
     querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
@@ -3303,6 +3305,9 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
         }
     }
 #endif
+
+    g_pMutexSQL->unlock();
+
     return result;
 }
 
