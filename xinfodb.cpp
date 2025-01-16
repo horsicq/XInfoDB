@@ -3067,7 +3067,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 {
     QList<REFERENCE> listResult;
 #ifdef QT_SQL_LIB
-    XDisasmCore::DISASM_OPTIONS disasmOptions = {};
+    XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
 
     QSqlQuery query(g_dataBase);
 
@@ -3086,7 +3086,7 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
         if (showRecord.nOffset != -1) {
             QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
 
-            XDisasmCore::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
+            XDisasmAbstract::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
             record.sCode = _disasmResult.sMnemonic;
             if (_disasmResult.sString != "") {
                 record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
@@ -3282,8 +3282,6 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
     SYMBOL result = {};
 #ifdef QT_SQL_LIB
-    g_pMutexSQL->lock();
-
     QSqlQuery query(g_dataBase);
 
     querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
@@ -3305,8 +3303,6 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
         }
     }
 #endif
-
-    g_pMutexSQL->unlock();
 
     return result;
 }
@@ -3367,9 +3363,13 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
     // TODO if sql
     QString sResult;
 
+    g_pMutexSQL->lock();
+
     SYMBOL symbol = getSymbolByAddress(nAddress);
 
     sResult = symbol.sSymbol;
+
+    g_pMutexSQL->unlock();
 
     return sResult;
 }
@@ -3924,7 +3924,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
     // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
-    XDisasmCore::DISASM_OPTIONS disasmOptions = {};
+    XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
 
     char byte_buffer[16];  // TODO const
     XBinary binary(analyzeOptions.pDevice);
@@ -4081,7 +4081,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             }
 
                             if (nSize > 0) {
-                                XDisasmCore::DISASM_RESULT disasmResult = g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                                XDisasmAbstract::DISASM_RESULT disasmResult = g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                                 if (disasmResult.bIsValid) {
                                     {
@@ -4278,7 +4278,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         {
             // Calls
-            QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmCore::RELTYPE_CALL, DBSTATUS_PROCESS, pPdStruct);
+            QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmAbstract::RELTYPE_CALL, DBSTATUS_PROCESS, pPdStruct);
             qint32 nNumberOfLabels = listLabels.count();
 
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4344,7 +4344,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #ifdef QT_SQL_LIB
         g_dataBase.transaction();
 #endif
-        QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmCore::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
+        QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmAbstract::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
         qint32 nNumberOfLabels = listLabels.count();
 
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
@@ -4843,9 +4843,9 @@ QList<XInfoDB::RELRECORD> XInfoDB::getRelRecords(DBSTATUS dbstatus)
         RELRECORD record = {};
 
         record.nAddress = query.value(0).toULongLong();
-        record.relType = (XDisasmCore::RELTYPE)query.value(1).toULongLong();  // TODO
+        record.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
         record.nXrefToRelative = query.value(2).toULongLong();
-        record.memType = (XDisasmCore::MEMTYPE)query.value(3).toULongLong();  // TODO
+        record.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
         record.nXrefToMemory = query.value(4).toULongLong();
         record.nMemorySize = query.value(5).toLongLong();
         record.dbstatus = (DBSTATUS)query.value(6).toLongLong();
@@ -5539,7 +5539,7 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
     return listResult;
 }
 
-QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmCore::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
+QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
 #ifdef QT_SQL_LIB
@@ -5547,12 +5547,12 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmCore::RELTYPE relType, DB
 
     QString sSQL;
 
-    if (relType == XDisasmCore::RELTYPE_ALL) {
-        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmCore::RELTYPE_NONE));
-    } else if (relType == XDisasmCore::RELTYPE_JMP) {
+    if (relType == XDisasmAbstract::RELTYPE_ALL) {
+        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_NONE));
+    } else if (relType == XDisasmAbstract::RELTYPE_JMP) {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
-                   .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmCore::RELTYPE_JMP), QString::number(XDisasmCore::RELTYPE_JMP_COND),
-                        QString::number(XDisasmCore::RELTYPE_JMP_UNCOND));
+                   .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_JMP), QString::number(XDisasmAbstract::RELTYPE_JMP_COND),
+                        QString::number(XDisasmAbstract::RELTYPE_JMP_UNCOND));
     } else {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE = %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(relType));
     }
@@ -5734,9 +5734,9 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
-        result.relType = (XDisasmCore::RELTYPE)query.value(1).toULongLong();  // TODO
+        result.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
         result.nXrefToRelative = query.value(2).toULongLong();
-        result.memType = (XDisasmCore::MEMTYPE)query.value(3).toULongLong();  // TODO
+        result.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
         result.nXrefToMemory = query.value(4).toULongLong();
         result.nMemorySize = query.value(5).toLongLong();
     }
@@ -6247,7 +6247,7 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
-QString XInfoDB::convertOpcodeString(XDisasmCore::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sString;
 
@@ -6262,7 +6262,7 @@ QString XInfoDB::convertOpcodeString(XDisasmCore::DISASM_RESULT disasmResult, co
     return sResult;
 }
 
-QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XDisasmCore::DISASM_OPTIONS &disasmOptions)
+QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = sString;
 
