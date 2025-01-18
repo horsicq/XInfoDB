@@ -5548,7 +5548,8 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType
     QString sSQL;
 
     if (relType == XDisasmAbstract::RELTYPE_ALL) {
-        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_NONE));
+        sSQL =
+            QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_NONE));
     } else if (relType == XDisasmAbstract::RELTYPE_JMP) {
         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
                    .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_JMP), QString::number(XDisasmAbstract::RELTYPE_JMP_COND),
