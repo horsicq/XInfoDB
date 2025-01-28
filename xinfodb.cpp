@@ -20,19 +20,6 @@
  */
 #include "xinfodb.h"
 
-bool _symbolSort(const XInfoDB::SYMBOL &v1, const XInfoDB::SYMBOL &v2)
-{
-    bool bResult = false;
-
-    if (v1.nModule != v2.nModule) {
-        bResult = (v1.nModule < v2.nModule);
-    } else {
-        bResult = (v1.nAddress < v2.nAddress);
-    }
-
-    return bResult;
-}
-
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
     g_mode = MODE_UNKNOWN;
@@ -3040,13 +3027,13 @@ QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT, SYMSOURCE FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+    querySQL(&query, QString("SELECT ADDRESS, OFFSET, SYMTEXT, SYMSOURCE FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
 
     while (query.next()) {
         SYMBOL record = {};
 
         record.nAddress = query.value(0).toULongLong();
-        record.nModule = query.value(1).toULongLong();
+        record.nOffset = query.value(1).toLongLong();
         record.sSymbol = query.value(2).toString();
         record.symSource = (SS)query.value(3).toULongLong();
 
@@ -3118,18 +3105,18 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 //    return listResult;
 //}
 
-bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol, SS symSource)
+bool XInfoDB::_addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol, SS symSource)
 {
     bool bResult = false;
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, MODULE, SYMTEXT, SYMSOURCE) "
+    query.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SYMTEXT, SYMSOURCE) "
                           "VALUES (?, ?, ?, ?)")
                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
     query.addBindValue(nAddress);
-    query.addBindValue(nModule);
+    query.addBindValue(nOffset);
     query.addBindValue(sSymbol);
     query.addBindValue((quint32)symSource);
 
@@ -3137,7 +3124,7 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol
 #else
     SYMBOL symbol = {};
     symbol.nAddress = nAddress;
-    symbol.nModule = nModule;
+    symbol.nOffset = nOffset;
     symbol.sSymbol = sSymbol;
     symbol.symSource = symSource;
 
@@ -3150,9 +3137,9 @@ bool XInfoDB::_addSymbol(XADDR nAddress, quint32 nModule, const QString &sSymbol
 
 void XInfoDB::_sortSymbols()
 {
-#ifndef QT_SQL_LIB
-    std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
-#endif
+// #ifndef QT_SQL_LIB
+//     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
+// #endif
 }
 
 qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
@@ -3284,12 +3271,12 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 #ifdef QT_SQL_LIB
     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, MODULE, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
+    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
              false);
 
     if (query.next()) {
         result.nAddress = query.value(0).toULongLong();
-        result.nModule = query.value(1).toULongLong();
+        result.nOffset = query.value(1).toLongLong();
         result.sSymbol = query.value(2).toString();
         result.symSource = (SS)query.value(3).toULongLong();
     }
@@ -3440,7 +3427,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
                          "ADDRESS INTEGER PRIMARY KEY,"
-                         "MODULE INTEGER,"
+                         "ROFFSET INTEGER,"
                          "SYMTEXT TEXT,"
                          "SYMSOURCE INTEGER"
                          ")")
