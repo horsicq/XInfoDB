@@ -3137,9 +3137,9 @@ bool XInfoDB::_addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol,
 
 void XInfoDB::_sortSymbols()
 {
-// #ifndef QT_SQL_LIB
-//     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
-// #endif
+    // #ifndef QT_SQL_LIB
+    //     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
+    // #endif
 }
 
 qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
