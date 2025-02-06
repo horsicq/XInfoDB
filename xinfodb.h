@@ -690,11 +690,18 @@ public:
         XADDR nAddress;
         qint64 nOffset;
         qint64 nSize;
+        DBSTATUS dbstatus;
         RT recordType;
         quint64 nRefTo;
         quint64 nRefFrom;
         quint64 nBranch;
-        DBSTATUS dbstatus;
+    };
+
+    struct XDATARECORD {
+        XADDR nAddress;
+        qint64 nOffset;
+        quint32 nSize;
+        quint32 nFlags;
     };
 
     struct RELRECORD {
@@ -809,6 +816,7 @@ public:
 #endif
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
+    SHOWRECORD getShowRecordByAddress_EX(XADDR nAddress, bool bIsAprox);
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);

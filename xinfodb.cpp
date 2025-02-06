@@ -5132,6 +5132,18 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
 }
 #endif
 
+XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress_EX(XADDR nAddress, bool bIsAprox)
+{
+    XInfoDB::SHOWRECORD result = {};
+
+    result.bValid = true;
+    result.nAddress = nAddress;
+    result.nOffset = nAddress;
+    result.nSize = 1;
+
+    return result;
+}
+
 XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bIsAprox)
 {
     XInfoDB::SHOWRECORD result = {};
