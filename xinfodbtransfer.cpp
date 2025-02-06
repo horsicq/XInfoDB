@@ -96,39 +96,40 @@ bool XInfoDBTransfer::process()
 
             if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_DISASM)) {
                 if (pDevice) {
-                    g_pXInfoDB->clearRecordInfoCache();
+                    // g_pXInfoDB->clearRecordInfoCache();
+                    // g_pXInfoDB->initDisasmDb();
 
-                    g_pXInfoDB->initDisasmDb();
+                    // if ((!(g_pXInfoDB->isSymbolsPresent())) || (g_transferType == COMMAND_ANALYZEALL)) {
+                    //     g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
+                    // }
 
-                    if ((!(g_pXInfoDB->isSymbolsPresent())) || (g_transferType == COMMAND_ANALYZEALL)) {
-                        g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
-                    }
+                    // XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, XBinary::MAPMODE_UNKNOWN, pDevice);
 
-                    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(g_options.fileType, XBinary::MAPMODE_UNKNOWN, pDevice);
+                    // XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
 
-                    XInfoDB::ANALYZEOPTIONS analyzeOptions = {};
+                    // if (g_transferType == COMMAND_ANALYZEALL) {
+                    //     analyzeOptions.bAll = true;
+                    //     analyzeOptions.nStartAddress = -1;
+                    // } else if (g_transferType == COMMAND_ANALYZE) {
+                    //     analyzeOptions.bAll = false;
+                    //     analyzeOptions.nStartAddress = g_options.nAddress;
+                    // } else if (g_transferType == COMMAND_DISASM) {
+                    //     analyzeOptions.bAll = false;
+                    //     analyzeOptions.nStartAddress = g_options.nAddress;
+                    //     analyzeOptions.nCount = 1;
+                    // }
 
-                    if (g_transferType == COMMAND_ANALYZEALL) {
-                        analyzeOptions.bAll = true;
-                        analyzeOptions.nStartAddress = -1;
-                    } else if (g_transferType == COMMAND_ANALYZE) {
-                        analyzeOptions.bAll = false;
-                        analyzeOptions.nStartAddress = g_options.nAddress;
-                    } else if (g_transferType == COMMAND_DISASM) {
-                        analyzeOptions.bAll = false;
-                        analyzeOptions.nStartAddress = g_options.nAddress;
-                        analyzeOptions.nCount = 1;
-                    }
+                    // analyzeOptions.pDevice = pDevice;
+                    // analyzeOptions.pMemoryMap = &memoryMap;
 
-                    analyzeOptions.pDevice = pDevice;
-                    analyzeOptions.pMemoryMap = &memoryMap;
+                    // bool bSuccess = g_pXInfoDB->_analyzeCode(analyzeOptions, g_pPdStruct);
 
-                    bool bSuccess = g_pXInfoDB->_analyzeCode(analyzeOptions, g_pPdStruct);
+                    // if (bSuccess && (g_transferType == COMMAND_ANALYZEALL)) {
+                    //     // TODO set analyze
+                    // }
+                    // // TODO sort records
 
-                    if (bSuccess && (g_transferType == COMMAND_ANALYZEALL)) {
-                        // TODO set analyze
-                    }
-                    // TODO sort records
+                    g_pXInfoDB->_analyzeCode2(g_pPdStruct);
                 }
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {

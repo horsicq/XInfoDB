@@ -49,6 +49,26 @@ public:
         MODE_PROCESS
 #endif
     };
+
+    enum XDR_FLAG {
+        XDR_FLAG_UNKNOWN = 0,
+        XDR_FLAG_CODE =  1 << 0,
+        XDR_FLAG_DATA =  1 << 1,
+    };
+
+    struct XDATARECORD {
+        XADDR nAddress;
+        qint64 nOffset;
+        quint32 nSize;
+        quint32 nFlags;
+    };
+
+    struct STATE {
+        XBinary::_MEMORY_MAP memoryMap;
+        QVector<XDATARECORD> listDataRecords;
+        QSet<XADDR> stAddresses;
+    };
+
 #ifdef USE_XPROCESS
     struct XREG_OPTIONS {
         bool bGeneral;
@@ -448,10 +468,7 @@ public:
     ~XInfoDB();
 
     void setData(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::DM disasmMode = XBinary::DM_UNKNOWN);
-    QIODevice *getDevice();
     void initDB();
-    XBinary::FT getFileType();
-    XBinary::DM getDisasmMode();
     void reload(bool bReloadData);
     void reloadView();
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
@@ -646,8 +663,8 @@ public:
 
     RECORD_INFO getRecordInfo(quint64 nValue, RI_TYPE riType = RI_TYPE_GENERAL);
     static QString recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType = RI_TYPE_GENERAL);
-    void clearRecordInfoCache();
-    RECORD_INFO getRecordInfoCache(quint64 nValue);
+    // void clearRecordInfoCache();
+    // RECORD_INFO getRecordInfoCache(quint64 nValue);
     QList<XBinary::MEMORY_REPLACE> getMemoryReplaces(quint64 nBase = 0, quint64 nSize = 0xFFFFFFFFFFFFFFFF);
 
     enum RT {
@@ -697,13 +714,6 @@ public:
         quint64 nBranch;
     };
 
-    struct XDATARECORD {
-        XADDR nAddress;
-        qint64 nOffset;
-        quint32 nSize;
-        quint32 nFlags;
-    };
-
     struct RELRECORD {
         XADDR nAddress;
         XDisasmAbstract::RELTYPE relType;
@@ -728,7 +738,7 @@ public:
 
     bool isSymbolsPresent();                                   // TODO pdStruct
     QList<SYMBOL> getAllSymbols();                             // TODO pdStruct
-    QMap<quint32, QString> getSymbolModules();                 // TODO pdStruct
+    // QMap<quint32, QString> getSymbolModules();                 // TODO pdStruct
     QList<REFERENCE> getReferencesForAddress(XADDR nAddress);  // TODO pdStruct
 
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
@@ -781,6 +791,7 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool _analyzeCode2(XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
@@ -869,6 +880,10 @@ public:
     QString _convertOpcodeString(const QString &sString, XADDR nAddress, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
+
+    STATE *getState();
+    void addAddressForAnalyze(XADDR nAddress);
+
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
     void writeDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -931,20 +946,12 @@ private:
 #ifndef QT_SQL_LIB
     QList<SYMBOL> g_listSymbols;  // TODO remove
 #endif
-    QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
-    QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
-    QIODevice *g_pDevice;
-    XBinary g_binary;
-    XBinary::FT g_fileType;
-    XBinary::DM g_disasmMode;
-    XBinary::_MEMORY_MAP g_MainModuleMemoryMap;
-    XADDR g_nMainModuleAddress;
-    quint64 g_nMainModuleSize;
-    QString g_sMainModuleName;
-    QMap<quint32, QMutex *> g_mapIds;
+    // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
+    // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
+    // QIODevice *g_pDevice;
+    XBinary g_binary; // TODO remove
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
-    XDisasmCore g_disasmCore;
 #ifdef QT_SQL_LIB
     QString g_sDatabaseName;
     QSqlDatabase g_dataBase;
@@ -952,6 +959,7 @@ private:
 #endif
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
+    STATE g_state;
 };
 
 #endif  // XINFODB_H

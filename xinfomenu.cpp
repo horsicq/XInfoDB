@@ -108,7 +108,7 @@ QString XInfoMenu::getDatabaseFileName()
     QString sResult;
 
     if (g_pXInfoDB) {
-        sResult = XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
+        // sResult = XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
     }
 
     return sResult;
@@ -158,7 +158,8 @@ void XInfoMenu::actionExport()
 void XInfoMenu::actionImport()
 {
     if (g_pXInfoDB) {
-        QString _sFileName = XBinary::getDeviceDirectory(g_pXInfoDB->getDevice());
+        QString _sFileName;
+        //= XBinary::getDeviceDirectory(g_pXInfoDB->getDevice());
         _sFileName = QFileDialog::getOpenFileName(g_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
 
         if (!_sFileName.isEmpty()) {

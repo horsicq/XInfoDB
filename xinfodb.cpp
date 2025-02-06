@@ -40,15 +40,11 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
     //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
-    g_pDevice = nullptr;
-    g_fileType = XBinary::FT_UNKNOWN;
-    g_nMainModuleAddress = 0;
-    g_nMainModuleSize = 0;
     g_bIsDebugger = false;
-    g_disasmMode = XBinary::DM_UNKNOWN;
     g_pMutexSQL = new QMutex;
     g_pMutexThread = new QMutex;
     g_bIsDatabaseChanged = false;
+    g_state = {};
 }
 
 XInfoDB::~XInfoDB()
@@ -70,47 +66,7 @@ XInfoDB::~XInfoDB()
 
 void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode)
 {
-    g_pDevice = pDevice;
-    g_mode = MODE_DEVICE;
-    g_fileType = fileType;
-
-    g_binary.setDevice(pDevice);  // TODO read/write signals
-
-    if (fileType == XBinary::FT_UNKNOWN) {
-        g_fileType = XBinary::getPrefFileType(g_pDevice);
-    }
-
-    g_disasmMode = disasmMode;
-
-    if (disasmMode == XBinary::DM_UNKNOWN) {
-        g_disasmMode = XBinary::getDisasmMode(XFormats::getOsInfo(g_fileType, g_pDevice));
-    }
-
-    g_disasmCore.setMode(g_disasmMode);
-
-    g_MainModuleMemoryMap = XFormats::getMemoryMap(g_fileType, XBinary::MAPMODE_UNKNOWN, g_pDevice);
-
-    g_nMainModuleAddress = g_MainModuleMemoryMap.nModuleAddress;
-    g_nMainModuleSize = g_MainModuleMemoryMap.nImageSize;
-
-    g_sMainModuleName = XBinary::getDeviceFileBaseName(g_pDevice);
-
-    _createTableNames();
-
-    initDB();
-
-    if (disasmMode == XBinary::DM_DATA) {
-        initHexDb();
-    } else {
-        initDisasmDb();  // TODO Check
-    }
-
-    // reloadView();
-}
-
-QIODevice *XInfoDB::getDevice()
-{
-    return g_pDevice;
+    // TODO remove
 }
 
 void XInfoDB::initDB()
@@ -160,16 +116,6 @@ void XInfoDB::initDB()
 #endif
 }
 
-XBinary::FT XInfoDB::getFileType()
-{
-    return g_fileType;
-}
-
-XBinary::DM XInfoDB::getDisasmMode()
-{
-    return g_disasmMode;
-}
-
 void XInfoDB::reload(bool bReloadData)
 {
     // TODO Check
@@ -191,7 +137,8 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
-    QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
+    QString sPrefix ;
+    //= XBinary::fileTypeIdToString(g_fileType);
     s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
     s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
     s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
@@ -2873,51 +2820,51 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
 {
     RECORD_INFO result = {};
 
-    if ((nValue >= g_nMainModuleAddress) && (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
-        result.bValid = true;
-        result.sModule = g_sMainModuleName;
-        result.nAddress = nValue;
-    }
-#ifdef USE_XPROCESS
-    else {
-        // TODO mapRegions
-        XProcess::MEMORY_REGION memoryRegion = XProcess::getMemoryRegionByAddress(&(g_statusCurrent.listMemoryRegions), nValue);
+//     if ((nValue >= g_nMainModuleAddress) && (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
+//         result.bValid = true;
+//         result.sModule = g_sMainModuleName;
+//         result.nAddress = nValue;
+//     }
+// #ifdef USE_XPROCESS
+//     else {
+//         // TODO mapRegions
+//         XProcess::MEMORY_REGION memoryRegion = XProcess::getMemoryRegionByAddress(&(g_statusCurrent.listMemoryRegions), nValue);
 
-        if (memoryRegion.nSize) {
-            result.bValid = true;
-            result.nAddress = nValue;
+//         if (memoryRegion.nSize) {
+//             result.bValid = true;
+//             result.nAddress = nValue;
 
-            XProcess::MODULE _module = XProcess::getModuleByAddress(&(g_statusCurrent.listModules), nValue);
+//             XProcess::MODULE _module = XProcess::getModuleByAddress(&(g_statusCurrent.listModules), nValue);
 
-            if (_module.nSize) {
-                result.sModule = _module.sName;
-            }
-        }
-    }
-#endif
+//             if (_module.nSize) {
+//                 result.sModule = _module.sName;
+//             }
+//         }
+//     }
+// #endif
 
-    if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_DATA) || (riType == RI_TYPE_ANSI) || (riType == RI_TYPE_UNICODE) || (riType == RI_TYPE_UTF8)) {
-        if (result.bValid) {
-#ifdef USE_XPROCESS
-            result.baData = read_array(result.nAddress, 64);  // TODO const
-#else
-            qint64 nCurrentOffset = XBinary::addressToOffset(&g_MainModuleMemoryMap, result.nAddress);
-            result.baData = read_array(nCurrentOffset, 64);  // TODO const
-#endif
-        }
-    }
+//     if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_DATA) || (riType == RI_TYPE_ANSI) || (riType == RI_TYPE_UNICODE) || (riType == RI_TYPE_UTF8)) {
+//         if (result.bValid) {
+// #ifdef USE_XPROCESS
+//             result.baData = read_array(result.nAddress, 64);  // TODO const
+// #else
+//             qint64 nCurrentOffset = XBinary::addressToOffset(&g_MainModuleMemoryMap, result.nAddress);
+//             result.baData = read_array(nCurrentOffset, 64);  // TODO const
+// #endif
+//         }
+//     }
 
-    if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_SYMBOL)) {
-        if (result.bValid) {
-            result.sSymbol = getSymbolStringByAddress(result.nAddress);
+//     if ((riType == RI_TYPE_GENERAL) || (riType == RI_TYPE_SYMBOL)) {
+//         if (result.bValid) {
+//             result.sSymbol = getSymbolStringByAddress(result.nAddress);
 
-            if (riType == RI_TYPE_SYMBOL) {
-                if (result.sSymbol == "") {
-                    result.sSymbol = QString("<%1.%2>").arg(result.sModule, XBinary::valueToHexOS(result.nAddress));
-                }
-            }
-        }
-    }
+//             if (riType == RI_TYPE_SYMBOL) {
+//                 if (result.sSymbol == "") {
+//                     result.sSymbol = QString("<%1.%2>").arg(result.sModule, XBinary::valueToHexOS(result.nAddress));
+//                 }
+//             }
+//         }
+//     }
 
     return result;
 }
@@ -2976,25 +2923,25 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
     return sResult;
 }
 
-void XInfoDB::clearRecordInfoCache()
-{
-    g_mapSRecordInfoCache.clear();
-}
+// void XInfoDB::clearRecordInfoCache()
+// {
+//     g_mapSRecordInfoCache.clear();
+// }
 
-XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
-{
-    RECORD_INFO result = {};
+// XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
+// {
+//     RECORD_INFO result = {};
 
-    if (g_mapSRecordInfoCache.contains(nValue)) {
-        result = g_mapSRecordInfoCache.value(nValue);
-    } else {
-        result = getRecordInfo(nValue, RI_TYPE_GENERAL);
+//     if (g_mapSRecordInfoCache.contains(nValue)) {
+//         result = g_mapSRecordInfoCache.value(nValue);
+//     } else {
+//         result = getRecordInfo(nValue, RI_TYPE_GENERAL);
 
-        g_mapSRecordInfoCache.insert(nValue, result);
-    }
+//         g_mapSRecordInfoCache.insert(nValue, result);
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 bool XInfoDB::isSymbolsPresent()
 {
@@ -3045,10 +2992,10 @@ QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
     return listResult;
 }
 
-QMap<quint32, QString> XInfoDB::getSymbolModules()
-{
-    return g_mapSymbolModules;
-}
+// QMap<quint32, QString> XInfoDB::getSymbolModules()
+// {
+//     return g_mapSymbolModules;
+// }
 
 QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 {
@@ -3070,15 +3017,15 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 
         SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress, false);
 
-        if (showRecord.nOffset != -1) {
-            QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
+        // if (showRecord.nOffset != -1) {
+        //     QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
 
-            XDisasmAbstract::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
-            record.sCode = _disasmResult.sMnemonic;
-            if (_disasmResult.sString != "") {
-                record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
-            }
-        }
+        //     XDisasmAbstract::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
+        //     record.sCode = _disasmResult.sMnemonic;
+        //     if (_disasmResult.sString != "") {
+        //         record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
+        //     }
+        // }
 
         listResult.append(record);
     }
@@ -3597,7 +3544,7 @@ void XInfoDB::removeAllTables()
     removeTable(&g_dataBase, DBTABLE_SYMBOLS);
     removeTable(&g_dataBase, DBTABLE_FUNCTIONS);
 
-    clearRecordInfoCache();
+    // clearRecordInfoCache();
 #endif
 }
 
@@ -3613,7 +3560,7 @@ void XInfoDB::clearAllTables()
     clearTable(&g_dataBase, DBTABLE_SYMBOLS);
     clearTable(&g_dataBase, DBTABLE_FUNCTIONS);
 
-    clearRecordInfoCache();
+    // clearRecordInfoCache();
 #endif
 }
 void XInfoDB::clearDb()
@@ -3628,7 +3575,7 @@ void XInfoDB::clearDb()
     querySQL(&query, QString("VACUUM"), false);
     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"), false);
 
-    clearRecordInfoCache();
+    // clearRecordInfoCache();
 #endif
 }
 
@@ -3907,7 +3854,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-    XBinary::DM disasmMode = getDisasmMode();
+    XBinary::DM disasmMode ;
+    //= getDisasmMode();
     XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
     // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
@@ -4068,16 +4016,17 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                             }
 
                             if (nSize > 0) {
-                                XDisasmAbstract::DISASM_RESULT disasmResult = g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                                XDisasmAbstract::DISASM_RESULT disasmResult = {};
+                                       // g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
                                 if (disasmResult.bIsValid) {
                                     {
                                         quint64 _nCurrentBranch = nCurrentBranch;
 
                                         if (bSuspect) {
-                                            if (XCapstone::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
+                                            if (XDisasmAbstract::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
                                                 _nCurrentBranch = 0;
-                                            } else if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                                            } else if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
                                                 _nCurrentBranch = 0;
                                             }
                                         }
@@ -4129,7 +4078,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
 
                                     if (disasmResult.relType) {
-                                        if (XCapstone::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
+                                        if (XDisasmAbstract::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
                                             nBranch++;
                                             _ENTRY _entry = {};
                                             _entry.nAddress = disasmResult.nXrefToRelative;
@@ -4157,7 +4106,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                     }
 
                                     // TODO Check mb int3
-                                    if (XCapstone::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
+                                    if (XDisasmAbstract::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
                                         //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
                                         //                                    mrCode.nSize))) {
                                         //                                        listSuspect.append(nCurrentAddress);
@@ -4165,11 +4114,11 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                                         break;
                                     }
 
-                                    if (XCapstone::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                                    if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
                                         break;
                                     }
 
-                                    if (XCapstone::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
+                                    if (XDisasmAbstract::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
                                         break;
                                     }
                                     //                                if (dmFamily == XBinary::DMFAMILY_X86) {
@@ -4597,6 +4546,11 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 #endif
 
     return bResult;
+}
+
+bool XInfoDB::_analyzeCode2(XBinary::PDSTRUCT *pPdStruct)
+{
+    return true;
 }
 
 bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
@@ -6266,16 +6220,17 @@ QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, co
 {
     QString sResult = sString;
 
-    QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
-    QString sOrigin = g_disasmCore.getNumberString(nAddress);
+    // QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
+    // QString sOrigin;
+    // // = g_disasmCore.getNumberString(nAddress);
 
-    if (disasmOptions.bIsUppercase) {
-        sOrigin = sOrigin.toUpper();
-    }
+    // if (disasmOptions.bIsUppercase) {
+    //     sOrigin = sOrigin.toUpper();
+    // }
 
-    if (sReplace != "") {
-        sResult = sResult.replace(sOrigin, sReplace);
-    }
+    // if (sReplace != "") {
+    //     sResult = sResult.replace(sOrigin, sReplace);
+    // }
 
     return sResult;
 }
@@ -6288,6 +6243,16 @@ void XInfoDB::setDatabaseChanged(bool bState)
 bool XInfoDB::isDatabaseChanged()
 {
     return g_bIsDatabaseChanged;
+}
+
+void XInfoDB::addAddressForAnalyze(XADDR nAddress)
+{
+
+}
+
+XInfoDB::STATE *XInfoDB::getState()
+{
+    return &g_state;
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
