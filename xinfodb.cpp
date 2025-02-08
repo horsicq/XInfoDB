@@ -44,7 +44,6 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     g_pMutexSQL = new QMutex;
     g_pMutexThread = new QMutex;
     g_bIsDatabaseChanged = false;
-    g_state = {};
 }
 
 XInfoDB::~XInfoDB()
@@ -54,12 +53,20 @@ XInfoDB::~XInfoDB()
 #ifdef QT_DEBUG
     qDebug("XInfoDB::~XInfoDB()");
 #endif
-    if (g_dataBase.isOpen()) {
-        g_dataBase.close();
-        g_dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase(g_sDatabaseName);
-    }
+    // if (g_dataBase.isOpen()) {
+    //     g_dataBase.close();
+    //     g_dataBase = QSqlDatabase();
+    //     QSqlDatabase::removeDatabase(g_sDatabaseName);
+    // }
 #endif
+
+    QList<STATE *> listStates = g_mapProfiles.values();
+    qint32 nNumberOfRecords = listStates.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        delete listStates.at(i);
+    }
+
     delete g_pMutexSQL;
     delete g_pMutexThread;
 }
@@ -71,49 +78,49 @@ void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disa
 
 void XInfoDB::initDB()
 {
-#ifdef QT_SQL_LIB
-    if (!g_dataBase.isOpen()) {
-        g_sDatabaseName = QString("memdb_%1").arg(XBinary::randomString(10));
-        g_dataBase = QSqlDatabase::addDatabase("QSQLITE", g_sDatabaseName);
+// #ifdef QT_SQL_LIB
+//     if (!g_dataBase.isOpen()) {
+//         g_sDatabaseName = QString("memdb_%1").arg(XBinary::randomString(10));
+//         g_dataBase = QSqlDatabase::addDatabase("QSQLITE", g_sDatabaseName);
 
-        //        g_dataBase.setDatabaseName(":memory:");
-#ifdef Q_OS_WIN
-        g_dataBase.setDatabaseName(":memory:");
-        //        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
-#else
-#ifndef QT_DEBUG
-        g_dataBase.setDatabaseName(":memory:");
-#endif
-        // g_dataBase.setDatabaseName(":memory:");
-        g_dataBase.setDatabaseName("/home/hors/local_db.db");
-#endif
-        // #ifdef Q_OS_LINUX
-        //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
-        // #endif
-        //  #ifndef QT_DEBUG
-        //      g_dataBase.setDatabaseName(":memory:");
-        //  #else
-        //  #ifdef Q_OS_WIN
-        //      g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
-        ////    g_dataBase.setDatabaseName(":memory:");
-        // #else
-        //     g_dataBase.setDatabaseName(":memory:");
-        // #endif
-        ////    g_dataBase.setDatabaseName(":memory:");
-        // #endif
+//         //        g_dataBase.setDatabaseName(":memory:");
+// #ifdef Q_OS_WIN
+//         g_dataBase.setDatabaseName(":memory:");
+//         //        g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+// #else
+// #ifndef QT_DEBUG
+//         g_dataBase.setDatabaseName(":memory:");
+// #endif
+//         // g_dataBase.setDatabaseName(":memory:");
+//         g_dataBase.setDatabaseName("/home/hors/local_db.db");
+// #endif
+//         // #ifdef Q_OS_LINUX
+//         //     g_dataBase.setDatabaseName("/home/hors/local_db.db");
+//         // #endif
+//         //  #ifndef QT_DEBUG
+//         //      g_dataBase.setDatabaseName(":memory:");
+//         //  #else
+//         //  #ifdef Q_OS_WIN
+//         //      g_dataBase.setDatabaseName("C:\\tmp_build\\local_dbXS.db");
+//         ////    g_dataBase.setDatabaseName(":memory:");
+//         // #else
+//         //     g_dataBase.setDatabaseName(":memory:");
+//         // #endif
+//         ////    g_dataBase.setDatabaseName(":memory:");
+//         // #endif
 
-        if (g_dataBase.open()) {
-            g_dataBase.exec("PRAGMA synchronous = OFF");
-            g_dataBase.exec("PRAGMA journal_mode = MEMORY");
+//         if (g_dataBase.open()) {
+//             g_dataBase.exec("PRAGMA synchronous = OFF");
+//             g_dataBase.exec("PRAGMA journal_mode = MEMORY");
 
-            // setAnalyzed(isSymbolsPresent());
-        } else {
-#ifdef QT_DEBUG
-            qDebug("Cannot open sqlite database");
-#endif
-        }
-    }
-#endif
+//             // setAnalyzed(isSymbolsPresent());
+//         } else {
+// #ifdef QT_DEBUG
+//             qDebug("Cannot open sqlite database");
+// #endif
+//         }
+//     }
+// #endif
 }
 
 void XInfoDB::reload(bool bReloadData)
@@ -2947,23 +2954,23 @@ bool XInfoDB::isSymbolsPresent()
 {
     // TODO Check count
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+//     querySQL(&query, QString("SELECT name FROM sqlite_master WHERE type='table' AND name='%1'").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
 
-    bResult = query.next();
+//     bResult = query.next();
 
-    if (bResult) {
-        querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+//     if (bResult) {
+//         querySQL(&query, QString("SELECT count(*) FROM '%1'").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
 
-        if (query.next()) {
-            bResult = query.value(0).toULongLong();
-        }
-    }
-#else
-    bResult = !(g_listSymbols.isEmpty());
-#endif
+//         if (query.next()) {
+//             bResult = query.value(0).toULongLong();
+//         }
+//     }
+// #else
+//     bResult = !(g_listSymbols.isEmpty());
+// #endif
 
     return bResult;
 }
@@ -2971,24 +2978,24 @@ bool XInfoDB::isSymbolsPresent()
 QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
 {
     QList<SYMBOL> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, OFFSET, SYMTEXT, SYMSOURCE FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
+//     querySQL(&query, QString("SELECT ADDRESS, OFFSET, SYMTEXT, SYMSOURCE FROM %1").arg(s_sql_tableName[DBTABLE_SYMBOLS]), false);
 
-    while (query.next()) {
-        SYMBOL record = {};
+//     while (query.next()) {
+//         SYMBOL record = {};
 
-        record.nAddress = query.value(0).toULongLong();
-        record.nOffset = query.value(1).toLongLong();
-        record.sSymbol = query.value(2).toString();
-        record.symSource = (SS)query.value(3).toULongLong();
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nOffset = query.value(1).toLongLong();
+//         record.sSymbol = query.value(2).toString();
+//         record.symSource = (SS)query.value(3).toULongLong();
 
-        listResult.append(record);
-    }
-#else
-    listResult = g_listSymbols;
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     listResult = g_listSymbols;
+// #endif
     return listResult;
 }
 
@@ -3000,38 +3007,38 @@ QList<XInfoDB::SYMBOL> XInfoDB::getAllSymbols()
 QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 {
     QList<REFERENCE> listResult;
-#ifdef QT_SQL_LIB
-    XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
+// #ifdef QT_SQL_LIB
+//     XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
 
-    QSqlQuery query(g_dataBase);
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS FROM %1 WHERE ((XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2)) AND ((RELTYPE <> 0) OR (MEMTYPE <> 0))")
-                 .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS FROM %1 WHERE ((XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2)) AND ((RELTYPE <> 0) OR (MEMTYPE <> 0))")
+//                  .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
+//              false);
 
-    while (query.next()) {
-        REFERENCE record = {};
+//     while (query.next()) {
+//         REFERENCE record = {};
 
-        record.nAddress = query.value(0).toULongLong();
+//         record.nAddress = query.value(0).toULongLong();
 
-        SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress, false);
+//         SHOWRECORD showRecord = getShowRecordByAddress(record.nAddress, false);
 
-        // if (showRecord.nOffset != -1) {
-        //     QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
+//         // if (showRecord.nOffset != -1) {
+//         //     QByteArray baBuffer = read_array(showRecord.nOffset, showRecord.nSize);
 
-        //     XDisasmAbstract::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
-        //     record.sCode = _disasmResult.sMnemonic;
-        //     if (_disasmResult.sString != "") {
-        //         record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
-        //     }
-        // }
+//         //     XDisasmAbstract::DISASM_RESULT _disasmResult = g_disasmCore.disAsm(baBuffer.data(), baBuffer.size(), record.nAddress, disasmOptions);
+//         //     record.sCode = _disasmResult.sMnemonic;
+//         //     if (_disasmResult.sString != "") {
+//         //         record.sCode += " " + convertOpcodeString(_disasmResult, RI_TYPE_SYMBOLADDRESS, disasmOptions);
+//         //     }
+//         // }
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
     return listResult;
 }
 
@@ -3055,30 +3062,30 @@ QList<XInfoDB::REFERENCE> XInfoDB::getReferencesForAddress(XADDR nAddress)
 bool XInfoDB::_addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol, SS symSource)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SYMTEXT, SYMSOURCE) "
-                          "VALUES (?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SYMTEXT, SYMSOURCE) "
+//                           "VALUES (?, ?, ?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_SYMBOLS]));
 
-    query.addBindValue(nAddress);
-    query.addBindValue(nOffset);
-    query.addBindValue(sSymbol);
-    query.addBindValue((quint32)symSource);
+//     query.addBindValue(nAddress);
+//     query.addBindValue(nOffset);
+//     query.addBindValue(sSymbol);
+//     query.addBindValue((quint32)symSource);
 
-    bResult = querySQL(&query, true);
-#else
-    SYMBOL symbol = {};
-    symbol.nAddress = nAddress;
-    symbol.nOffset = nOffset;
-    symbol.sSymbol = sSymbol;
-    symbol.symSource = symSource;
+//     bResult = querySQL(&query, true);
+// #else
+//     SYMBOL symbol = {};
+//     symbol.nAddress = nAddress;
+//     symbol.nOffset = nOffset;
+//     symbol.sSymbol = sSymbol;
+//     symbol.symSource = symSource;
 
-    g_listSymbols.append(symbol);
+//     g_listSymbols.append(symbol);
 
-    bResult = true;
-#endif
+//     bResult = true;
+// #endif
     return bResult;
 }
 
@@ -3119,60 +3126,60 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
 bool XInfoDB::_addExportSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-                          "VALUES (?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_EXPORT]));
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+//                           "VALUES (?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_EXPORT]));
 
-    query.bindValue(0, nAddress);
-    query.bindValue(1, sSymbol);
+//     query.bindValue(0, nAddress);
+//     query.bindValue(1, sSymbol);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(sSymbol)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(sSymbol)
+// #endif
     return bResult;
 }
 
 bool XInfoDB::_addImportSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-                          "VALUES (?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_IMPORT]));
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+//                           "VALUES (?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_IMPORT]));
 
-    query.bindValue(0, nAddress);
-    query.bindValue(1, sSymbol);
+//     query.bindValue(0, nAddress);
+//     query.bindValue(1, sSymbol);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(sSymbol)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(sSymbol)
+// #endif
     return bResult;
 }
 
 bool XInfoDB::_addTLSSymbol(XADDR nAddress, const QString &sSymbol)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-                          "VALUES (?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_TLS]));
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
+//                           "VALUES (?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_TLS]));
 
-    query.bindValue(0, nAddress);
-    query.bindValue(1, sSymbol);
+//     query.bindValue(0, nAddress);
+//     query.bindValue(1, sSymbol);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(sSymbol)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(sSymbol)
+// #endif
     return bResult;
 }
 
@@ -3215,28 +3222,28 @@ bool XInfoDB::_addTLSSymbol(XADDR nAddress, const QString &sSymbol)
 XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 {
     SYMBOL result = {};
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
-             false);
+//     querySQL(&query, QString("SELECT ADDRESS, ROFFSET, SYMTEXT,SYMSOURCE FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)),
+//              false);
 
-    if (query.next()) {
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.sSymbol = query.value(2).toString();
-        result.symSource = (SS)query.value(3).toULongLong();
-    }
-#else
-    qint32 nNumberOfSymbols = g_listSymbols.count();
+//     if (query.next()) {
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.sSymbol = query.value(2).toString();
+//         result.symSource = (SS)query.value(3).toULongLong();
+//     }
+// #else
+//     qint32 nNumberOfSymbols = g_listSymbols.count();
 
-    for (qint32 i = 0; i < nNumberOfSymbols; i++) {
-        if (g_listSymbols.at(i).nAddress == nAddress) {
-            result = g_listSymbols.at(i);
-            break;
-        }
-    }
-#endif
+//     for (qint32 i = 0; i < nNumberOfSymbols; i++) {
+//         if (g_listSymbols.at(i).nAddress == nAddress) {
+//             result = g_listSymbols.at(i);
+//             break;
+//         }
+//     }
+// #endif
 
     return result;
 }
@@ -3244,51 +3251,51 @@ XInfoDB::SYMBOL XInfoDB::getSymbolByAddress(XADDR nAddress)
 bool XInfoDB::isSymbolPresent(XADDR nAddress)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
+//     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
 
-    bResult = query.next();
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     bResult = query.next();
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
     return bResult;
 }
 
 QList<XInfoDB::FUNCTION> XInfoDB::getAllFunctions()
 {
     QList<FUNCTION> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), false);
+//     querySQL(&query, QString("SELECT ADDRESS, SIZE, NAME FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), false);
 
-    while (query.next()) {
-        FUNCTION record = {};
+//     while (query.next()) {
+//         FUNCTION record = {};
 
-        record.nAddress = query.value(0).toULongLong();
-        record.nSize = query.value(1).toLongLong();
-        record.sName = query.value(2).toString();
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nSize = query.value(1).toLongLong();
+//         record.sName = query.value(2).toString();
 
-        listResult.append(record);
-    }
-#endif
+//         listResult.append(record);
+//     }
+// #endif
     return listResult;
 }
 
 bool XInfoDB::isFunctionPresent(XADDR nAddress)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nAddress)), false);
+//     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nAddress)), false);
 
-    bResult = query.next();
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     bResult = query.next();
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
     return bResult;
 }
 
@@ -3310,23 +3317,23 @@ QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
 
 void XInfoDB::initDisasmDb()
 {
-#ifdef QT_SQL_LIB
-    createTable(&g_dataBase, DBTABLE_SYMBOLS);
-    createTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    createTable(&g_dataBase, DBTABLE_RELATIVS);
-    createTable(&g_dataBase, DBTABLE_IMPORT);
-    createTable(&g_dataBase, DBTABLE_EXPORT);
-    createTable(&g_dataBase, DBTABLE_TLS);
-    createTable(&g_dataBase, DBTABLE_FUNCTIONS);
-    createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-#endif
+// #ifdef QT_SQL_LIB
+//     createTable(&g_dataBase, DBTABLE_SYMBOLS);
+//     createTable(&g_dataBase, DBTABLE_SHOWRECORDS);
+//     createTable(&g_dataBase, DBTABLE_RELATIVS);
+//     createTable(&g_dataBase, DBTABLE_IMPORT);
+//     createTable(&g_dataBase, DBTABLE_EXPORT);
+//     createTable(&g_dataBase, DBTABLE_TLS);
+//     createTable(&g_dataBase, DBTABLE_FUNCTIONS);
+//     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
+// #endif
 }
 
 void XInfoDB::initHexDb()
 {
-#ifdef QT_SQL_LIB
-    createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-#endif
+// #ifdef QT_SQL_LIB
+//     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
+// #endif
 }
 #ifdef QT_SQL_LIB
 bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
@@ -3521,62 +3528,62 @@ QList<QString> XInfoDB::getNotEmptyTables(QSqlDatabase *pDatabase)
 bool XInfoDB::isDbPresent()
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    if (g_dataBase.isOpen()) {
-        bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
-                  isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
-    }
-#endif
+// #ifdef QT_SQL_LIB
+//     if (g_dataBase.isOpen()) {
+//         bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
+//                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
+//                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
+//                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
+//     }
+// #endif
     return bResult;
 }
 
 void XInfoDB::removeAllTables()
 {
-#ifdef QT_SQL_LIB
-    removeTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    removeTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    removeTable(&g_dataBase, DBTABLE_RELATIVS);
-    removeTable(&g_dataBase, DBTABLE_IMPORT);
-    removeTable(&g_dataBase, DBTABLE_EXPORT);
-    removeTable(&g_dataBase, DBTABLE_TLS);
-    removeTable(&g_dataBase, DBTABLE_SYMBOLS);
-    removeTable(&g_dataBase, DBTABLE_FUNCTIONS);
+// #ifdef QT_SQL_LIB
+//     removeTable(&g_dataBase, DBTABLE_BOOKMARKS);
+//     removeTable(&g_dataBase, DBTABLE_SHOWRECORDS);
+//     removeTable(&g_dataBase, DBTABLE_RELATIVS);
+//     removeTable(&g_dataBase, DBTABLE_IMPORT);
+//     removeTable(&g_dataBase, DBTABLE_EXPORT);
+//     removeTable(&g_dataBase, DBTABLE_TLS);
+//     removeTable(&g_dataBase, DBTABLE_SYMBOLS);
+//     removeTable(&g_dataBase, DBTABLE_FUNCTIONS);
 
-    // clearRecordInfoCache();
-#endif
+//     // clearRecordInfoCache();
+// #endif
 }
 
 void XInfoDB::clearAllTables()
 {
-#ifdef QT_SQL_LIB
-    clearTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    clearTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    clearTable(&g_dataBase, DBTABLE_RELATIVS);
-    clearTable(&g_dataBase, DBTABLE_IMPORT);
-    clearTable(&g_dataBase, DBTABLE_EXPORT);
-    clearTable(&g_dataBase, DBTABLE_TLS);
-    clearTable(&g_dataBase, DBTABLE_SYMBOLS);
-    clearTable(&g_dataBase, DBTABLE_FUNCTIONS);
+// #ifdef QT_SQL_LIB
+//     clearTable(&g_dataBase, DBTABLE_BOOKMARKS);
+//     clearTable(&g_dataBase, DBTABLE_SHOWRECORDS);
+//     clearTable(&g_dataBase, DBTABLE_RELATIVS);
+//     clearTable(&g_dataBase, DBTABLE_IMPORT);
+//     clearTable(&g_dataBase, DBTABLE_EXPORT);
+//     clearTable(&g_dataBase, DBTABLE_TLS);
+//     clearTable(&g_dataBase, DBTABLE_SYMBOLS);
+//     clearTable(&g_dataBase, DBTABLE_FUNCTIONS);
 
-    // clearRecordInfoCache();
-#endif
+//     // clearRecordInfoCache();
+// #endif
 }
 void XInfoDB::clearDb()
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("PRAGMA writable_schema = 1"), false);
-    querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"), false);
-    querySQL(&query, QString("PRAGMA writable_schema = 0"), false);
+//     querySQL(&query, QString("PRAGMA writable_schema = 1"), false);
+//     querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"), false);
+//     querySQL(&query, QString("PRAGMA writable_schema = 0"), false);
 
-    querySQL(&query, QString("VACUUM"), false);
-    querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"), false);
+//     querySQL(&query, QString("VACUUM"), false);
+//     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"), false);
 
-    // clearRecordInfoCache();
-#endif
+//     // clearRecordInfoCache();
+// #endif
 }
 
 void XInfoDB::vacuumDb()
@@ -3592,23 +3599,23 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 {
     g_pMutexSQL->lock();
 
-#ifdef QT_SQL_LIB
-    {
-        createTable(&g_dataBase, DBTABLE_SYMBOLS);
-        createTable(&g_dataBase, DBTABLE_IMPORT);
-        createTable(&g_dataBase, DBTABLE_EXPORT);
-        createTable(&g_dataBase, DBTABLE_TLS);
-    }
+// #ifdef QT_SQL_LIB
+//     {
+//         createTable(&g_dataBase, DBTABLE_SYMBOLS);
+//         createTable(&g_dataBase, DBTABLE_IMPORT);
+//         createTable(&g_dataBase, DBTABLE_EXPORT);
+//         createTable(&g_dataBase, DBTABLE_TLS);
+//     }
 
-    {
-        QSqlQuery query(g_dataBase);
+//     {
+//         QSqlQuery query(g_dataBase);
 
-        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]), true);
-        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]), true);
-        querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), true);
-        querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
-    }
-#endif
+//         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]), true);
+//         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]), true);
+//         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), true);
+//         querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+//     }
+// #endif
 
     XBinary::PDSTRUCT pdStructEmpty = {};
 
@@ -3911,36 +3918,36 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         // Import table
         if (!(pPdStruct->bIsStop)) {
-#ifdef QT_SQL_LIB
-            g_dataBase.transaction();
-#endif
-            QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//             g_dataBase.transaction();
+// #endif
+            // QSqlQuery query(g_dataBase);
 
-            QList<XADDR> listImportAddresses = getImportSymbolAddresses(pPdStruct);
-            qint32 nNumberOfRecords = listImportAddresses.count();
-            qint32 nSize = 4;
+            // QList<XADDR> listImportAddresses = getImportSymbolAddresses(pPdStruct);
+            // qint32 nNumberOfRecords = listImportAddresses.count();
+            // qint32 nSize = 4;
 
-            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
-                XADDR nAddress = listImportAddresses.at(i);
-                if (!_isShowRecordPresent(&query, nAddress, nSize)) {
-                    qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nAddress);
+            // for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+            //     XADDR nAddress = listImportAddresses.at(i);
+            //     if (!_isShowRecordPresent(&query, nAddress, nSize)) {
+            //         qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nAddress);
 
-                    SHOWRECORD showRecord = {};
-                    showRecord.nAddress = nAddress;
-                    showRecord.nOffset = nOffset;
-                    showRecord.nSize = nSize;
-                    showRecord.recordType = RT_INTDATATYPE;
-                    showRecord.nRefTo = 0;
-                    showRecord.nRefFrom = 0;
-                    showRecord.nBranch = 0;
-                    showRecord.dbstatus = DBSTATUS_PROCESS;
-                    _addShowRecord(showRecord);
-                }
-            }
+            //         SHOWRECORD showRecord = {};
+            //         showRecord.nAddress = nAddress;
+            //         showRecord.nOffset = nOffset;
+            //         showRecord.nSize = nSize;
+            //         showRecord.recordType = RT_INTDATATYPE;
+            //         showRecord.nRefTo = 0;
+            //         showRecord.nRefFrom = 0;
+            //         showRecord.nBranch = 0;
+            //         showRecord.dbstatus = DBSTATUS_PROCESS;
+            //         _addShowRecord(showRecord);
+            //     }
+            // }
 
-#ifdef QT_SQL_LIB
-            g_dataBase.commit();
-#endif
+// #ifdef QT_SQL_LIB
+//             g_dataBase.commit();
+// #endif
         }
         // TODO Scan code section
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
@@ -3964,13 +3971,13 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         listRelRecords.reserve(N_BUFFERSIZE);
         stShowRecords.reserve(N_BUFFERSIZE);
 
-        QSqlQuery queryRel(g_dataBase);
-        QSqlQuery queryShowRecords(g_dataBase);
-        QSqlQuery queryPresent(g_dataBase);
+        // QSqlQuery queryRel(g_dataBase);
+        // QSqlQuery queryShowRecords(g_dataBase);
+        // QSqlQuery queryPresent(g_dataBase);
 
-        _addRelRecord_prepare(&queryRel);
-        _addShowRecord_prepare(&queryShowRecords);
-        _isShowRecordPresent_prepare1(&queryPresent);
+        // _addRelRecord_prepare(&queryRel);
+        // _addShowRecord_prepare(&queryShowRecords);
+        // _isShowRecordPresent_prepare1(&queryPresent);
 
         while (!(pPdStruct->bIsStop)) {
             //        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
@@ -3992,183 +3999,183 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
                 XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
 
-                XADDR nCurrentAddress = nEntryAddress;
+                // XADDR nCurrentAddress = nEntryAddress;
 
-                while (!(pPdStruct->bIsStop)) {
-                    if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent_bind1(&queryPresent, nCurrentAddress))) {
-                        qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nCurrentAddress);
+                // while (!(pPdStruct->bIsStop)) {
+                //     if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent_bind1(&queryPresent, nCurrentAddress))) {
+                //         qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nCurrentAddress);
 
-                        if (nOffset != -1) {
-                            qint64 nSize = 16;
+                //         if (nOffset != -1) {
+                //             qint64 nSize = 16;
 
-                            nSize = qMin(nTotalSize - nOffset, nSize);
+                //             nSize = qMin(nTotalSize - nOffset, nSize);
 
-                            nSize = binary.read_array(nOffset, byte_buffer, nSize);
+                //             nSize = binary.read_array(nOffset, byte_buffer, nSize);
 
-                            if (dmFamily == XBinary::DMFAMILY_X86) {
-                                if (nSize >= 2) {
-                                    // mb TODO optional
-                                    // add byte ptr [rax], al
-                                    if ((*((quint16 *)byte_buffer) == 0) && (nCurrentAddress != analyzeOptions.nStartAddress)) {
-                                        break;
-                                    }
-                                }
-                            }
+                //             if (dmFamily == XBinary::DMFAMILY_X86) {
+                //                 if (nSize >= 2) {
+                //                     // mb TODO optional
+                //                     // add byte ptr [rax], al
+                //                     if ((*((quint16 *)byte_buffer) == 0) && (nCurrentAddress != analyzeOptions.nStartAddress)) {
+                //                         break;
+                //                     }
+                //                 }
+                //             }
 
-                            if (nSize > 0) {
-                                XDisasmAbstract::DISASM_RESULT disasmResult = {};
-                                       // g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
+                //             if (nSize > 0) {
+                //                 XDisasmAbstract::DISASM_RESULT disasmResult = {};
+                //                        // g_disasmCore.disAsm(byte_buffer, nSize, nCurrentAddress, disasmOptions);
 
-                                if (disasmResult.bIsValid) {
-                                    {
-                                        quint64 _nCurrentBranch = nCurrentBranch;
+                //                 if (disasmResult.bIsValid) {
+                //                     {
+                //                         quint64 _nCurrentBranch = nCurrentBranch;
 
-                                        if (bSuspect) {
-                                            if (XDisasmAbstract::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
-                                                _nCurrentBranch = 0;
-                                            } else if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
-                                                _nCurrentBranch = 0;
-                                            }
-                                        }
+                //                         if (bSuspect) {
+                //                             if (XDisasmAbstract::isNopOpcode(dmFamily, disasmResult.nOpcode)) {
+                //                                 _nCurrentBranch = 0;
+                //                             } else if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                //                                 _nCurrentBranch = 0;
+                //                             }
+                //                         }
 
-                                        quint64 nRefTo = 0;
+                //                         quint64 nRefTo = 0;
 
-                                        if (disasmResult.relType) {
-                                            nRefTo++;
-                                        }
+                //                         if (disasmResult.relType) {
+                //                             nRefTo++;
+                //                         }
 
-                                        if (disasmResult.memType) {
-                                            nRefTo++;
-                                        }
+                //                         if (disasmResult.memType) {
+                //                             nRefTo++;
+                //                         }
 
-                                        SHOWRECORD showRecord = {};
-                                        showRecord.bValid = true;
-                                        showRecord.nAddress = disasmResult.nAddress;
-                                        showRecord.nOffset = nOffset;
-                                        showRecord.nSize = disasmResult.nSize;
-                                        showRecord.recordType = RT_CODE;
-                                        showRecord.nRefTo = nRefTo;
-                                        showRecord.nRefFrom = 0;
-                                        showRecord.nBranch = _nCurrentBranch;
-                                        showRecord.dbstatus = DBSTATUS_PROCESS;
-                                        listShowRecords.append(showRecord);
+                //                         SHOWRECORD showRecord = {};
+                //                         showRecord.bValid = true;
+                //                         showRecord.nAddress = disasmResult.nAddress;
+                //                         showRecord.nOffset = nOffset;
+                //                         showRecord.nSize = disasmResult.nSize;
+                //                         showRecord.recordType = RT_CODE;
+                //                         showRecord.nRefTo = nRefTo;
+                //                         showRecord.nRefFrom = 0;
+                //                         showRecord.nBranch = _nCurrentBranch;
+                //                         showRecord.dbstatus = DBSTATUS_PROCESS;
+                //                         listShowRecords.append(showRecord);
 
-                                        if (disasmResult.relType || disasmResult.memType) {
-                                            RELRECORD relRecord = {};
-                                            relRecord.nAddress = disasmResult.nAddress;
-                                            relRecord.relType = disasmResult.relType;
-                                            relRecord.nXrefToRelative = disasmResult.nXrefToRelative;
-                                            relRecord.memType = disasmResult.memType;
-                                            relRecord.nXrefToMemory = disasmResult.nXrefToMemory;
-                                            relRecord.nMemorySize = disasmResult.nMemorySize;
-                                            relRecord.dbstatus = DBSTATUS_PROCESS;
-                                            listRelRecords.append(relRecord);
-                                        }
+                //                         if (disasmResult.relType || disasmResult.memType) {
+                //                             RELRECORD relRecord = {};
+                //                             relRecord.nAddress = disasmResult.nAddress;
+                //                             relRecord.relType = disasmResult.relType;
+                //                             relRecord.nXrefToRelative = disasmResult.nXrefToRelative;
+                //                             relRecord.memType = disasmResult.memType;
+                //                             relRecord.nXrefToMemory = disasmResult.nXrefToMemory;
+                //                             relRecord.nMemorySize = disasmResult.nMemorySize;
+                //                             relRecord.dbstatus = DBSTATUS_PROCESS;
+                //                             listRelRecords.append(relRecord);
+                //                         }
 
-                                        nNumberOfOpcodes++;
+                //                         nNumberOfOpcodes++;
 
-                                        if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
-                                            break;
-                                        }
-                                    }
+                //                         if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                //                             break;
+                //                         }
+                //                     }
 
-                                    stShowRecords.insert(nCurrentAddress);
+                //                     stShowRecords.insert(nCurrentAddress);
 
-                                    nCurrentAddress += disasmResult.nSize;
-                                    XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
+                //                     nCurrentAddress += disasmResult.nSize;
+                //                     XBinary::setPdStructCurrentIncrement(pPdStruct, _nFreeIndex);
 
-                                    if (disasmResult.relType) {
-                                        if (XDisasmAbstract::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
-                                            nBranch++;
-                                            _ENTRY _entry = {};
-                                            _entry.nAddress = disasmResult.nXrefToRelative;
-                                            _entry.nBranch = nBranch;
-                                            listEntries.append(_entry);
-                                        } else {
-                                            _ENTRY _entry = {};
-                                            _entry.nAddress = disasmResult.nXrefToRelative;
-                                            _entry.nBranch = nCurrentBranch;
-                                            listEntries.append(_entry);
-                                        }
+                //                     if (disasmResult.relType) {
+                //                         if (XDisasmAbstract::isCallOpcode(dmFamily, disasmResult.nOpcode)) {
+                //                             nBranch++;
+                //                             _ENTRY _entry = {};
+                //                             _entry.nAddress = disasmResult.nXrefToRelative;
+                //                             _entry.nBranch = nBranch;
+                //                             listEntries.append(_entry);
+                //                         } else {
+                //                             _ENTRY _entry = {};
+                //                             _entry.nAddress = disasmResult.nXrefToRelative;
+                //                             _entry.nBranch = nCurrentBranch;
+                //                             listEntries.append(_entry);
+                //                         }
 
-                                        if (!(analyzeOptions.bAll)) {
-                                            // TODO relative if code code
-                                        }
-                                    }
+                //                         if (!(analyzeOptions.bAll)) {
+                //                             // TODO relative if code code
+                //                         }
+                //                     }
 
-                                    if (stShowRecords.count() > N_BUFFERSIZE) {  // TODO Consts
-                                        _ENTRY _entry = {};
-                                        _entry.nAddress = nCurrentAddress;
-                                        _entry.nBranch = nCurrentBranch;
-                                        listEntries.append(_entry);
+                //                     if (stShowRecords.count() > N_BUFFERSIZE) {  // TODO Consts
+                //                         _ENTRY _entry = {};
+                //                         _entry.nAddress = nCurrentAddress;
+                //                         _entry.nBranch = nCurrentBranch;
+                //                         listEntries.append(_entry);
 
-                                        break;
-                                    }
+                //                         break;
+                //                     }
 
-                                    // TODO Check mb int3
-                                    if (XDisasmAbstract::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
-                                        //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
-                                        //                                    mrCode.nSize))) {
-                                        //                                        listSuspect.append(nCurrentAddress);
-                                        //                                    }
-                                        break;
-                                    }
+                //                     // TODO Check mb int3
+                //                     if (XDisasmAbstract::isRetOpcode(dmFamily, disasmResult.nOpcode)) {
+                //                         //                                    if ((nCurrentAddress >= mrCode.nAddress) && (nCurrentAddress < (mrCode.nAddress +
+                //                         //                                    mrCode.nSize))) {
+                //                         //                                        listSuspect.append(nCurrentAddress);
+                //                         //                                    }
+                //                         break;
+                //                     }
 
-                                    if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
-                                        break;
-                                    }
+                //                     if (XDisasmAbstract::isInt3Opcode(dmFamily, disasmResult.nOpcode)) {
+                //                         break;
+                //                     }
 
-                                    if (XDisasmAbstract::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
-                                        break;
-                                    }
-                                    //                                if (dmFamily == XBinary::DMFAMILY_X86) {
-                                    //                                    // TODO Check
-                                    //                                    if ((disasmResult.sMnemonic == "ret") || (disasmResult.sMnemonic == "retn") ||
-                                    //                                    (disasmResult.sMnemonic == "jmp")) {
-                                    //                                        stEntries.insert(nCurrentAddress); // TODO optional
-                                    //                                        break;
-                                    //                                    }
-                                    //                                } else if ((dmFamily == XBinary::DMFAMILY_ARM) || (dmFamily == XBinary::DMFAMILY_ARM64)) {
-                                    //                                    // TODO Check
-                                    //                                    if ((disasmResult.sMnemonic == "b")) {
-                                    //                                        stEntries.insert(nCurrentAddress); // TODO optional
-                                    //                                        break;
-                                    //                                    }
-                                    //                                }
-                                } else {
-                                    break;
-                                }
-                            } else {
-                                break;
-                            }
-                        } else {
-                            if (nCurrentAddress == nEntryAddress) {
-                                // Virtual
-                                SHOWRECORD showRecord = {};
-                                showRecord.nAddress = nCurrentAddress;
-                                showRecord.nOffset = -1;
-                                showRecord.nSize = 1;
-                                //                            showRecord.sRecText1 = "db";
-                                //                            showRecord.sRecText2 = "0x01 dup (?)";
-                                showRecord.recordType = RT_VIRTUAL;
-                                showRecord.nRefTo = 0;
-                                showRecord.nRefFrom = 0;
-                                showRecord.dbstatus = DBSTATUS_PROCESS;
-                                listShowRecords.append(showRecord);
+                //                     if (XDisasmAbstract::isJumpOpcode(dmFamily, disasmResult.nOpcode)) {
+                //                         break;
+                //                     }
+                //                     //                                if (dmFamily == XBinary::DMFAMILY_X86) {
+                //                     //                                    // TODO Check
+                //                     //                                    if ((disasmResult.sMnemonic == "ret") || (disasmResult.sMnemonic == "retn") ||
+                //                     //                                    (disasmResult.sMnemonic == "jmp")) {
+                //                     //                                        stEntries.insert(nCurrentAddress); // TODO optional
+                //                     //                                        break;
+                //                     //                                    }
+                //                     //                                } else if ((dmFamily == XBinary::DMFAMILY_ARM) || (dmFamily == XBinary::DMFAMILY_ARM64)) {
+                //                     //                                    // TODO Check
+                //                     //                                    if ((disasmResult.sMnemonic == "b")) {
+                //                     //                                        stEntries.insert(nCurrentAddress); // TODO optional
+                //                     //                                        break;
+                //                     //                                    }
+                //                     //                                }
+                //                 } else {
+                //                     break;
+                //                 }
+                //             } else {
+                //                 break;
+                //             }
+                //         } else {
+                //             if (nCurrentAddress == nEntryAddress) {
+                //                 // Virtual
+                //                 SHOWRECORD showRecord = {};
+                //                 showRecord.nAddress = nCurrentAddress;
+                //                 showRecord.nOffset = -1;
+                //                 showRecord.nSize = 1;
+                //                 //                            showRecord.sRecText1 = "db";
+                //                 //                            showRecord.sRecText2 = "0x01 dup (?)";
+                //                 showRecord.recordType = RT_VIRTUAL;
+                //                 showRecord.nRefTo = 0;
+                //                 showRecord.nRefFrom = 0;
+                //                 showRecord.dbstatus = DBSTATUS_PROCESS;
+                //                 listShowRecords.append(showRecord);
 
-                                nNumberOfOpcodes++;
+                //                 nNumberOfOpcodes++;
 
-                                if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
-                                    break;
-                                }
-                            }
+                //                 if (analyzeOptions.nCount && (nNumberOfOpcodes > analyzeOptions.nCount)) {
+                //                     break;
+                //                 }
+                //             }
 
-                            break;
-                        }
-                    } else {
-                        break;
-                    }
-                }
+                //             break;
+                //         }
+                //     } else {
+                //         break;
+                //     }
+                // }
 
                 if (!bSuspect) {
                     if (listEntries.first().nAddress == nEntryAddress) {
@@ -4181,15 +4188,15 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                 }*/
 
                 if (listEntries.isEmpty() || (listShowRecords.count() > N_BUFFERSIZE)) {
-#ifdef QT_SQL_LIB
-                    g_dataBase.transaction();
-#endif
+// #ifdef QT_SQL_LIB
+//                     g_dataBase.transaction();
+// #endif
                     // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr("Save"));
-                    _addShowRecords_bind(&queryShowRecords, &listShowRecords);
-                    _addRelRecords_bind(&queryRel, &listRelRecords);
-#ifdef QT_SQL_LIB
-                    g_dataBase.commit();
-#endif
+                    // _addShowRecords_bind(&queryShowRecords, &listShowRecords);
+                    // _addRelRecords_bind(&queryRel, &listRelRecords);
+// #ifdef QT_SQL_LIB
+//                     g_dataBase.commit();
+// #endif
                     listShowRecords.clear();
                     listRelRecords.clear();
                     stShowRecords.clear();
@@ -4205,9 +4212,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     if (!(pPdStruct->bIsStop)) {
-#ifdef QT_SQL_LIB
-        g_dataBase.transaction();
-#endif
+// #ifdef QT_SQL_LIB
+//         g_dataBase.transaction();
+// #endif
         QSet<XADDR> stCalls;
 
         // Functions
@@ -4270,16 +4277,16 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             }
         }
 
-#ifdef QT_SQL_LIB
-        g_dataBase.commit();
-#endif
+// #ifdef QT_SQL_LIB
+//         g_dataBase.commit();
+// #endif
     }
 
     // Labels
     if (!(pPdStruct->bIsStop)) {
-#ifdef QT_SQL_LIB
-        g_dataBase.transaction();
-#endif
+// #ifdef QT_SQL_LIB
+//         g_dataBase.transaction();
+// #endif
         QList<XADDR> listLabels = getShowRecordRelAddresses(XDisasmAbstract::RELTYPE_ALL, DBSTATUS_PROCESS, pPdStruct);
         qint32 nNumberOfLabels = listLabels.count();
 
@@ -4298,9 +4305,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
         }
 
-#ifdef QT_SQL_LIB
-        g_dataBase.commit();
-#endif
+// #ifdef QT_SQL_LIB
+//         g_dataBase.commit();
+// #endif
     }
 
     if (!(pPdStruct->bIsStop)) {
@@ -4312,78 +4319,78 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
     // Variables
     if (!(pPdStruct->bIsStop)) {
-#ifdef QT_SQL_LIB
-        g_dataBase.transaction();
-#endif
-        QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//         g_dataBase.transaction();
+// #endif
+//         QSqlQuery query(g_dataBase);
 
-        QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables(DBSTATUS_PROCESS, pPdStruct);
-        qint32 nNumberOfVariables = listVariables.count();
+//         QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables(DBSTATUS_PROCESS, pPdStruct);
+//         qint32 nNumberOfVariables = listVariables.count();
 
-        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfVariables); i++) {
-            XBinary::ADDRESSSIZE record = listVariables.at(i);
+//         for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfVariables); i++) {
+//             XBinary::ADDRESSSIZE record = listVariables.at(i);
 
-            //                // TODO if size = 0 check if it is a string
-            //                QString sVarName = "db";
-            //                if (record.nSize == 0) {
-            //                    record.nSize = 1;
-            //                } else if (record.nSize == 2) {
-            //                    sVarName = "word";
-            //                } else if (record.nSize == 4) {
-            //                    sVarName = "dword";
-            //                } else if (record.nSize == 8) {
-            //                    sVarName = "qword";
-            //                }
+//             //                // TODO if size = 0 check if it is a string
+//             //                QString sVarName = "db";
+//             //                if (record.nSize == 0) {
+//             //                    record.nSize = 1;
+//             //                } else if (record.nSize == 2) {
+//             //                    sVarName = "word";
+//             //                } else if (record.nSize == 4) {
+//             //                    sVarName = "dword";
+//             //                } else if (record.nSize == 8) {
+//             //                    sVarName = "qword";
+//             //                }
 
-            bool bAdd = false;
+//             bool bAdd = false;
 
-            if (record.nSize) {
-                if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
-                    bAdd = true;
-                }
-            }
+//             if (record.nSize) {
+//                 if (!_isShowRecordPresent(&query, record.nAddress, record.nSize)) {
+//                     bAdd = true;
+//                 }
+//             }
 
-            if (bAdd) {
-                if (XBinary::isAddressValid(analyzeOptions.pMemoryMap, record.nAddress)) {
-                    qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, record.nAddress);
+//             if (bAdd) {
+//                 if (XBinary::isAddressValid(analyzeOptions.pMemoryMap, record.nAddress)) {
+//                     qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, record.nAddress);
 
-                    SHOWRECORD showRecord = {};
-                    showRecord.nAddress = record.nAddress;
-                    showRecord.nOffset = nOffset;
-                    showRecord.nSize = record.nSize;
-                    showRecord.recordType = RT_INTDATATYPE;
-                    showRecord.nRefTo = 0;
-                    showRecord.nRefFrom = 0;
-                    showRecord.nBranch = 0;
-                    showRecord.dbstatus = DBSTATUS_PROCESS;
-                    _addShowRecord(showRecord);
-                }
-            }
+//                     SHOWRECORD showRecord = {};
+//                     showRecord.nAddress = record.nAddress;
+//                     showRecord.nOffset = nOffset;
+//                     showRecord.nSize = record.nSize;
+//                     showRecord.recordType = RT_INTDATATYPE;
+//                     showRecord.nRefTo = 0;
+//                     showRecord.nRefFrom = 0;
+//                     showRecord.nBranch = 0;
+//                     showRecord.dbstatus = DBSTATUS_PROCESS;
+//                     _addShowRecord(showRecord);
+//                 }
+//             }
 
-            if (!isSymbolPresent(record.nAddress)) {
-                if (XBinary::isAddressValid(analyzeOptions.pMemoryMap, record.nAddress)) {
-                    QString sSymbolName;
+//             if (!isSymbolPresent(record.nAddress)) {
+//                 if (XBinary::isAddressValid(analyzeOptions.pMemoryMap, record.nAddress)) {
+//                     QString sSymbolName;
 
-                    // TODO Check string
-                    if (record.nSize) {
-                        sSymbolName = QString("var_%1").arg(XBinary::valueToHexEx(record.nAddress));
-                    } else {
-                        sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
-                    }
+//                     // TODO Check string
+//                     if (record.nSize) {
+//                         sSymbolName = QString("var_%1").arg(XBinary::valueToHexEx(record.nAddress));
+//                     } else {
+//                         sSymbolName = QString("label_%1").arg(XBinary::valueToHexEx(record.nAddress));
+//                     }
 
-                    if (!_addSymbol(record.nAddress, 0, sSymbolName, SS_ANALYZE)) {
-#ifdef QT_DEBUG
-                        qDebug("%s", XBinary::valueToHex(record.nAddress).toLatin1().data());
-#endif
-                    }
-                    // TODO ST_DATA_ANSISTRING
-                }
-            }
-        }
+//                     if (!_addSymbol(record.nAddress, 0, sSymbolName, SS_ANALYZE)) {
+// #ifdef QT_DEBUG
+//                         qDebug("%s", XBinary::valueToHex(record.nAddress).toLatin1().data());
+// #endif
+//                     }
+//                     // TODO ST_DATA_ANSISTRING
+//                 }
+//             }
+//         }
 
-#ifdef QT_SQL_LIB
-        g_dataBase.commit();
-#endif
+// #ifdef QT_SQL_LIB
+//         g_dataBase.commit();
+// #endif
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
         if (!(pPdStruct->bIsStop)) {
             vacuumDb();
@@ -4393,9 +4400,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     // Update references
     if (analyzeOptions.bAll) {
         if (!(pPdStruct->bIsStop)) {
-#ifdef QT_SQL_LIB
-            g_dataBase.transaction();
-#endif
+// #ifdef QT_SQL_LIB
+//             g_dataBase.transaction();
+// #endif
             QList<RELRECORD> listRelRecords = getRelRecords(DBSTATUS_PROCESS);  // TODO optimize
             // TODO reset counters!!!
 
@@ -4415,7 +4422,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             // TODO
 
 #ifdef QT_SQL_LIB
-            g_dataBase.commit();
+            // g_dataBase.commit();
             if (!(pPdStruct->bIsStop)) {
                 vacuumDb();
             }
@@ -4548,24 +4555,119 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
-bool XInfoDB::_analyzeCode2(XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    return true;
+    STATE *pState = getState(sProfile);
+
+    pState->listDataRecords.clear();
+
+    pState->pDevice = pDevice;
+    pState->memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, pDevice, bIsImage, nModuleAddress, pPdStruct);
+    pState->bIsImage = bIsImage;
+    pState->nModuleAddress = nModuleAddress;
+    pState->fileType = fileType;
+
+    // qint32 nOpcodeMaxSize = 16;
+
+    if ((fileType == XBinary::FT_PE) || (fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
+        XPE pe(pDevice, bIsImage, nModuleAddress);
+
+        if (pe.isValid()) {
+            pState->stInitAddresses.insert(XBinary::relAddressToAddress(&(pState->memoryMap), pe.getOptionalHeader_AddressOfEntryPoint()));
+
+            pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap)); // TODO syntax
+        }
+    }
+
+    {
+        XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
+        disasmOptions.bNoStrings = true;
+
+        XBinary binary(pDevice, bIsImage, nModuleAddress);
+
+        QSet<XADDR> stAddresses;
+
+        char *pMemory = 0;
+        qint64 nMemoryOffset = 0;
+        qint64 nMemorySize = 0;
+
+        while ((!(pPdStruct->bIsStop)) && (pState->stInitAddresses.count())) {
+            XADDR nCurrentAddress = *(pState->stInitAddresses.begin());
+            pState->stInitAddresses.remove(nCurrentAddress);
+
+            if (!stAddresses.contains(nCurrentAddress)) {
+                qint64 nOffset = XBinary::addressToOffset(&(pState->memoryMap), nCurrentAddress);
+
+                if (nOffset != -1) {
+                    if ((nOffset >= nMemoryOffset) && ((nOffset) < (nMemoryOffset + nMemorySize))) {
+                        nCurrentAddress = nMemoryOffset + nMemorySize;
+                    } else {
+                        XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByOffset(&(pState->memoryMap), nOffset);
+                        nMemoryOffset = mr.nOffset;
+                        nMemorySize = mr.nSize;
+
+                        if (pMemory) {
+                            delete [] pMemory;
+                        }
+
+                        pMemory = new char[nMemorySize];
+
+                        if (pMemory) {
+                            nMemorySize = binary.read_array(nMemoryOffset, pMemory, nMemorySize, pPdStruct);
+                        }
+                    }
+
+                    if (nMemorySize) {
+                        qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
+                        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, nMemorySize);
+
+                        for (qint64 i = nOffset - nMemoryOffset; (i < nMemorySize) && (!(pPdStruct->bIsStop));) {
+                            XDisasmAbstract::DISASM_RESULT_EX dr = pState->disasmCore.disAsmEx(pMemory + i, nMemorySize - i, nCurrentAddress + i);
+
+                            if (!dr.bIsValid) {
+                                break;
+                            }
+
+                            XDATARECORD dataRecord = {};
+                            dataRecord.nAddress = dr.nAddress;
+                            dataRecord.nOffset = nMemoryOffset + i;
+                            dataRecord.nSize = dr.nSize;
+                            dataRecord.nFlags = XDR_FLAG_CODE;
+
+                            pState->listDataRecords.append(dataRecord);
+
+                            i += dr.nSize;
+
+                            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
+                        }
+
+                        XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
+                    }
+                }
+            }
+        }
+
+        if (pMemory) {
+            delete [] pMemory;
+        }
+    }
+
+    return false;
 }
 
 bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    _addShowRecord_prepare(&query);
-    bResult = _addShowRecord_bind(&query, record);
+//     _addShowRecord_prepare(&query);
+//     bResult = _addShowRecord_bind(&query, record);
 
-#else
-    Q_UNUSED(record)
-#endif
+// #else
+//     Q_UNUSED(record)
+// #endif
 
     return bResult;
 }
@@ -4688,43 +4790,43 @@ bool XInfoDB::_addRelRecord(const RELRECORD &record)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
-                          "VALUES (?, ?, ?, ?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
+//                           "VALUES (?, ?, ?, ?, ?, ?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_RELATIVS]));
 
-    query.bindValue(0, record.nAddress);
-    query.bindValue(1, record.relType);
-    query.bindValue(2, record.nXrefToRelative);
-    query.bindValue(3, record.memType);
-    query.bindValue(4, record.nXrefToMemory);
-    query.bindValue(5, record.nMemorySize);
-    query.bindValue(6, record.dbstatus);
+//     query.bindValue(0, record.nAddress);
+//     query.bindValue(1, record.relType);
+//     query.bindValue(2, record.nXrefToRelative);
+//     query.bindValue(3, record.memType);
+//     query.bindValue(4, record.nXrefToMemory);
+//     query.bindValue(5, record.nMemorySize);
+//     query.bindValue(6, record.dbstatus);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(record)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(record)
+// #endif
 
     return bResult;
 }
 
 void XInfoDB::_completeDbAnalyze()
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
-             true);
-    querySQL(&query,
-             QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
-                 .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
-             true);
-#endif
+//     querySQL(&query,
+//              QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
+//              true);
+//     querySQL(&query,
+//              QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
+//                  .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
+//              true);
+// #endif
 }
 #ifdef QT_SQL_LIB
 void XInfoDB::_addShowRecords_bind(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords)
@@ -4751,17 +4853,17 @@ quint64 XInfoDB::_getBranchNumber()
 {
     quint64 nResult = 0;
 
-    QSqlQuery query(g_dataBase);
+    // QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT MAX(BRANCH) + 1 FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), false);
+    // querySQL(&query, QString("SELECT MAX(BRANCH) + 1 FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toULongLong();
-    }
+    // if (query.next()) {
+    //     nResult = query.value(0).toULongLong();
+    // }
 
-    if (nResult == 0) {
-        nResult = 1;
-    }
+    // if (nResult == 0) {
+    //     nResult = 1;
+    // }
 
     return nResult;
 }
@@ -4769,33 +4871,33 @@ quint64 XInfoDB::_getBranchNumber()
 QList<XInfoDB::RELRECORD> XInfoDB::getRelRecords(DBSTATUS dbstatus)
 {
     QList<XInfoDB::RELRECORD> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]);
+//     QString sSQL = QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]);
 
-    if (dbstatus != DBSTATUS_NONE) {
-        sSQL += QString(" WHERE DBSTATUS = '%1'").arg(dbstatus);
-    }
+//     if (dbstatus != DBSTATUS_NONE) {
+//         sSQL += QString(" WHERE DBSTATUS = '%1'").arg(dbstatus);
+//     }
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next()) {
-        RELRECORD record = {};
+//     while (query.next()) {
+//         RELRECORD record = {};
 
-        record.nAddress = query.value(0).toULongLong();
-        record.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
-        record.nXrefToRelative = query.value(2).toULongLong();
-        record.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
-        record.nXrefToMemory = query.value(4).toULongLong();
-        record.nMemorySize = query.value(5).toLongLong();
-        record.dbstatus = (DBSTATUS)query.value(6).toLongLong();
+//         record.nAddress = query.value(0).toULongLong();
+//         record.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
+//         record.nXrefToRelative = query.value(2).toULongLong();
+//         record.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
+//         record.nXrefToMemory = query.value(4).toULongLong();
+//         record.nMemorySize = query.value(5).toLongLong();
+//         record.dbstatus = (DBSTATUS)query.value(6).toLongLong();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(dbstatus)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(dbstatus)
+// #endif
 
     return listResult;
 }
@@ -4804,13 +4906,13 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    bResult = querySQL(&query, QString("UPDATE %1 SET REFFROM=REFFROM+1 WHERE ADDRESS=%2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), true);
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     bResult = querySQL(&query, QString("UPDATE %1 SET REFFROM=REFFROM+1 WHERE ADDRESS=%2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), true);
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return bResult;
 }
@@ -4819,34 +4921,34 @@ bool XInfoDB::_removeAnalyze(XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    bResult = querySQL(&query,
-                       QString("DELETE FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3")
-                           .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
-                       true);
+//     bResult = querySQL(&query,
+//                        QString("DELETE FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3")
+//                            .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
+//                        true);
 
-    // TODO REMOVE XREFS
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nSize)
-#endif
+//     // TODO REMOVE XREFS
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nSize)
+// #endif
 
     return bResult;
 }
 
 void XInfoDB::_clearAnalyze()
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
-    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
-    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
-    querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), true);
-    querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
-#endif
+//     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), true);
+//     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]), true);
+//     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_RELATIVS]), true);
+//     querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), true);
+//     querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE <> '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
+// #endif
 }
 
 bool XInfoDB::_setArray(XADDR nAddress, qint64 nSize)
@@ -4867,70 +4969,70 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) VALUES (?, ?, ?)").arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
+//     query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) VALUES (?, ?, ?)").arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
 
-    query.bindValue(0, nAddress);
-    query.bindValue(1, nSize);
-    query.bindValue(2, sName);
+//     query.bindValue(0, nAddress);
+//     query.bindValue(1, nSize);
+//     query.bindValue(2, sName);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nSize)
-    Q_UNUSED(sName)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nSize)
+//     Q_UNUSED(sName)
+// #endif
 
     return bResult;
 }
 
 void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize), QString::number(nAddress)),
-             true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nSize)
-#endif
+//     querySQL(&query, QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize), QString::number(nAddress)),
+//              true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nSize)
+// #endif
 }
 #ifdef QT_GUI_LIB
 QString XInfoDB::_addBookmarkRecord(const BOOKMARKRECORD &record)
 {
     QString sResult;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sUUID = record.sUUID;
+//     QString sUUID = record.sUUID;
 
-    if (sUUID == "") {
-        sUUID = XBinary::generateUUID();
-    }
+//     if (sUUID == "") {
+//         sUUID = XBinary::generateUUID();
+//     }
 
-    query.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                      .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
+//     query.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
+//                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+//                       .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
 
-    query.bindValue(0, sUUID);
-    query.bindValue(1, record.nLocation);
-    query.bindValue(2, record.locationType);
-    query.bindValue(3, record.nSize);
-    query.bindValue(4, colorToString(record.colText));
-    query.bindValue(5, colorToString(record.colBackground));
-    query.bindValue(6, record.sTemplate);
-    query.bindValue(7, record.sComment);
+//     query.bindValue(0, sUUID);
+//     query.bindValue(1, record.nLocation);
+//     query.bindValue(2, record.locationType);
+//     query.bindValue(3, record.nSize);
+//     query.bindValue(4, colorToString(record.colText));
+//     query.bindValue(5, colorToString(record.colBackground));
+//     query.bindValue(6, record.sTemplate);
+//     query.bindValue(7, record.sComment);
 
-    if (querySQL(&query, true)) {
-        sResult = sUUID;
-    }
-#else
-    Q_UNUSED(record)
-#endif
+//     if (querySQL(&query, true)) {
+//         sResult = sUUID;
+//     }
+// #else
+//     Q_UNUSED(record)
+// #endif
 
     return sResult;
 }
@@ -4940,15 +5042,15 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID), true);
+//     querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID), true);
 
-    bResult = querySQL(&query, true);
-#else
-    Q_UNUSED(sUUID)
-#endif
+//     bResult = querySQL(&query, true);
+// #else
+//     Q_UNUSED(sUUID)
+// #endif
 
     return bResult;
 }
@@ -4957,36 +5059,36 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
-#ifdef QT_SQL_LIB
-    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+// #ifdef QT_SQL_LIB
+//     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
-    if (!pPdStruct) {
-        pPdStruct = &pdStructEmpty;
-    }
+//     if (!pPdStruct) {
+//         pPdStruct = &pdStructEmpty;
+//     }
 
-    QSqlQuery query(g_dataBase);
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
-             false);
+//     querySQL(&query,
+//              QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
+//              false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        BOOKMARKRECORD record = {};
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         BOOKMARKRECORD record = {};
 
-        record.sUUID = query.value(0).toString();
-        record.nLocation = query.value(1).toULongLong();
-        record.locationType = (XBinary::LT)query.value(2).toLongLong();
-        record.nSize = query.value(3).toLongLong();
-        record.colText = stringToColor(query.value(4).toString());
-        record.colBackground = stringToColor(query.value(5).toString());
-        record.sTemplate = query.value(6).toString();
-        record.sComment = query.value(7).toString();
+//         record.sUUID = query.value(0).toString();
+//         record.nLocation = query.value(1).toULongLong();
+//         record.locationType = (XBinary::LT)query.value(2).toLongLong();
+//         record.nSize = query.value(3).toLongLong();
+//         record.colText = stringToColor(query.value(4).toString());
+//         record.colBackground = stringToColor(query.value(5).toString());
+//         record.sTemplate = query.value(6).toString();
+//         record.sComment = query.value(7).toString();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(pPdStruct)
+// #endif
 
     return listResult;
 }
@@ -4995,42 +5097,42 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pP
 QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::BOOKMARKRECORD> listResult;
-#ifdef QT_SQL_LIB
-    XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+// #ifdef QT_SQL_LIB
+//     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
 
-    if (!pPdStruct) {
-        pPdStruct = &pdStructEmpty;
-    }
+//     if (!pPdStruct) {
+//         pPdStruct = &pdStructEmpty;
+//     }
 
-    QSqlQuery query(g_dataBase);
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 "
-                     "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
-                     "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3))) AND LOCTYPE = '%4'  ORDER BY LOCATION")
-                 .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize), QString::number(locationType)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 "
+//                      "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
+//                      "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3))) AND LOCTYPE = '%4'  ORDER BY LOCATION")
+//                  .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize), QString::number(locationType)),
+//              false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        BOOKMARKRECORD record = {};
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         BOOKMARKRECORD record = {};
 
-        record.sUUID = query.value(0).toString();
-        record.nLocation = query.value(1).toULongLong();
-        record.locationType = (XBinary::LT)query.value(2).toLongLong();
-        record.nSize = query.value(3).toLongLong();
-        record.colText = stringToColor(query.value(4).toString());
-        record.colBackground = stringToColor(query.value(5).toString());
-        record.sTemplate = query.value(6).toString();
-        record.sComment = query.value(7).toString();
+//         record.sUUID = query.value(0).toString();
+//         record.nLocation = query.value(1).toULongLong();
+//         record.locationType = (XBinary::LT)query.value(2).toLongLong();
+//         record.nSize = query.value(3).toLongLong();
+//         record.colText = stringToColor(query.value(4).toString());
+//         record.colBackground = stringToColor(query.value(5).toString());
+//         record.sTemplate = query.value(6).toString();
+//         record.sComment = query.value(7).toString();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(nLocation)
-    Q_UNUSED(locationType)
-    Q_UNUSED(nSize)
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(nLocation)
+//     Q_UNUSED(locationType)
+//     Q_UNUSED(nSize)
+//     Q_UNUSED(pPdStruct)
+// #endif
 
     return listResult;
 }
@@ -5038,51 +5140,51 @@ QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XB
 #ifdef QT_GUI_LIB
 void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET "
-                     "LOCATION = '%2', "
-                     "LOCTYPE = '%3', "
-                     "SIZE = '%4', "
-                     "COLTEXT = '%5', "
-                     "COLBACKGROUND = '%6', "
-                     "TEMPLATE = '%7' "
-                     "COMMENT = '%8' "
-                     "WHERE UUID = '%9'")
-                 .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize),
-                      colorToString(record.colText), colorToString(record.colBackground), record.sTemplate, record.sComment, record.sUUID),
-             true);
-#else
-    Q_UNUSED(record)
-#endif
+//     querySQL(&query,
+//              QString("UPDATE %1 SET "
+//                      "LOCATION = '%2', "
+//                      "LOCTYPE = '%3', "
+//                      "SIZE = '%4', "
+//                      "COLTEXT = '%5', "
+//                      "COLBACKGROUND = '%6', "
+//                      "TEMPLATE = '%7' "
+//                      "COMMENT = '%8' "
+//                      "WHERE UUID = '%9'")
+//                  .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize),
+//                       colorToString(record.colText), colorToString(record.colBackground), record.sTemplate, record.sComment, record.sUUID),
+//              true);
+// #else
+//     Q_UNUSED(record)
+// #endif
 }
 #endif
 #ifdef QT_GUI_LIB
 void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground)
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], colorToString(colBackground), sUUID), true);
-#else
-    Q_UNUSED(sUUID)
-    Q_UNUSED(colBackground)
-#endif
+//     querySQL(&query, QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], colorToString(colBackground), sUUID), true);
+// #else
+//     Q_UNUSED(sUUID)
+//     Q_UNUSED(colBackground)
+// #endif
 }
 #endif
 #ifdef QT_GUI_LIB
 void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &sComment)
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("UPDATE %1 SET COMMENT = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sComment), sUUID), true);
-#else
-    Q_UNUSED(sUUID)
-    Q_UNUSED(sComment)
-#endif
+//     querySQL(&query, QString("UPDATE %1 SET COMMENT = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sComment), sUUID), true);
+// #else
+//     Q_UNUSED(sUUID)
+//     Q_UNUSED(sComment)
+// #endif
 }
 #endif
 
@@ -5102,37 +5204,37 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bIsApro
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    g_pMutexSQL->lock();
-    if (!bIsAprox) {
-        querySQL(&query,
-                 QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS = %2")
-                     .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-                 false);
-    } else {
-        querySQL(&query,
-                 QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
-                     .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-                 false);
-    }
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     g_pMutexSQL->lock();
+//     if (!bIsAprox) {
+//         querySQL(&query,
+//                  QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS = %2")
+//                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
+//                  false);
+//     } else {
+//         querySQL(&query,
+//                  QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
+//                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
+//                  false);
+//     }
 
-    if (query.next()) {
-        result.bValid = true;
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-    g_pMutexSQL->unlock();
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(bIsAprox)
-#endif
+//     if (query.next()) {
+//         result.bValid = true;
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+//     g_pMutexSQL->unlock();
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(bIsAprox)
+// #endif
 
     return result;
 }
@@ -5141,28 +5243,28 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
+//              false);
 
-    if (query.next()) {
-        result.bValid = true;
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         result.bValid = true;
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return result;
 }
@@ -5171,28 +5273,28 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
+//              false);
 
-    if (query.next()) {
-        result.bValid = true;
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         result.bValid = true;
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return result;
 }
@@ -5201,28 +5303,28 @@ XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
+//              false);
 
-    if (query.next()) {
-        result.bValid = true;
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-#else
-    Q_UNUSED(nOffset)
-#endif
+//     if (query.next()) {
+//         result.bValid = true;
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nOffset)
+// #endif
 
     return result;
 }
@@ -5231,28 +5333,28 @@ XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
+//              false);
 
-    if (query.next()) {
-        result.bValid = true;
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-#else
-    Q_UNUSED(nOffset)
-#endif
+//     if (query.next()) {
+//         result.bValid = true;
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nOffset)
+// #endif
 
     return result;
 }
@@ -5261,27 +5363,27 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
 {
     XInfoDB::SHOWRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET = '%2'")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET = '%2'")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
+//              false);
 
-    if (query.next()) {
-        result.nAddress = query.value(0).toULongLong();
-        result.nOffset = query.value(1).toLongLong();
-        result.nSize = query.value(2).toLongLong();
-        result.recordType = (RT)query.value(3).toULongLong();
-        result.nRefTo = query.value(4).toULongLong();
-        result.nRefFrom = query.value(5).toULongLong();
-        result.nBranch = query.value(6).toULongLong();
-        result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    }
-#else
-    Q_UNUSED(nOffset)
-#endif
+//     if (query.next()) {
+//         result.nAddress = query.value(0).toULongLong();
+//         result.nOffset = query.value(1).toLongLong();
+//         result.nSize = query.value(2).toLongLong();
+//         result.recordType = (RT)query.value(3).toULongLong();
+//         result.nRefTo = query.value(4).toULongLong();
+//         result.nRefFrom = query.value(5).toULongLong();
+//         result.nBranch = query.value(6).toULongLong();
+//         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nOffset)
+// #endif
 
     return result;
 }
@@ -5289,17 +5391,17 @@ XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
 qint64 XInfoDB::getShowRecordOffsetByAddress(XADDR nAddress)
 {
     qint64 nResult = 0;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT MIN(ROFFSET) FROM %1 WHERE ADDRESS >= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
+//     querySQL(&query, QString("SELECT MIN(ROFFSET) FROM %1 WHERE ADDRESS >= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return nResult;
 }
@@ -5307,17 +5409,17 @@ qint64 XInfoDB::getShowRecordOffsetByAddress(XADDR nAddress)
 qint64 XInfoDB::getShowRecordPrevOffsetByAddress(XADDR nAddress)
 {
     qint64 nResult = 0;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT MAX(ROFFSET) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
+//     querySQL(&query, QString("SELECT MAX(ROFFSET) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return nResult;
 }
@@ -5330,17 +5432,17 @@ qint64 XInfoDB::getShowRecordOffsetByLine(qint64 nNumber)
 XADDR XInfoDB::getShowRecordAddressByOffset(qint64 nOffset)
 {
     XADDR nResult = 0;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ROFFSET >= %2 LIMIT 1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)), false);
+//     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ROFFSET >= %2 LIMIT 1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toULongLong();
-    }
-#else
-    Q_UNUSED(nOffset)
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toULongLong();
+//     }
+// #else
+//     Q_UNUSED(nOffset)
+// #endif
 
     return nResult;
 }
@@ -5348,17 +5450,17 @@ XADDR XInfoDB::getShowRecordAddressByOffset(qint64 nOffset)
 XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
 {
     XADDR nResult = 0;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE LINENUMBER = %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine)), false);
+//     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE LINENUMBER = %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine)), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toULongLong();
-    }
-#else
-    Q_UNUSED(nLine)
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toULongLong();
+//     }
+// #else
+//     Q_UNUSED(nLine)
+// #endif
 
     return nResult;
 }
@@ -5367,15 +5469,15 @@ qint64 XInfoDB::getShowRecordsCount()
 {
     qint64 nResult = 0;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT count(*) FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), false);
+//     querySQL(&query, QString("SELECT count(*) FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toLongLong();
-    }
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toLongLong();
+//     }
+// #endif
 
     return nResult;
 }
@@ -5384,17 +5486,17 @@ qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
 {
     qint64 nResult = 0;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query, QString("SELECT max(LINENUMBER) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
+//     querySQL(&query, QString("SELECT max(LINENUMBER) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
 
-    if (query.next()) {
-        nResult = query.value(0).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         nResult = query.value(0).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return nResult;
 }
@@ -5406,48 +5508,48 @@ qint64 XInfoDB::getShowRecordLineByOffset(qint64 nOffset)
 
 void XInfoDB::updateShowRecordLine(XADDR nAddress, qint64 nLine)
 {
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nAddress)),
-             true);
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nLine)
-#endif
+//     querySQL(&query,
+//              QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nAddress)),
+//              true);
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nLine)
+// #endif
 }
 
 QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XInfoDB::SHOWRECORD> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE LINENUMBER >= %2  ORDER BY ADDRESS LIMIT %3")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nCount)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE LINENUMBER >= %2  ORDER BY ADDRESS LIMIT %3")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine), QString::number(nCount)),
+//              false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        SHOWRECORD record = {};
-        record.bValid = true;
-        record.nAddress = query.value(0).toULongLong();
-        record.nOffset = query.value(1).toLongLong();
-        record.nSize = query.value(2).toLongLong();
-        record.recordType = (RT)query.value(3).toULongLong();
-        record.nRefTo = query.value(4).toULongLong();
-        record.nRefFrom = query.value(5).toULongLong();
-        record.nBranch = query.value(6).toULongLong();
-        record.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         SHOWRECORD record = {};
+//         record.bValid = true;
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nOffset = query.value(1).toLongLong();
+//         record.nSize = query.value(2).toLongLong();
+//         record.recordType = (RT)query.value(3).toULongLong();
+//         record.nRefTo = query.value(4).toULongLong();
+//         record.nRefFrom = query.value(5).toULongLong();
+//         record.nBranch = query.value(6).toULongLong();
+//         record.dbstatus = (DBSTATUS)query.value(7).toLongLong();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(nLine)
-    Q_UNUSED(nCount)
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(nLine)
+//     Q_UNUSED(nCount)
+//     Q_UNUSED(pPdStruct)
+// #endif
 
     return listResult;
 }
@@ -5462,32 +5564,32 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
     }
 
     QList<XInfoDB::SHOWRECORD> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS >= %2 AND (ADDRESS + SIZE) < %3 ORDER BY ADDRESS")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS >= %2 AND (ADDRESS + SIZE) < %3 ORDER BY ADDRESS")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
+//              false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        SHOWRECORD record = {};
-        record.bValid = true;
-        record.nAddress = query.value(0).toULongLong();
-        record.nOffset = query.value(1).toLongLong();
-        record.nSize = query.value(2).toLongLong();
-        record.recordType = (RT)query.value(3).toULongLong();
-        record.nRefTo = query.value(4).toULongLong();
-        record.nRefFrom = query.value(5).toULongLong();
-        record.nBranch = query.value(6).toULongLong();
-        record.dbstatus = (DBSTATUS)query.value(7).toLongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         SHOWRECORD record = {};
+//         record.bValid = true;
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nOffset = query.value(1).toLongLong();
+//         record.nSize = query.value(2).toLongLong();
+//         record.recordType = (RT)query.value(3).toULongLong();
+//         record.nRefTo = query.value(4).toULongLong();
+//         record.nRefFrom = query.value(5).toULongLong();
+//         record.nBranch = query.value(6).toULongLong();
+//         record.dbstatus = (DBSTATUS)query.value(7).toLongLong();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nSize)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nSize)
+// #endif
 
     return listResult;
 }
@@ -5495,182 +5597,182 @@ QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecordsInRegion(XADDR nAddress, qint6
 QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL;
+//     QString sSQL;
 
-    if (relType == XDisasmAbstract::RELTYPE_ALL) {
-        sSQL =
-            QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_NONE));
-    } else if (relType == XDisasmAbstract::RELTYPE_JMP) {
-        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
-                   .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_JMP), QString::number(XDisasmAbstract::RELTYPE_JMP_COND),
-                        QString::number(XDisasmAbstract::RELTYPE_JMP_UNCOND));
-    } else {
-        sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE = %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(relType));
-    }
+//     if (relType == XDisasmAbstract::RELTYPE_ALL) {
+//         sSQL =
+//             QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE != %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_NONE));
+//     } else if (relType == XDisasmAbstract::RELTYPE_JMP) {
+//         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE IN(%2, %3, %4)")
+//                    .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(XDisasmAbstract::RELTYPE_JMP), QString::number(XDisasmAbstract::RELTYPE_JMP_COND),
+//                         QString::number(XDisasmAbstract::RELTYPE_JMP_UNCOND));
+//     } else {
+//         sSQL = QString("SELECT DISTINCT XREFTORELATIVE FROM %1 WHERE RELTYPE = %2").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(relType));
+//     }
 
-    if (dbstatus != DBSTATUS_NONE) {
-        sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
-    }
+//     if (dbstatus != DBSTATUS_NONE) {
+//         sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
+//     }
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XADDR nAddress = query.value(0).toULongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XADDR nAddress = query.value(0).toULongLong();
 
-        listResult.append(nAddress);
-    }
-#else
-    Q_UNUSED(relType)
-    Q_UNUSED(dbstatus)
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(nAddress);
+//     }
+// #else
+//     Q_UNUSED(relType)
+//     Q_UNUSED(dbstatus)
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XBinary::ADDRESSSIZE> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT XREFTOMEMORY, MAX(MEMORYSIZE) FROM %1 WHERE MEMTYPE <> 0").arg(s_sql_tableName[DBTABLE_RELATIVS]);
+//     QString sSQL = QString("SELECT XREFTOMEMORY, MAX(MEMORYSIZE) FROM %1 WHERE MEMTYPE <> 0").arg(s_sql_tableName[DBTABLE_RELATIVS]);
 
-    if (dbstatus != DBSTATUS_NONE) {
-        sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
-    }
+//     if (dbstatus != DBSTATUS_NONE) {
+//         sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
+//     }
 
-    sSQL += "GROUP BY XREFTOMEMORY";
+//     sSQL += "GROUP BY XREFTOMEMORY";
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XBinary::ADDRESSSIZE record = {};
-        record.nAddress = query.value(0).toULongLong();
-        record.nSize = query.value(1).toLongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XBinary::ADDRESSSIZE record = {};
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nSize = query.value(1).toLongLong();
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(dbstatus)
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(dbstatus)
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XBinary::ADDRESSSIZE> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT MIN(ADDRESS), MAX(ADDRESS+SIZE) FROM %1 WHERE BRANCH > 0").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]);
+//     QString sSQL = QString("SELECT MIN(ADDRESS), MAX(ADDRESS+SIZE) FROM %1 WHERE BRANCH > 0").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]);
 
-    if (dbstatus != DBSTATUS_NONE) {
-        sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
-    }
+//     if (dbstatus != DBSTATUS_NONE) {
+//         sSQL += QString(" AND DBSTATUS = '%1'").arg(dbstatus);
+//     }
 
-    sSQL += "GROUP BY BRANCH ORDER BY ADDRESS";
+//     sSQL += "GROUP BY BRANCH ORDER BY ADDRESS";
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XBinary::ADDRESSSIZE record = {};
-        record.nAddress = query.value(0).toULongLong();
-        record.nSize = query.value(1).toULongLong() - record.nAddress;
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XBinary::ADDRESSSIZE record = {};
+//         record.nAddress = query.value(0).toULongLong();
+//         record.nSize = query.value(1).toULongLong() - record.nAddress;
 
-        listResult.append(record);
-    }
-#else
-    Q_UNUSED(dbstatus)
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(record);
+//     }
+// #else
+//     Q_UNUSED(dbstatus)
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XADDR> XInfoDB::getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]);
+//     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]);
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XADDR nAddress = query.value(0).toULongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XADDR nAddress = query.value(0).toULongLong();
 
-        listResult.append(nAddress);
-    }
-#else
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(nAddress);
+//     }
+// #else
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]);
+//     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]);
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XADDR nAddress = query.value(0).toULongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XADDR nAddress = query.value(0).toULongLong();
 
-        listResult.append(nAddress);
-    }
-#else
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(nAddress);
+//     }
+// #else
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XADDR> XInfoDB::getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_TLS]);
+//     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_TLS]);
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XADDR nAddress = query.value(0).toULongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XADDR nAddress = query.value(0).toULongLong();
 
-        listResult.append(nAddress);
-    }
-#else
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(nAddress);
+//     }
+// #else
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
 QList<XADDR> XInfoDB::getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]);
+//     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]);
 
-    querySQL(&query, sSQL, false);
+//     querySQL(&query, sSQL, false);
 
-    while (query.next() && (!(pPdStruct->bIsStop))) {
-        XADDR nAddress = query.value(0).toULongLong();
+//     while (query.next() && (!(pPdStruct->bIsStop))) {
+//         XADDR nAddress = query.value(0).toULongLong();
 
-        listResult.append(nAddress);
-    }
-#else
-    Q_UNUSED(pPdStruct)
-#endif
+//         listResult.append(nAddress);
+//     }
+// #else
+//     Q_UNUSED(pPdStruct)
+// #endif
     return listResult;
 }
 
@@ -5678,25 +5780,25 @@ XInfoDB::RELRECORD XInfoDB::getRelRecordByAddress(XADDR nAddress)
 {
     XInfoDB::RELRECORD result = {};
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
 
-    querySQL(&query,
-             QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1 WHERE ADDRESS = %2")
-                 .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
-             false);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE FROM %1 WHERE ADDRESS = %2")
+//                  .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
+//              false);
 
-    if (query.next()) {
-        result.nAddress = query.value(0).toULongLong();
-        result.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
-        result.nXrefToRelative = query.value(2).toULongLong();
-        result.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
-        result.nXrefToMemory = query.value(4).toULongLong();
-        result.nMemorySize = query.value(5).toLongLong();
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         result.nAddress = query.value(0).toULongLong();
+//         result.relType = (XDisasmAbstract::RELTYPE)query.value(1).toULongLong();  // TODO
+//         result.nXrefToRelative = query.value(2).toULongLong();
+//         result.memType = (XDisasmAbstract::MEMTYPE)query.value(3).toULongLong();  // TODO
+//         result.nXrefToMemory = query.value(4).toULongLong();
+//         result.nMemorySize = query.value(5).toLongLong();
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return result;
 }
@@ -5705,20 +5807,20 @@ bool XInfoDB::isAddressHasRefFrom(XADDR nAddress)
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    // mb TODO more checks
-    querySQL(
-        &query,
-        QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
-        false);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     // mb TODO more checks
+//     querySQL(
+//         &query,
+//         QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(nAddress)),
+//         false);
 
-    if (query.next()) {
-        bResult = true;
-    }
-#else
-    Q_UNUSED(nAddress)
-#endif
+//     if (query.next()) {
+//         bResult = true;
+//     }
+// #else
+//     Q_UNUSED(nAddress)
+// #endif
 
     return bResult;
 }
@@ -5726,18 +5828,18 @@ bool XInfoDB::isAddressHasRefFrom(XADDR nAddress)
 bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
-#ifdef QT_SQL_LIB
-    QSqlQuery query(g_dataBase);
-    querySQL(&query,
-             QString("SELECT ADDRESS FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3 AND ROFFSET = -1")
-                 .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
-             false);
+// #ifdef QT_SQL_LIB
+//     QSqlQuery query(g_dataBase);
+//     querySQL(&query,
+//              QString("SELECT ADDRESS FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3 AND ROFFSET = -1")
+//                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
+//              false);
 
-    bResult = query.next();
-#else
-    Q_UNUSED(nAddress)
-    Q_UNUSED(nSize)
-#endif
+//     bResult = query.next();
+// #else
+//     Q_UNUSED(nAddress)
+//     Q_UNUSED(nSize)
+// #endif
     return bResult;
 }
 
@@ -5745,26 +5847,26 @@ bool XInfoDB::loadDbFromFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdS
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
-    dataBase.setDatabaseName(sDBFileName);
+// #ifdef QT_SQL_LIB
+//     QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+//     dataBase.setDatabaseName(sDBFileName);
 
-    if (dataBase.open()) {
-        bResult = copyDb(&dataBase, &g_dataBase, pPdStruct);
+//     if (dataBase.open()) {
+//         bResult = copyDb(&dataBase, &g_dataBase, pPdStruct);
 
-        dataBase.close();
+//         dataBase.close();
 
-        if (bResult) {
-            setDatabaseChanged(false);
-        }
-    }
+//         if (bResult) {
+//             setDatabaseChanged(false);
+//         }
+//     }
 
-    dataBase = QSqlDatabase();
-    QSqlDatabase::removeDatabase("local_db");
-#else
-    Q_UNUSED(sDBFileName)
-    Q_UNUSED(pPdStruct)
-#endif
+//     dataBase = QSqlDatabase();
+//     QSqlDatabase::removeDatabase("local_db");
+// #else
+//     Q_UNUSED(sDBFileName)
+//     Q_UNUSED(pPdStruct)
+// #endif
     return bResult;
 }
 
@@ -5772,22 +5874,22 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 {
     bool bResult = false;
 
-#ifdef QT_SQL_LIB
-    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
-    dataBase.setDatabaseName(sDBFileName);
+// #ifdef QT_SQL_LIB
+//     QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+//     dataBase.setDatabaseName(sDBFileName);
 
-    if (dataBase.open()) {
-        bResult = copyDb(&g_dataBase, &dataBase, pPdStruct);
+//     if (dataBase.open()) {
+//         bResult = copyDb(&g_dataBase, &dataBase, pPdStruct);
 
-        dataBase.close();
-    }
+//         dataBase.close();
+//     }
 
-    dataBase = QSqlDatabase();
-    QSqlDatabase::removeDatabase("local_db");
-#else
-    Q_UNUSED(sDBFileName)
-    Q_UNUSED(pPdStruct)
-#endif
+//     dataBase = QSqlDatabase();
+//     QSqlDatabase::removeDatabase("local_db");
+// #else
+//     Q_UNUSED(sDBFileName)
+//     Q_UNUSED(pPdStruct)
+// #endif
     return bResult;
 }
 #ifdef USE_XPROCESS
@@ -6250,9 +6352,13 @@ void XInfoDB::addAddressForAnalyze(XADDR nAddress)
 
 }
 
-XInfoDB::STATE *XInfoDB::getState()
+XInfoDB::STATE *XInfoDB::getState(QString sProfile)
 {
-    return &g_state;
+    if (!g_mapProfiles.contains(sProfile)) {
+        g_mapProfiles.insert(sProfile, new STATE);
+    }
+
+    return g_mapProfiles.value(sProfile);
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)

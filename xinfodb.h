@@ -64,9 +64,14 @@ public:
     };
 
     struct STATE {
+        QIODevice *pDevice;
+        bool bIsImage;
+        XADDR nModuleAddress;
+        XBinary::FT fileType;
         XBinary::_MEMORY_MAP memoryMap;
+        XDisasmCore disasmCore;
         QVector<XDATARECORD> listDataRecords;
-        QSet<XADDR> stAddresses;
+        QSet<XADDR> stInitAddresses;
     };
 
 #ifdef USE_XPROCESS
@@ -791,7 +796,7 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyzeCode2(XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _addShowRecord(const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
@@ -881,7 +886,7 @@ public:
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 
-    STATE *getState();
+    STATE *getState(QString sProfile);
     void addAddressForAnalyze(XADDR nAddress);
 
 public slots:
@@ -953,13 +958,13 @@ private:
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
-    QString g_sDatabaseName;
-    QSqlDatabase g_dataBase;
+    // QString g_sDatabaseName;
+    // QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
-    STATE g_state;
+    QMap<QString, STATE *> g_mapProfiles;
 };
 
 #endif  // XINFODB_H

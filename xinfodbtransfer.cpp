@@ -76,11 +76,10 @@ bool XInfoDBTransfer::process()
 
     if (g_pXInfoDB) {
         if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE) || (g_transferType == COMMAND_SYMBOLS) || (g_transferType == COMMAND_DISASM)) {
+            bool bFile = false;
             QIODevice *pDevice = g_options.pDevice;
 
-            bool bFile = false;
-
-            if ((!pDevice) && (g_options.sFileName != "")) {
+            if ((!g_options.pDevice) && (g_options.sFileName != "")) {
                 bFile = true;
 
                 QFile *pFile = new QFile;
@@ -129,7 +128,7 @@ bool XInfoDBTransfer::process()
                     // }
                     // // TODO sort records
 
-                    g_pXInfoDB->_analyzeCode2(g_pPdStruct);
+                    g_pXInfoDB->_analyze(g_options.sProfile, pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                 }
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
