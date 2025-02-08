@@ -52,8 +52,8 @@ public:
 
     enum XDR_FLAG {
         XDR_FLAG_UNKNOWN = 0,
-        XDR_FLAG_CODE =  1 << 0,
-        XDR_FLAG_DATA =  1 << 1,
+        XDR_FLAG_CODE = 1 << 0,
+        XDR_FLAG_DATA = 1 << 1,
     };
 
     struct XDATARECORD {
@@ -741,8 +741,8 @@ public:
     };
 #endif
 
-    bool isSymbolsPresent();                                   // TODO pdStruct
-    QList<SYMBOL> getAllSymbols();                             // TODO pdStruct
+    bool isSymbolsPresent();        // TODO pdStruct
+    QList<SYMBOL> getAllSymbols();  // TODO pdStruct
     // QMap<quint32, QString> getSymbolModules();                 // TODO pdStruct
     QList<REFERENCE> getReferencesForAddress(XADDR nAddress);  // TODO pdStruct
 
@@ -954,7 +954,7 @@ private:
     // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
     // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     // QIODevice *g_pDevice;
-    XBinary g_binary; // TODO remove
+    XBinary g_binary;  // TODO remove
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
