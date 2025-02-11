@@ -50,17 +50,41 @@ public:
 #endif
     };
 
-    enum XDR_FLAG {
-        XDR_FLAG_UNKNOWN = 0,
-        XDR_FLAG_CODE = 1 << 0,
-        XDR_FLAG_DATA = 1 << 1,
+    enum XRECORD_FLAG {
+        XRECORD_FLAG_UNKNOWN = 0,
+        XRECORD_FLAG_CODE = 1 << 0,
+        XRECORD_FLAG_DATA = 1 << 1,
+        XRECORD_FLAG_OPCODE = 1 << 2,
+        XRECORD_FLAG_ARRAY = 1 << 3,
+        XRECORD_FLAG_ADDRREF = 1 << 4,
     };
 
-    struct XDATARECORD {
-        XADDR nAddress;
-        qint64 nOffset;
+    struct XRECORD {
+        quint16 nSegment;
+        quint16 nFlags;
         quint32 nSize;
-        quint32 nFlags;
+        quint64 nRelOffset;
+    };
+
+    struct XREFINFO {
+        quint16 nSegment;
+        quint16 nSegmentRef;
+        quint32 nSize;
+        qint64 nRelOffset;
+        qint64 nRelOffsetRef;
+        quint16 nFlags;
+        quint16 nFlagsExtra;
+    };
+
+    struct XSYMBOL {
+        quint16 nSegmentNamePrefix;
+        quint16 nSegmentName;
+        quint16 nSizeNamePrefix;
+        quint16 nSizeName;
+        quint16 nSegment;
+        quint16 nFlags;
+        quint32 nSize;
+        quint64 nRelOffset;
     };
 
     struct STATE {
@@ -70,8 +94,13 @@ public:
         XBinary::FT fileType;
         XBinary::_MEMORY_MAP memoryMap;
         XDisasmCore disasmCore;
-        QVector<XDATARECORD> listDataRecords;
-        QSet<XADDR> stInitAddresses;
+        QVector<XRECORD> listRecords;
+        QVector<XRECORD> listCodeAreas;
+        QVector<XREFINFO> listRefsCode;
+        QVector<XREFINFO> listRefsData;
+        QVector<XREFINFO> listRefsCodeTmp;
+        QVector<XREFINFO> listRefsDataTmp;
+        XADDR nEntryPointAddress;
     };
 
 #ifdef USE_XPROCESS
@@ -797,6 +826,10 @@ public:
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, XBinary::PDSTRUCT *pPdStruct);
+    XRECORD _searchRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset);
+    XRECORD _searchRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress);
+
     bool _addShowRecord(const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
@@ -832,7 +865,9 @@ public:
 #endif
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
-    SHOWRECORD getShowRecordByAddress_EX(XADDR nAddress, bool bIsAprox);
+    XInfoDB::XRECORD getRecordByAddress(const QString &sProfile, XADDR nAddress);
+    XADDR segmentRelOffsetToAddress(const QString &sProfile, quint16 nSegment, XADDR nRelOffset);
+
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);
@@ -886,7 +921,7 @@ public:
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 
-    STATE *getState(QString sProfile);
+    STATE *getState(const QString &sProfile);
     void addAddressForAnalyze(XADDR nAddress);
 
 public slots:
