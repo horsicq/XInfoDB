@@ -4649,6 +4649,10 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
                     }
                 }
             }
+
+            if (pMemory) {
+                delete[] pMemory;
+            }
         }
 
         qint32 nNumberOfRecords = pState->listRecords.count();
@@ -4660,8 +4664,15 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
 
         }
 
-        if (pMemory) {
-            delete[] pMemory;
+        if (pPdStruct->bIsStop) {
+            pState->listRecords.clear();
+            pState->listCodeAreas.clear();
+            pState->listRefsCode.clear();
+            pState->listRefsData.clear();
+            pState->listRefsCodeTmp.clear();
+            pState->listRefsDataTmp.clear();
+        } else {
+            pState->bIsAnalyzed = true;
         }
     }
 
@@ -5670,21 +5681,9 @@ XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
     return nResult;
 }
 
-qint64 XInfoDB::getShowRecordsCount()
+qint64 XInfoDB::getRecordsCount(const QString &sProfile)
 {
-    qint64 nResult = 0;
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT count(*) FROM %1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toLongLong();
-    //     }
-    // #endif
-
-    return nResult;
+    return getState(sProfile)->listRecords.count();
 }
 
 qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
@@ -6554,8 +6553,9 @@ bool XInfoDB::isDatabaseChanged()
     return g_bIsDatabaseChanged;
 }
 
-void XInfoDB::addAddressForAnalyze(XADDR nAddress)
+bool XInfoDB::isAnalyzed(const QString &sProfile)
 {
+    return getState(sProfile)->bIsAnalyzed;
 }
 
 XInfoDB::STATE *XInfoDB::getState(const QString &sProfile)

@@ -101,6 +101,7 @@ public:
         QVector<XREFINFO> listRefsCodeTmp;
         QVector<XREFINFO> listRefsDataTmp;
         XADDR nEntryPointAddress;
+        bool bIsAnalyzed;
     };
 
 #ifdef USE_XPROCESS
@@ -878,7 +879,7 @@ public:
     qint64 getShowRecordOffsetByLine(qint64 nLine);
     XADDR getShowRecordAddressByOffset(qint64 nOffset);
     XADDR getShowRecordAddressByLine(qint64 nLine);
-    qint64 getShowRecordsCount();
+    qint64 getRecordsCount(const QString &sProfile);
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
@@ -922,7 +923,7 @@ public:
     bool isDatabaseChanged();
 
     STATE *getState(const QString &sProfile);
-    void addAddressForAnalyze(XADDR nAddress);
+    bool isAnalyzed(const QString &sProfile);
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
