@@ -279,12 +279,12 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 }
 #endif
 #ifdef USE_XPROCESS
-XCapstone::DISASM_RESULT XInfoDB::disasm(XADDR nAddress)
-{
-    QByteArray baArray = read_array(nAddress, 16);
+// XDisasmAbstract::DISASM_RESULT XInfoDB::disasm(XADDR nAddress)
+// {
+//     QByteArray baArray = read_array(nAddress, 16);
 
-    return XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baArray.data(), baArray.size(), nAddress);
-}
+//     return XCapstone::disasm_ex(g_handle, getDisasmMode(), XBinary::SYNTAX_DEFAULT, baArray.data(), baArray.size(), nAddress);
+// }
 #endif
 #ifdef USE_XPROCESS
 qint64 XInfoDB::read_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize)
@@ -1005,13 +1005,13 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 {
     XADDR nResult = -1;
 
-    QByteArray baData = read_array(nAddress, 15);
+    // QByteArray baData = read_array(nAddress, 15);
 
-    XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(g_handle, nAddress, baData.data(), baData.size());
+    // XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(g_handle, nAddress, baData.data(), baData.size());
 
-    if (XCapstone::isCallOpcode(XBinary::getDisasmFamily(g_disasmMode), opcodeID.nOpcodeID)) {
-        nResult = nAddress + opcodeID.nSize;
-    }
+    // if (XCapstone::isCallOpcode(XBinary::getDisasmFamily(g_disasmMode), opcodeID.nOpcodeID)) {
+    //     nResult = nAddress + opcodeID.nSize;
+    // }
 
     return nResult;
 }
@@ -1470,22 +1470,22 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
     g_processInfo = processInfo;
     g_mode = MODE_PROCESS;
 
-    g_nMainModuleAddress = processInfo.nImageBase;
-    g_nMainModuleSize = processInfo.nImageSize;
-    g_sMainModuleName = g_processInfo.sBaseFileName;
+    // g_nMainModuleAddress = processInfo.nImageBase;
+    // g_nMainModuleSize = processInfo.nImageSize;
+    // g_sMainModuleName = g_processInfo.sBaseFileName;
     // g_MainModuleMemoryMap=XFormats::getMemoryMap(XBinary::FT_REGION,0,true,)
     // // TODO getRegionMemoryMap
-#ifdef USE_XPROCESS
-#ifdef Q_PROCESSOR_X86_32
-    g_disasmMode = XBinary::DM_X86_32;
-#endif
-#ifdef Q_PROCESSOR_X86_64
-    g_disasmMode = XBinary::DM_X86_64;
-#endif
-#endif
+// #ifdef USE_XPROCESS
+// #ifdef Q_PROCESSOR_X86_32
+//     g_disasmMode = XBinary::DM_X86_32;
+// #endif
+// #ifdef Q_PROCESSOR_X86_64
+//     g_disasmMode = XBinary::DM_X86_64;
+// #endif
+// #endif
 
-    XCapstone::closeHandle(&g_handle);
-    XCapstone::openHandle(g_disasmMode, &g_handle, true);
+//     XCapstone::closeHandle(&g_handle);
+//     XCapstone::openHandle(g_disasmMode, &g_handle, true);
 
     _createTableNames();
 
@@ -2382,28 +2382,28 @@ bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue)
     return bResult;
 }
 #endif
-#ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
-{
-    Q_UNUSED(hThread)
-    XCapstone::OPCODE_ID result = {};
+// #ifdef USE_XPROCESS
+// XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Handle(X_HANDLE hThread)
+// {
+//     Q_UNUSED(hThread)
+//     XCapstone::OPCODE_ID result = {};
 
-    // TODO
+//     // TODO
 
-    return result;
-}
-#endif
-#ifdef USE_XPROCESS
-XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId)
-{
-    Q_UNUSED(nThreadId)
-    XCapstone::OPCODE_ID result = {};
+//     return result;
+// }
+// #endif
+// #ifdef USE_XPROCESS
+// XCapstone::OPCODE_ID XInfoDB::getCurrentOpcode_Id(X_ID nThreadId)
+// {
+//     Q_UNUSED(nThreadId)
+//     XCapstone::OPCODE_ID result = {};
 
-    // TODO
+//     // TODO
 
-    return result;
-}
-#endif
+//     return result;
+// }
+// #endif
 #ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
 {
