@@ -6511,7 +6511,7 @@ QString XInfoDB::colorToString(QColor color)
 #endif
 QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {
-    QString sResult = disasmResult.sString;
+    QString sResult = disasmResult.sOperands;
 
     if (disasmResult.relType) {
         sResult = _convertOpcodeString(sResult, disasmResult.nXrefToRelative, riType, disasmOptions);
