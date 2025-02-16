@@ -20,7 +20,8 @@
  */
 #include "xinfodb.h"
 
-bool compareXRECORD(const XInfoDB::XRECORD& a, const XInfoDB::XRECORD& b) {
+bool compareXRECORD(const XInfoDB::XRECORD &a, const XInfoDB::XRECORD &b)
+{
     if (a.nSegment != b.nSegment) {
         return a.nSegment < b.nSegment;
     } else {
@@ -28,7 +29,8 @@ bool compareXRECORD(const XInfoDB::XRECORD& a, const XInfoDB::XRECORD& b) {
     }
 }
 
-bool compareXREFINFO(const XInfoDB::XREFINFO& a, const XInfoDB::XREFINFO& b) {
+bool compareXREFINFO(const XInfoDB::XREFINFO &a, const XInfoDB::XREFINFO &b)
+{
     if (a.nSegment != b.nSegment) {
         return a.nSegment < b.nSegment;
     } else {
@@ -1475,17 +1477,17 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
     // g_sMainModuleName = g_processInfo.sBaseFileName;
     // g_MainModuleMemoryMap=XFormats::getMemoryMap(XBinary::FT_REGION,0,true,)
     // // TODO getRegionMemoryMap
-// #ifdef USE_XPROCESS
-// #ifdef Q_PROCESSOR_X86_32
-//     g_disasmMode = XBinary::DM_X86_32;
-// #endif
-// #ifdef Q_PROCESSOR_X86_64
-//     g_disasmMode = XBinary::DM_X86_64;
-// #endif
-// #endif
+    // #ifdef USE_XPROCESS
+    // #ifdef Q_PROCESSOR_X86_32
+    //     g_disasmMode = XBinary::DM_X86_32;
+    // #endif
+    // #ifdef Q_PROCESSOR_X86_64
+    //     g_disasmMode = XBinary::DM_X86_64;
+    // #endif
+    // #endif
 
-//     XCapstone::closeHandle(&g_handle);
-//     XCapstone::openHandle(g_disasmMode, &g_handle, true);
+    //     XCapstone::closeHandle(&g_handle);
+    //     XCapstone::openHandle(g_disasmMode, &g_handle, true);
 
     _createTableNames();
 
@@ -4661,7 +4663,6 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
         XADDR nMaxAddress = pState->memoryMap.nModuleAddress + pState->memoryMap.nImageSize;
 
         for (qint32 i = 0; i < nNumberOfRecords; i++) {
-
         }
 
         if (pPdStruct->bIsStop) {
@@ -4703,7 +4704,6 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
             if ((nRefAddress >= pMemoryRecord->nAddress) && (nRefAddress < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
                 nRefCodeSize = 4;
             } else if ((nRefAddress >= pMemoryRecord->nAddress) && (nRefAddress < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
-
             }
         }
 
