@@ -4576,6 +4576,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
 bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
+    _getSymbols(sProfile, pDevice, bIsImage, nModuleAddress, fileType, pPdStruct);
+
     STATE *pState = getState(sProfile);
 
     pState->listRecords.clear();
@@ -4610,6 +4612,8 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
 
         XBinary binary(pDevice, bIsImage, nModuleAddress);
 
+        // TODO create datasets (address, size) from symbols
+
         char *pMemory = 0;
         XBinary::_MEMORY_RECORD mr = {};
 
@@ -4638,6 +4642,7 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
                     }
 
                     if (mr.nSize) {
+
                         qint32 nDelta = nOffset - mr.nOffset;
                         _addCode(pState, &mr, pMemory, nDelta, mr.nSize - nDelta, pPdStruct);
                         _addCode(pState, &mr, pMemory, 0, nDelta, pPdStruct);
@@ -4677,7 +4682,16 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
         }
     }
 
-    return false;
+    return true;
+}
+
+bool XInfoDB::_getSymbols(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+{
+    STATE *pState = getState(sProfile);
+
+    pState->listSymbols.clear();
+
+    return true;
 }
 
 void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)

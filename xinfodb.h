@@ -100,6 +100,7 @@ public:
         QVector<XREFINFO> listRefsData;
         QVector<XREFINFO> listRefsCodeTmp;
         QVector<XREFINFO> listRefsDataTmp;
+        QVector<XSYMBOL> listSymbols;
         XADDR nEntryPointAddress;
         bool bIsAnalyzed;
     };
@@ -826,7 +827,8 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    bool _getSymbols(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, XBinary::PDSTRUCT *pPdStruct);
     XRECORD _searchRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset);
     XRECORD _searchRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress);
