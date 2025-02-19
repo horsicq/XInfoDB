@@ -76,6 +76,12 @@ public:
         quint16 nFlagsExtra;
     };
 
+    enum XSYMBOL_FLAG {
+        XSYMBOL_FLAG_UNKNOWN = 0,
+        XSYMBOL_FLAG_FUNCTION = 1 << 0,
+        XSYMBOL_FLAG_ENTRYPOINT = 1 << 1,
+    };
+
     struct XSYMBOL {
         quint16 nSegmentNamePrefix;
         quint16 nSegmentName;
@@ -101,7 +107,6 @@ public:
         QVector<XREFINFO> listRefsCodeTmp;
         QVector<XREFINFO> listRefsDataTmp;
         QVector<XSYMBOL> listSymbols;
-        XADDR nEntryPointAddress;
         bool bIsAnalyzed;
     };
 
@@ -828,8 +833,9 @@ public:
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    bool _getSymbols(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, XBinary::PDSTRUCT *pPdStruct);
+    bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
+    void _addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags);
     XRECORD _searchRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset);
     XRECORD _searchRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress);
 
