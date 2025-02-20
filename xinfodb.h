@@ -83,10 +83,7 @@ public:
     };
 
     struct XSYMBOL {
-        quint16 nSegmentNamePrefix;
-        quint16 nSegmentName;
-        quint16 nSizeNamePrefix;
-        quint16 nSizeName;
+        quint32 nStringIndex;
         quint16 nSegment;
         quint16 nFlags;
         quint32 nSize;
@@ -838,6 +835,8 @@ public:
     void _addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags);
     XRECORD _searchRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset);
     XRECORD _searchRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress);
+    static qint64 getOffset(STATE *pState, quint16 nSegment, XADDR nRelOffset);
+    static XADDR getAddress(STATE *pState, quint16 nSegment, XADDR nRelOffset);
 
     bool _addShowRecord(const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);

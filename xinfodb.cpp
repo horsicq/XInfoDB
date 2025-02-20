@@ -4865,6 +4865,7 @@ void XInfoDB::_addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 n
 
     if (mr.nSize) {
         XSYMBOL symbol = {};
+        symbol.nStringIndex = -1;
         symbol.nSegment = mr.nIndex;
         symbol.nRelOffset = nAddress - mr.nAddress;
         symbol.nSize = nSize;
@@ -4872,6 +4873,32 @@ void XInfoDB::_addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 n
 
         pState->listSymbols.append(symbol);
     }
+}
+
+qint64 XInfoDB::getOffset(STATE *pState, quint16 nSegment, XADDR nRelOffset)
+{
+    qint64 nResult = -1;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByIndex(&(pState->memoryMap), nSegment);
+
+    if ((mr.nSize) && (mr.nAddress != -1)) {
+        nResult = mr.nOffset + nRelOffset;
+    }
+
+    return nResult;
+}
+
+XADDR XInfoDB::getAddress(STATE *pState, quint16 nSegment, XADDR nRelOffset)
+{
+    XADDR nResult = -1;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByIndex(&(pState->memoryMap), nSegment);
+
+    if ((mr.nSize) && (mr.nOffset != -1)) {
+        nResult = mr.nAddress + nRelOffset;
+    }
+
+    return nResult;
 }
 
 XInfoDB::XRECORD XInfoDB::_searchRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress)
