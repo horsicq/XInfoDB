@@ -4591,8 +4591,8 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
 
     pState->listSymbols.clear();
     pState->listRecords.clear();
-    pState->listCodeAreas.clear();
     pState->listRefs.clear();
+    pState->listStrings.clear();
 
     pState->pDevice = pDevice;
     pState->bIsImage = bIsImage;
@@ -4645,7 +4645,7 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
 
                     if (nAddress) {
                         QString sSymbol = mach._read_ansiString_safe(pBuffer, nBufferSize, 256);
-                        setSymbol(pState, nAddress, 0, 0, sSymbol);
+                        addSymbol(pState, nAddress, 0, 0, sSymbol);
                     }
 
                     if (nIndex == 0) {
@@ -4663,12 +4663,12 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
                 qint32 nNumberOfRecords = listFR.count();
 
                 for (qint32 i = 0; i < nNumberOfRecords; i++) {
-                    setSymbol(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
+                    addSymbolOrUpdateFlags(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
                 }
             }
 
             if (pState->memoryMap.nEntryPointAddress != -1) {
-                setSymbol(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
+                addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
             }
         }
     } else if ((fileType == XBinary::FT_PE) || (fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
@@ -4677,7 +4677,7 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
         if (pe.isValid()) {
             pState->memoryMap = pe.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
-            setSymbol(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
+            addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
             // TODO export and check export functions
         }
     }
@@ -4686,70 +4686,63 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
 
     if (!(pPdStruct->bIsStop)) std::sort(pState->listSymbols.begin(), pState->listSymbols.end(), compareXSYMBOL_location);
 
-    // qint32 nOpcodeMaxSize = 16;
-
     {
-        QVector<XSYMBOL> listFunctions;
-
-        {
-            qint32 nNumbersOfSymbols = pState->listSymbols.count();
-
-            for (qint32 i = 0; (i < nNumbersOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
-                if (pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_FUNCTION) {
-                    listFunctions.append(pState->listSymbols.at(i));
-                }
-            }
-        }
-
-        // XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
-        // disasmOptions.bNoStrings = true;
-
         XBinary binary(pDevice, bIsImage, nModuleAddress);
-
-        // TODO create datasets (address, size) from symbols
 
         char *pMemory = 0;
         XBinary::_MEMORY_RECORD mr = {};
         qint32 nCurrentSegment = -1;
 
-        qint32 nNumbersOfFunctions = listFunctions.count();
+        while (!(pPdStruct->bIsStop)) {
+            qint32 nNumbersOfSymbols = pState->listSymbols.count();
 
-        for (int i = 0; i < nNumbersOfFunctions; i++) {
-            XSYMBOL function = listFunctions.at(i);
+            bool bContinue = false;
 
-            if (function.nSegment != nCurrentSegment) {
-                mr = pState->memoryMap.listRecords.at(function.nSegment);
+            for (int i = 0; i < nNumbersOfSymbols; i++) {
+                if ((pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_FUNCTION) && (!(pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_CHECKED))) {
+                    bContinue = true;
+                    XSYMBOL function = pState->listSymbols.at(i);
 
-                if (mr.nOffset != -1) {
-                    if (pMemory) {
-                        delete[] pMemory;
+                    if (function.nSegment != nCurrentSegment) {
+                        mr = pState->memoryMap.listRecords.at(function.nSegment);
+
+                        if (mr.nOffset != -1) {
+                            if (pMemory) {
+                                delete[] pMemory;
+                            }
+
+                            pMemory = new char[mr.nSize];
+
+                            if (pMemory) {
+                                // Correct size
+                                mr.nSize = binary.read_array(mr.nOffset, pMemory, mr.nSize, pPdStruct);
+                            }
+
+                            // if (function.nRelOffset) {
+                            //     if (_isCode(pState, &mr, pMemory, 0, function.nRelOffset)) {
+                            //         _addCode(pState, &mr, pMemory, 0, function.nRelOffset, pPdStruct);
+                            //     }
+                            // }
+                        }
                     }
 
-                    pMemory = new char[mr.nSize];
+                    qint32 nSize = mr.nSize - function.nRelOffset;
 
-                    if (pMemory) {
-                        // Correct size
-                        mr.nSize = binary.read_array(mr.nOffset, pMemory, mr.nSize, pPdStruct);
+                    if (i + 1 < nNumbersOfSymbols) {
+                        if (function.nSegment == pState->listSymbols.at(i + 1).nSegment) {
+                            nSize = pState->listSymbols.at(i + 1).nRelOffset - function.nRelOffset;
+                        }
                     }
 
-                    // if (function.nRelOffset) {
-                    //     if (_isCode(pState, &mr, pMemory, 0, function.nRelOffset)) {
-                    //         _addCode(pState, &mr, pMemory, 0, function.nRelOffset, pPdStruct);
-                    //     }
-                    // }
+                    if (pMemory) {
+                        _addCode(pState, &mr, pMemory, function.nRelOffset, nSize, function.nBranch, pPdStruct);
+                        pState->listSymbols[i].nFlags = function.nFlags | XSYMBOL_FLAG_CHECKED;
+                    }
                 }
             }
 
-            qint32 nSize = mr.nSize - function.nRelOffset;
-
-            if (i + 1 < nNumbersOfFunctions) {
-                if (function.nSegment == listFunctions.at(i + 1).nSegment) {
-                    nSize = listFunctions.at(i + 1).nRelOffset - function.nRelOffset;
-                }
-            }
-
-            if (pMemory) {
-                _addCode(pState, &mr, pMemory, function.nRelOffset, nSize, pPdStruct);
+            if (!bContinue) {
+                break;
             }
         }
 
@@ -4757,14 +4750,15 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
             delete[] pMemory;
         }
 
-        if (!(pPdStruct->bIsStop)) std::sort(pState->listRecords.begin(), pState->listRecords.end(), compareXRECORD_location);
-        if (!(pPdStruct->bIsStop)) std::sort(pState->listCodeAreas.begin(), pState->listCodeAreas.end(), compareXRECORD_location);
-        if (!(pPdStruct->bIsStop)) std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location);
+        // if (!(pPdStruct->bIsStop)) std::sort(pState->listRecords.begin(), pState->listRecords.end(), compareXRECORD_location);
+        // if (!(pPdStruct->bIsStop)) std::sort(pState->listCodeAreas.begin(), pState->listCodeAreas.end(), compareXRECORD_location);
+        // if (!(pPdStruct->bIsStop)) std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location);
 
         if (pPdStruct->bIsStop) {
+            pState->listSymbols.clear();
             pState->listRecords.clear();
-            pState->listCodeAreas.clear();
             pState->listRefs.clear();
+            pState->listStrings.clear();
         } else {
             pState->bIsAnalyzed = true;
         }
@@ -4773,7 +4767,7 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
     return true;
 }
 
-void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct)
 {
     XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
     disasmOptions.bNoStrings = true;
@@ -4781,140 +4775,124 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, pMemoryRecord->nSize);
 
-    qint64 nTotalSize = qMin(pMemoryRecord->nSize, (qint64)(nRelOffset + nSize));
+    quint64 nTotalSize = qMin(pMemoryRecord->nSize, (qint64)(nRelOffset + nSize));
 
-    qint64 nCodeAreaStart = -1;
-    bool bLastCode = false;
-    bool bLastData = false;
     XADDR nRefAddress = 0;
 
-    for (qint64 i = nRelOffset; (i < nTotalSize) && (!(pPdStruct->bIsStop));) {
-        qint32 nRefCodeSize = 0;
+    for (quint64 i = nRelOffset; (i < nTotalSize) && (!(pPdStruct->bIsStop));) {
+        bool bStop = false;
+        XRECORD dataRecord = {};
+        XREFINFO refInfo = {};
+        XADDR nRelOffsetSameSegment = -1;
+
+        qint32 nDataSize = 0;
+
         qint32 nRefDataSize = 0;
         if ((nTotalSize - nRelOffset) >= 4) {
             nRefAddress = *(quint32 *)(pMemory + i);
 
-            if ((nRefAddress >= pMemoryRecord->nAddress) && (nRefAddress < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
-                nRefCodeSize = 4;
-            } else if ((nRefAddress >= pState->nModuleAddress) && (nRefAddress < pState->memoryMap.nImageSize)) {
+            if (XBinary::isAddressValid(&(pState->memoryMap), nRefAddress)) {
                 nRefDataSize = 4;
             }
         }
 
-        if (nRefCodeSize) {
-            XRECORD dataRecord = {};
+        if (nRefDataSize) {
             dataRecord.nRelOffset = i;
             dataRecord.nSegment = pMemoryRecord->nIndex;
             dataRecord.nSize = 4;
-            dataRecord.nFlags = XRECORD_FLAG_CODE | XRECORD_FLAG_ADDRREF;
+            dataRecord.nFlags |= XRECORD_FLAG_CODE | XRECORD_FLAG_ADDRREF;
 
-            pState->listRecords.append(dataRecord);
-
-            XREFINFO refInfo = {};
-            refInfo.nRelOffset = i;
-            refInfo.nSegment = pMemoryRecord->nIndex;
-            refInfo.nRelOffsetRef = nRefAddress - pMemoryRecord->nAddress;
-            refInfo.nSegmentRef = pMemoryRecord->nIndex;
-            refInfo.nSize = 4;
-            pState->listRefs.append(refInfo);
-
-            i += 4;
-
-            bLastData = true;
-            bLastCode = false;
-        } else if (nRefDataSize) {
-            XRECORD dataRecord = {};
-            dataRecord.nRelOffset = i;
-            dataRecord.nSegment = pMemoryRecord->nIndex;
-            dataRecord.nSize = 4;
-            dataRecord.nFlags = XRECORD_FLAG_CODE | XRECORD_FLAG_ADDRREF;
-
-            pState->listRecords.append(dataRecord);
-
-            XREFINFO refInfo = {};
             refInfo.nRelOffset = i;
             refInfo.nSegment = pMemoryRecord->nIndex;
             refInfo.nRelOffsetRef = nRefAddress;
             refInfo.nSegmentRef = -1;
+            refInfo.nFlags |= XRECORD_FLAG_DATA;
             refInfo.nSize = 4;
-            pState->listRefs.append(refInfo);
 
-            i += 4;
-
-            bLastData = true;
-            bLastCode = false;
+            nDataSize = 4;
         } else {
             XDisasmAbstract::DISASM_RESULT dr = pState->disasmCore.disAsm(pMemory + i, nTotalSize - i, pMemoryRecord->nAddress + i, disasmOptions);
 
-            if (!dr.bIsValid) {
-                break;
-            }
+            if (dr.bIsValid) {
+                dataRecord.nRelOffset = i;
+                dataRecord.nSegment = pMemoryRecord->nIndex;
+                dataRecord.nSize = dr.nSize;
+                dataRecord.nFlags |= XRECORD_FLAG_CODE | XRECORD_FLAG_OPCODE;
+                dataRecord.nBranch = nBranch;
 
-            if (nCodeAreaStart == -1) {
-                nCodeAreaStart = i;
-            }
+                if (dr.relType != XDisasmAbstract::RELTYPE_NONE) {
+                    refInfo.nRelOffset = i;
+                    refInfo.nSegment = pMemoryRecord->nIndex;
+                    refInfo.nFlags |= XRECORD_FLAG_CODE;
 
-            // TODO
-            if (dr.bIsRet) {
-                XRECORD dataCodeArea = {};
-                dataCodeArea.nRelOffset = nCodeAreaStart;
-                dataCodeArea.nSegment = pMemoryRecord->nIndex;
-                dataCodeArea.nSize = i - nCodeAreaStart + dr.nSize;
-                dataCodeArea.nFlags = XRECORD_FLAG_CODE;
+                    if ((dr.nXrefToRelative >= pMemoryRecord->nAddress) && (dr.nXrefToRelative < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
+                        refInfo.nRelOffsetRef = dr.nXrefToRelative - pMemoryRecord->nAddress;
+                        refInfo.nSegmentRef = pMemoryRecord->nIndex;
 
-                pState->listCodeAreas.append(dataCodeArea);
-                nCodeAreaStart = -1;
-            }
-
-            XRECORD dataRecord = {};
-            dataRecord.nRelOffset = i;
-            dataRecord.nSegment = pMemoryRecord->nIndex;
-            dataRecord.nSize = dr.nSize;
-            dataRecord.nFlags = XRECORD_FLAG_CODE | XRECORD_FLAG_OPCODE;
-
-            pState->listRecords.append(dataRecord);
-
-            if (dr.relType != XDisasmAbstract::RELTYPE_NONE) {
-                XREFINFO refInfo = {};
-                refInfo.nRelOffset = i;
-                refInfo.nSegment = pMemoryRecord->nIndex;
-                refInfo.nFlags = XRECORD_FLAG_CODE;
-
-                if ((dr.nXrefToRelative >= pMemoryRecord->nAddress) && (dr.nXrefToRelative < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
-                    refInfo.nRelOffsetRef = dr.nXrefToRelative - pMemoryRecord->nAddress;
-                    refInfo.nSegmentRef = pMemoryRecord->nIndex;
-                    pState->listRefs.append(refInfo);
-                } else {
-                    refInfo.nRelOffsetRef = dr.nXrefToRelative;
-                    refInfo.nSegmentRef = -1;
-                    pState->listRefs.append(refInfo);
+                        if (refInfo.nRelOffsetRef > i) {
+                            if (dr.relType == XDisasmAbstract::RELTYPE_JMP_COND) {
+                                nRelOffsetSameSegment = refInfo.nRelOffsetRef;
+                            } else if (dr.relType == XDisasmAbstract::RELTYPE_JMP) {
+                                if ((refInfo.nRelOffsetRef - (nRelOffset + i)) < 128) {
+                                    nRelOffsetSameSegment = refInfo.nRelOffsetRef;
+                                }
+                            }
+                        }
+                    } else {
+                        refInfo.nRelOffsetRef = dr.nXrefToRelative;
+                        refInfo.nSegmentRef = -1;
+                    }
                 }
-            }
 
-            if (dr.memType != XDisasmAbstract::MEMTYPE_NONE) {
-                XREFINFO refInfo = {};
-                refInfo.nRelOffset = i;
-                refInfo.nSegment = pMemoryRecord->nIndex;
-                refInfo.nFlags = XRECORD_FLAG_DATA;
-                refInfo.nSize = dr.nMemorySize;
+                if (dr.memType != XDisasmAbstract::MEMTYPE_NONE) {
+                    refInfo.nRelOffset = i;
+                    refInfo.nSegment = pMemoryRecord->nIndex;
+                    refInfo.nFlags = XRECORD_FLAG_DATA;
+                    refInfo.nSize = dr.nMemorySize;
 
-                if ((dr.nXrefToMemory >= pMemoryRecord->nAddress) && (dr.nXrefToMemory < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
-                    refInfo.nRelOffsetRef = dr.nXrefToMemory - pMemoryRecord->nAddress;
-                    refInfo.nSegmentRef = pMemoryRecord->nIndex;
-                    pState->listRefs.append(refInfo);
-                } else {
-                    refInfo.nRelOffsetRef = dr.nXrefToMemory;
-                    refInfo.nSegmentRef = -1;
-                    pState->listRefs.append(refInfo);
+                    if ((dr.nXrefToMemory >= pMemoryRecord->nAddress) && (dr.nXrefToMemory < (pMemoryRecord->nAddress + pMemoryRecord->nSize))) {
+                        refInfo.nRelOffsetRef = dr.nXrefToMemory - pMemoryRecord->nAddress;
+                        refInfo.nSegmentRef = pMemoryRecord->nIndex;
+                    } else {
+                        refInfo.nRelOffsetRef = dr.nXrefToMemory;
+                        refInfo.nSegmentRef = -1;
+                    }
                 }
-            }
 
-            i += dr.nSize;
-            bLastCode = true;
-            bLastData = false;
+                nDataSize = dr.nSize;
+
+                // TODO
+                if (dr.bIsRet) {
+                    bStop = true;
+                }
+            } else {
+                bStop = true;
+            }
         }
 
+        if (dataRecord.nFlags) {
+            if(_insertXRecord(&(pState->listRecords), dataRecord)) {
+                if (refInfo.nFlags) {
+                    _insertXRefinfo(&(pState->listRefs), refInfo);
+                }
+            } else {
+                bStop = true;
+            }
+        } else {
+            bStop = true;
+        }
+
+        i += nDataSize;
+
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
+
+        if (bStop) {
+            break;
+        }
+
+        if (nRelOffsetSameSegment != -1) {
+            _addCode(pState, pMemoryRecord, pMemory, nRelOffsetSameSegment, nSize - (nRelOffsetSameSegment - nRelOffset), nBranch, pPdStruct);
+        }
     }
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
@@ -4925,40 +4903,68 @@ bool XInfoDB::_isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, cha
     return true;
 }
 
-void XInfoDB::setSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName)
+bool XInfoDB::addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName)
 {
+    bool bResult = false;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    if (mr.nSize) {
+        XSYMBOL symbol = {};
+        symbol.nStringIndex = -1;
+        symbol.nSegment = mr.nIndex;
+        symbol.nRelOffset = nAddress - mr.nAddress;
+        symbol.nSize = nSize;
+        symbol.nFlags = nFlags;
+        symbol.nBranch = ++(pState->nCurrentBranch);
+
+        if (sSymbolName != "") {
+            pState->listStrings.append(sSymbolName);
+            symbol.nStringIndex = pState->listStrings.size() - 1;
+        }
+
+        bResult = _insertXSymbol(&(pState->listSymbols), symbol);
+    }
+
+    return bResult;
+}
+
+bool XInfoDB::updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags)
+{
+    bool bResult = false;
+
     XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
 
     if (mr.nSize) {
         qint32 nIndex = _searchXSymbolBySegmentRelOffset(&(pState->listSymbols), mr.nIndex, nAddress - mr.nAddress);
 
         if (nIndex != -1) {
-            pState->listSymbols[nIndex].nSize = nSize;
             pState->listSymbols[nIndex].nFlags |= nFlags;
-
-            if (sSymbolName != "") {
-                if (pState->listSymbols[nIndex].nStringIndex != -1) {
-                    pState->listStrings[pState->listSymbols[nIndex].nStringIndex] = sSymbolName;
-                }
-            }
-        } else {
-            XSYMBOL symbol = {};
-            symbol.nStringIndex = -1;
-            symbol.nSegment = mr.nIndex;
-            symbol.nRelOffset = nAddress - mr.nAddress;
-            symbol.nSize = nSize;
-            symbol.nFlags = nFlags;
-
-            if (sSymbolName != "") {
-                pState->listStrings.append(sSymbolName);
-                symbol.nStringIndex = pState->listStrings.size() - 1;
-            }
-
-            pState->listSymbols.append(symbol);
-
-            std::sort(pState->listSymbols.begin(), pState->listSymbols.end(), compareXSYMBOL_location);
+            bResult = true;
         }
     }
+
+    return bResult;
+}
+
+bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName)
+{
+    bool bResult = false;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    if (mr.nSize) {
+        qint32 nIndex = _searchXSymbolBySegmentRelOffset(&(pState->listSymbols), mr.nIndex, nAddress - mr.nAddress);
+
+        if (nIndex == -1) {
+            bResult = addSymbol(pState, nAddress, nSize, nFlags, sSymbolName);
+        } else {
+            pState->listSymbols[nIndex].nFlags |= nFlags;
+            bResult = true;
+        }
+    }
+
+    return bResult;
 }
 
 qint64 XInfoDB::getOffset(STATE *pState, quint16 nSegment, XADDR nRelOffset)
@@ -5020,54 +5026,130 @@ qint32 XInfoDB::_searchXSymbolByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVecto
 
 qint32 XInfoDB::_searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols, quint16 nSegment, XADDR nRelOffset)
 {
-    XSYMBOL symbolTest = {};
-    symbolTest.nRelOffset = nRelOffset;
-    symbolTest.nSegment = nSegment;
+    XSYMBOL searchSymbol = {};
+    searchSymbol.nSegment = nSegment;
+    searchSymbol.nRelOffset = nRelOffset;
 
-    qint32 nLow = 0;
-    qint32 nHigh = pListSymbols->size() - 1;
-    qint32 nResult = 0;
+    QVector<XSYMBOL>::iterator it = std::lower_bound(
+        pListSymbols->begin(),
+        pListSymbols->end(),
+        searchSymbol,
+        compareXSYMBOL_location
+    );
 
-    while (nLow <= nHigh) {
-        nResult = nLow + (nHigh - nLow) / 2;
-        const XSYMBOL &current = (*pListSymbols)[nResult];
+    if (it != pListSymbols->end() &&
+        it->nSegment == nSegment &&
+        it->nRelOffset == nRelOffset) {
+        return it - pListSymbols->begin();
+    }
 
-        if ((current.nSegment == nSegment) && (current.nRelOffset == nRelOffset)) {
-            return nResult;
-        } else if (compareXSYMBOL_location(symbolTest, current)) {
-            nHigh = nResult - 1;
-        } else {
-            nLow = nResult + 1;
+    return -1;  // Not found
+}
+
+bool XInfoDB::_insertXSymbol(QVector<XSYMBOL> *pListSymbols, const XSYMBOL &symbol)
+{
+    QVector<XSYMBOL>::iterator it = std::lower_bound(
+        pListSymbols->begin(),
+        pListSymbols->end(),
+        symbol,
+        compareXSYMBOL_location
+    );
+
+    if (it != pListSymbols->end()) {
+        if (it->nSegment == symbol.nSegment &&
+            it->nRelOffset == symbol.nRelOffset) {
+            return false;
         }
+    }
+
+    pListSymbols->insert(it, symbol);
+
+    return true;
+}
+
+qint32 XInfoDB::_searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, quint16 nSegment, XADDR nRelOffset)
+{
+    XREFINFO searchInfo = {};
+    searchInfo.nSegment = nSegment;
+    searchInfo.nRelOffset = nRelOffset;
+
+    QVector<XREFINFO>::iterator it = std::lower_bound(
+                pListRefs->begin(),
+                pListRefs->end(),
+        searchInfo,
+        compareXREFINFO_location
+    );
+
+    if (it != pListRefs->end() &&
+        it->nSegment == nSegment &&
+        it->nRelOffset == nRelOffset) {
+        return it - pListRefs->begin();
     }
 
     return -1;
 }
 
-qint32 XInfoDB::_searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset)
+bool XInfoDB::_insertXRefinfo(QVector<XREFINFO> *pListRefs, const XREFINFO &refinfo)
 {
-    XRECORD recordTest = {};
-    recordTest.nRelOffset = nRelOffset;
-    recordTest.nSegment = nSegment;
+    QVector<XREFINFO>::iterator it = std::lower_bound(
+                pListRefs->begin(),
+                pListRefs->end(),
+        refinfo,
+        compareXREFINFO_location
+    );
 
-    qint32 nLow = 0;
-    qint32 nHigh = pListRecords->size() - 1;
-    qint32 nResult = 0;
-
-    while (nLow <= nHigh) {
-        nResult = nLow + (nHigh - nLow) / 2;
-        const XRECORD &current = (*pListRecords)[nResult];
-
-        if (current.nSegment == nSegment && (current.nRelOffset <= nRelOffset) && (nRelOffset < (current.nRelOffset + current.nSize))) {
-            return nResult;
-        } else if (compareXRECORD_location(recordTest, current)) {
-            nHigh = nResult - 1;
-        } else {
-            nLow = nResult + 1;
+    if (it != pListRefs->end()) {
+        if (it->nSegment == refinfo.nSegment &&
+            it->nRelOffset == refinfo.nRelOffset) {
+            return false;
         }
     }
 
+    pListRefs->insert(it, refinfo);
+
+    return true;
+}
+
+qint32 XInfoDB::_searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset)
+{
+    XRECORD searchRecord = {};
+    searchRecord.nSegment = nSegment;
+    searchRecord.nRelOffset = nRelOffset;
+
+    QVector<XRECORD>::iterator it = std::lower_bound(
+        pListRecords->begin(),
+        pListRecords->end(),
+        searchRecord,
+        compareXRECORD_location
+    );
+
+    if (it != pListRecords->end() &&
+        it->nSegment == nSegment &&
+        it->nRelOffset == nRelOffset) {
+        return it - pListRecords->begin();
+    }
+
     return -1;
+}
+
+bool XInfoDB::_insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record)
+{
+    QVector<XRECORD>::iterator it = std::lower_bound(
+        pListSymbols->begin(),
+        pListSymbols->end(),
+        record,
+        compareXRECORD_location
+    );
+
+    if (it != pListSymbols->end()) {
+        if (it->nSegment == record.nSegment &&
+            it->nRelOffset == record.nRelOffset) {
+            return false;
+        }
+    }
+
+    pListSymbols->insert(it, record);
+    return true;
 }
 
 bool XInfoDB::_addShowRecord(const SHOWRECORD &record)
