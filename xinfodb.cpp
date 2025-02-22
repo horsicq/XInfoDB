@@ -4750,10 +4750,6 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
             delete[] pMemory;
         }
 
-        // if (!(pPdStruct->bIsStop)) std::sort(pState->listRecords.begin(), pState->listRecords.end(), compareXRECORD_location);
-        // if (!(pPdStruct->bIsStop)) std::sort(pState->listCodeAreas.begin(), pState->listCodeAreas.end(), compareXRECORD_location);
-        // if (!(pPdStruct->bIsStop)) std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location);
-
         if (pPdStruct->bIsStop) {
             pState->listSymbols.clear();
             pState->listRecords.clear();
