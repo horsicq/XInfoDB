@@ -4763,7 +4763,8 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
     return true;
 }
 
-void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch,
+                       XBinary::PDSTRUCT *pPdStruct)
 {
     XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
     disasmOptions.bNoStrings = true;
@@ -4867,7 +4868,7 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
         }
 
         if (dataRecord.nFlags) {
-            if(_insertXRecord(&(pState->listRecords), dataRecord)) {
+            if (_insertXRecord(&(pState->listRecords), dataRecord)) {
                 if (refInfo.nFlags) {
                     _insertXRefinfo(&(pState->listRefs), refInfo);
                 }
@@ -5026,16 +5027,9 @@ qint32 XInfoDB::_searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols,
     searchSymbol.nSegment = nSegment;
     searchSymbol.nRelOffset = nRelOffset;
 
-    QVector<XSYMBOL>::iterator it = std::lower_bound(
-        pListSymbols->begin(),
-        pListSymbols->end(),
-        searchSymbol,
-        compareXSYMBOL_location
-    );
+    QVector<XSYMBOL>::iterator it = std::lower_bound(pListSymbols->begin(), pListSymbols->end(), searchSymbol, compareXSYMBOL_location);
 
-    if (it != pListSymbols->end() &&
-        it->nSegment == nSegment &&
-        it->nRelOffset == nRelOffset) {
+    if (it != pListSymbols->end() && it->nSegment == nSegment && it->nRelOffset == nRelOffset) {
         return it - pListSymbols->begin();
     }
 
@@ -5044,16 +5038,10 @@ qint32 XInfoDB::_searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols,
 
 bool XInfoDB::_insertXSymbol(QVector<XSYMBOL> *pListSymbols, const XSYMBOL &symbol)
 {
-    QVector<XSYMBOL>::iterator it = std::lower_bound(
-        pListSymbols->begin(),
-        pListSymbols->end(),
-        symbol,
-        compareXSYMBOL_location
-    );
+    QVector<XSYMBOL>::iterator it = std::lower_bound(pListSymbols->begin(), pListSymbols->end(), symbol, compareXSYMBOL_location);
 
     if (it != pListSymbols->end()) {
-        if (it->nSegment == symbol.nSegment &&
-            it->nRelOffset == symbol.nRelOffset) {
+        if (it->nSegment == symbol.nSegment && it->nRelOffset == symbol.nRelOffset) {
             return false;
         }
     }
@@ -5069,16 +5057,9 @@ qint32 XInfoDB::_searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, 
     searchInfo.nSegment = nSegment;
     searchInfo.nRelOffset = nRelOffset;
 
-    QVector<XREFINFO>::iterator it = std::lower_bound(
-                pListRefs->begin(),
-                pListRefs->end(),
-        searchInfo,
-        compareXREFINFO_location
-    );
+    QVector<XREFINFO>::iterator it = std::lower_bound(pListRefs->begin(), pListRefs->end(), searchInfo, compareXREFINFO_location);
 
-    if (it != pListRefs->end() &&
-        it->nSegment == nSegment &&
-        it->nRelOffset == nRelOffset) {
+    if (it != pListRefs->end() && it->nSegment == nSegment && it->nRelOffset == nRelOffset) {
         return it - pListRefs->begin();
     }
 
@@ -5087,16 +5068,10 @@ qint32 XInfoDB::_searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, 
 
 bool XInfoDB::_insertXRefinfo(QVector<XREFINFO> *pListRefs, const XREFINFO &refinfo)
 {
-    QVector<XREFINFO>::iterator it = std::lower_bound(
-                pListRefs->begin(),
-                pListRefs->end(),
-        refinfo,
-        compareXREFINFO_location
-    );
+    QVector<XREFINFO>::iterator it = std::lower_bound(pListRefs->begin(), pListRefs->end(), refinfo, compareXREFINFO_location);
 
     if (it != pListRefs->end()) {
-        if (it->nSegment == refinfo.nSegment &&
-            it->nRelOffset == refinfo.nRelOffset) {
+        if (it->nSegment == refinfo.nSegment && it->nRelOffset == refinfo.nRelOffset) {
             return false;
         }
     }
@@ -5112,16 +5087,9 @@ qint32 XInfoDB::_searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords,
     searchRecord.nSegment = nSegment;
     searchRecord.nRelOffset = nRelOffset;
 
-    QVector<XRECORD>::iterator it = std::lower_bound(
-        pListRecords->begin(),
-        pListRecords->end(),
-        searchRecord,
-        compareXRECORD_location
-    );
+    QVector<XRECORD>::iterator it = std::lower_bound(pListRecords->begin(), pListRecords->end(), searchRecord, compareXRECORD_location);
 
-    if (it != pListRecords->end() &&
-        it->nSegment == nSegment &&
-        it->nRelOffset == nRelOffset) {
+    if (it != pListRecords->end() && it->nSegment == nSegment && it->nRelOffset == nRelOffset) {
         return it - pListRecords->begin();
     }
 
@@ -5130,16 +5098,10 @@ qint32 XInfoDB::_searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords,
 
 bool XInfoDB::_insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record)
 {
-    QVector<XRECORD>::iterator it = std::lower_bound(
-        pListSymbols->begin(),
-        pListSymbols->end(),
-        record,
-        compareXRECORD_location
-    );
+    QVector<XRECORD>::iterator it = std::lower_bound(pListSymbols->begin(), pListSymbols->end(), record, compareXRECORD_location);
 
     if (it != pListSymbols->end()) {
-        if (it->nSegment == record.nSegment &&
-            it->nRelOffset == record.nRelOffset) {
+        if (it->nSegment == record.nSegment && it->nRelOffset == record.nRelOffset) {
             return false;
         }
     }
