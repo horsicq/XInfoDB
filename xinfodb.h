@@ -50,6 +50,12 @@ public:
 #endif
     };
 
+    enum XSYMBOL_FLAG {
+        XSYMBOL_FLAG_UNKNOWN = 0,
+        XSYMBOL_FLAG_FUNCTION = 1 << 0,
+        XSYMBOL_FLAG_ENTRYPOINT = 1 << 1,
+    };
+
     enum XRECORD_FLAG {
         XRECORD_FLAG_UNKNOWN = 0,
         XRECORD_FLAG_CODE = 1 << 0,
@@ -57,6 +63,16 @@ public:
         XRECORD_FLAG_OPCODE = 1 << 2,
         XRECORD_FLAG_ARRAY = 1 << 3,
         XRECORD_FLAG_ADDRREF = 1 << 4,
+    };
+
+    enum XREF_FLAG {
+        XREF_FLAG_UNKNOWN = 0,
+        XREF_FLAG_REL = 1 << 1,
+        XREF_FLAG_MEMORY = 1 << 2,
+        XREF_FLAG_CALL = 1 << 3,
+        XREF_FLAG_JMP = 1 << 4,
+        XREF_FLAG_JMP_COND = 1 << 4,
+        XREF_FLAG_RET = 1 << 5,
     };
 
     struct XRECORD {
@@ -74,14 +90,15 @@ public:
         quint64 nRelOffset;
         quint64 nRelOffsetRef;
         quint16 nFlags;
-        quint16 nFlagsExtra;
+        quint16 nBranch;
     };
 
-    enum XSYMBOL_FLAG {
-        XSYMBOL_FLAG_UNKNOWN = 0,
-        XSYMBOL_FLAG_CHECKED = 1 << 0,
-        XSYMBOL_FLAG_FUNCTION = 1 << 1,
-        XSYMBOL_FLAG_ENTRYPOINT = 1 << 2,
+    struct XREFCOUNT {
+        quint16 nSegment;
+        quint16 nCount;
+        quint16 nFlags;
+        quint16 nDummy;
+        quint64 nRelOffset;
     };
 
     struct XSYMBOL {
@@ -104,6 +121,7 @@ public:
         QVector<XREFINFO> listRefs;
         QVector<XSYMBOL> listSymbols;
         QVector<QString> listStrings;
+        QSet<XADDR> stCodeTemp;
         quint16 nCurrentBranch;
         bool bIsAnalyzed;
     };
@@ -837,10 +855,10 @@ public:
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
 
-    qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset);
+    qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
-    qint32 _searchXRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress);
-    qint32 _searchXRecordByAddress(STATE *pState, XADDR nAddress);
+    qint32 _searchXRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress, bool bInRecord);
+    qint32 _searchXRecordByAddress(STATE *pState, XADDR nAddress, bool bInRecord);
 
     qint32 _searchXSymbolByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XSYMBOL> *pListSymbols, XADDR nAddress);
     qint32 _searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols, quint16 nSegment, XADDR nRelOffset);
@@ -887,7 +905,7 @@ public:
 #endif
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
-    XInfoDB::XRECORD getRecordByAddress(const QString &sProfile, XADDR nAddress);
+    XInfoDB::XRECORD getRecordByAddress(const QString &sProfile, XADDR nAddress, bool bInRecord);
     XADDR segmentRelOffsetToAddress(const QString &sProfile, quint16 nSegment, XADDR nRelOffset);
 
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
