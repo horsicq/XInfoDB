@@ -50,6 +50,11 @@ public:
 #endif
     };
 
+    enum SYMBOL_MODE {
+        SYMBOL_MODE_UNKNOWN = 0,
+        SYMBOL_MODE_ALL,
+    };
+
     enum XSYMBOL_FLAG {
         XSYMBOL_FLAG_UNKNOWN = 0,
         XSYMBOL_FLAG_FUNCTION = 1 << 0,

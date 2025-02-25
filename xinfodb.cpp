@@ -4686,7 +4686,6 @@ bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADD
             for (qint32 i = 0; i < nNumberOfFunctions; i++) {
                 addSymbolOrUpdateFlags(pState, exportHeader.listPositions.at(i).nAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_EXPORT, exportHeader.listPositions.at(i).sFunctionName);
             }
-            // TODO export and check export functions
         }
     }
 
@@ -4900,10 +4899,10 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
 
                 nDataSize = dr.nSize;
 
-                if (dr.bIsJmp) {
-                    QString sTst = QString("%1 %2 %3").arg(XBinary::valueToHex(dr.nAddress), dr.sMnemonic, dr.sOperands);
-                    qDebug("%s", sTst.toLatin1().data());
-                }
+                // if (dr.bIsJmp) {
+                //     QString sTst = QString("%1 %2 %3").arg(XBinary::valueToHex(dr.nAddress), dr.sMnemonic, dr.sOperands);
+                //     qDebug("%s", sTst.toLatin1().data());
+                // }
 
                 // TODO
                 if (dr.bIsRet || dr.bIsJmp) {
