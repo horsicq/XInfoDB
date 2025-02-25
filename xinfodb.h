@@ -54,6 +54,7 @@ public:
         XSYMBOL_FLAG_UNKNOWN = 0,
         XSYMBOL_FLAG_FUNCTION = 1 << 0,
         XSYMBOL_FLAG_ENTRYPOINT = 1 << 1,
+        XSYMBOL_FLAG_EXPORT = 1 << 2,
     };
 
     enum XRECORD_FLAG {
