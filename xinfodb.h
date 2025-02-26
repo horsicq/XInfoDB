@@ -82,7 +82,7 @@ public:
     };
 
     struct XRECORD {
-        quint16 nSegment;
+        quint16 nRegionIndex;
         quint16 nFlags;
         quint16 nSize;
         quint16 nBranch;
@@ -90,8 +90,8 @@ public:
     };
 
     struct XREFINFO {
-        quint16 nSegment;
-        quint16 nSegmentRef;
+        quint16 nRegionIndex;
+        quint16 nRegionIndexRef;
         quint32 nSize;
         quint64 nRelOffset;
         quint64 nRelOffsetRef;
@@ -100,7 +100,7 @@ public:
     };
 
     struct XREFCOUNT {
-        quint16 nSegment;
+        quint16 nRegionIndex;
         quint16 nCount;
         quint16 nFlags;
         quint16 nDummy;
@@ -110,7 +110,7 @@ public:
     struct XSYMBOL {
         quint16 nStringIndex;
         quint16 nBranch;
-        quint16 nSegment;
+        quint16 nRegionIndex;
         quint16 nFlags;
         quint32 nSize;
         quint64 nRelOffset;
@@ -532,7 +532,6 @@ public:
 
     void setData(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::DM disasmMode = XBinary::DM_UNKNOWN);
     void initDB();
-    void reload(bool bReloadData);
     void reloadView();
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
     void _createTableNames();
@@ -861,20 +860,20 @@ public:
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
 
-    qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nSegment, XADDR nRelOffset, bool bInRecord);
+    qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
     qint32 _searchXRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress, bool bInRecord);
     qint32 _searchXRecordByAddress(STATE *pState, XADDR nAddress, bool bInRecord);
 
     qint32 _searchXSymbolByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XSYMBOL> *pListSymbols, XADDR nAddress);
-    qint32 _searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols, quint16 nSegment, XADDR nRelOffset);
+    qint32 _searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols, quint16 nRegionIndex, XADDR nRelOffset);
     bool _insertXSymbol(QVector<XSYMBOL> *pListSymbols, const XSYMBOL &symbol);
 
-    qint32 _searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, quint16 nSegment, XADDR nRelOffset);
+    qint32 _searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, quint16 nRegionIndex, XADDR nRelOffset);
     bool _insertXRefinfo(QVector<XREFINFO> *pListRefs, const XREFINFO &refinfo);
 
-    static qint64 getOffset(STATE *pState, quint16 nSegment, XADDR nRelOffset);
-    static XADDR getAddress(STATE *pState, quint16 nSegment, XADDR nRelOffset);
+    static qint64 getOffset(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
+    static XADDR getAddress(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
 
     bool _addShowRecord(const SHOWRECORD &record);
     bool _addRelRecord(const RELRECORD &record);
@@ -979,7 +978,6 @@ private:
 
 signals:
     void dataChanged(qint64 nDeviceOffset, qint64 nDeviceSize);
-    void reloadSignal(bool bReloadData);  // TODO Check mb remove
     void reloadViewSignal();
     void memoryRegionsListChanged();
     void modulesListChanged();
