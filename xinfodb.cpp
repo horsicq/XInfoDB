@@ -4577,9 +4577,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
-bool XInfoDB::_analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    STATE *pState = getState(sProfile);
+    STATE *pState = getState(profile);
 
     pState->nCurrentBranch = 0;
 
@@ -5696,9 +5696,9 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
     // #endif
 }
 #endif
-XInfoDB::XRECORD XInfoDB::getRecordByAddress(const QString &sProfile, XADDR nAddress, bool bInRecord)
+XInfoDB::XRECORD XInfoDB::getRecordByAddress(PROFILE profile, XADDR nAddress, bool bInRecord)
 {
-    STATE *pState = getState(sProfile);
+    STATE *pState = getState(profile);
 
     XInfoDB::XRECORD result = {};
 
@@ -5711,9 +5711,9 @@ XInfoDB::XRECORD XInfoDB::getRecordByAddress(const QString &sProfile, XADDR nAdd
     return result;
 }
 
-XADDR XInfoDB::segmentRelOffsetToAddress(const QString &sProfile, quint16 nRegionIndex, XADDR nRelOffset)
+XADDR XInfoDB::segmentRelOffsetToAddress(PROFILE profile, quint16 nRegionIndex, XADDR nRelOffset)
 {
-    STATE *pState = getState(sProfile);
+    STATE *pState = getState(profile);
 
     return XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), nRegionIndex, nRelOffset);
 }
@@ -5983,9 +5983,9 @@ XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
     return nResult;
 }
 
-qint64 XInfoDB::getRecordsCount(const QString &sProfile)
+qint64 XInfoDB::getRecordsCount(PROFILE profile)
 {
-    return getState(sProfile)->listRecords.count();
+    return getState(profile)->listRecords.count();
 }
 
 qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
@@ -6855,18 +6855,18 @@ bool XInfoDB::isDatabaseChanged()
     return g_bIsDatabaseChanged;
 }
 
-bool XInfoDB::isAnalyzed(const QString &sProfile)
+bool XInfoDB::isAnalyzed(PROFILE profile)
 {
-    return getState(sProfile)->bIsAnalyzed;
+    return getState(profile)->bIsAnalyzed;
 }
 
-XInfoDB::STATE *XInfoDB::getState(const QString &sProfile)
+XInfoDB::STATE *XInfoDB::getState(PROFILE profile)
 {
-    if (!g_mapProfiles.contains(sProfile)) {
-        g_mapProfiles.insert(sProfile, new STATE);
+    if (!g_mapProfiles.contains(profile)) {
+        g_mapProfiles.insert(profile, new STATE);
     }
 
-    return g_mapProfiles.value(sProfile);
+    return g_mapProfiles.value(profile);
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)

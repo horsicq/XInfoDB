@@ -42,6 +42,11 @@ class XInfoDB : public QObject {
     Q_OBJECT
 
 public:
+    enum PROFILE {
+        PROFILE_UNKNOWN = -1,
+        PROFILE_MAIN = 0,
+    };
+
     enum MODE {
         MODE_UNKNOWN = 0,
         MODE_DEVICE,
@@ -853,7 +858,7 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyze(QString sProfile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    bool _analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
@@ -910,8 +915,8 @@ public:
 #endif
 
     SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
-    XInfoDB::XRECORD getRecordByAddress(const QString &sProfile, XADDR nAddress, bool bInRecord);
-    XADDR segmentRelOffsetToAddress(const QString &sProfile, quint16 nSegment, XADDR nRelOffset);
+    XInfoDB::XRECORD getRecordByAddress(XInfoDB::PROFILE profile, XADDR nAddress, bool bInRecord);
+    XADDR segmentRelOffsetToAddress(XInfoDB::PROFILE profile, quint16 nSegment, XADDR nRelOffset);
 
     SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
     SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
@@ -923,7 +928,7 @@ public:
     qint64 getShowRecordOffsetByLine(qint64 nLine);
     XADDR getShowRecordAddressByOffset(qint64 nOffset);
     XADDR getShowRecordAddressByLine(qint64 nLine);
-    qint64 getRecordsCount(const QString &sProfile);
+    qint64 getRecordsCount(XInfoDB::PROFILE profile);
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
@@ -966,8 +971,8 @@ public:
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 
-    STATE *getState(const QString &sProfile);
-    bool isAnalyzed(const QString &sProfile);
+    STATE *getState(PROFILE profile);
+    bool isAnalyzed(PROFILE profile);
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -1043,7 +1048,7 @@ private:
 #endif
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
-    QMap<QString, STATE *> g_mapProfiles;
+    QMap<PROFILE, STATE *> g_mapProfiles;
 };
 
 #endif  // XINFODB_H
