@@ -534,8 +534,6 @@ public:
 
     explicit XInfoDB(QObject *pParent = nullptr);
     ~XInfoDB();
-
-    void setData(QIODevice *pDevice, XBinary::FT fileType = XBinary::FT_UNKNOWN, XBinary::DM disasmMode = XBinary::DM_UNKNOWN);
     void initDB();
     void reloadView();
     void setEdited(qint64 nDeviceOffset, qint64 nDeviceSize);
@@ -552,15 +550,6 @@ public:
     // XDisasmAbstract::DISASM_RESULT disasm(XADDR nAddress);
     qint64 read_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize);
     qint64 write_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint64 nSize);
-#else
-    quint32 read_uint32(qint64 nOffset, bool bIsBigEndian = false);
-    quint64 read_uint64(qint64 nOffset, bool bIsBigEndian = false);
-    qint64 read_array(qint64 nOffset, char *pData, quint64 nSize);
-    qint64 write_array(qint64 nOffset, char *pData, quint64 nSize);
-    QByteArray read_array(qint64 nOffset, quint64 nSize);
-    QString read_ansiString(qint64 nOffset, quint64 nMaxSize = 256);
-    QString read_unicodeString(qint64 nOffset, quint64 nMaxSize = 256);  // TODO endian ??
-    QString read_utf8String(qint64 nOffset, quint64 nMaxSize = 256);
 #endif
 
     enum STRDB {
@@ -1027,7 +1016,7 @@ private:
     QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
 #endif
-    MODE g_mode;
+    MODE g_mode; // TODO remove
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;
@@ -1038,7 +1027,6 @@ private:
     // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
     // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     // QIODevice *g_pDevice;
-    XBinary g_binary;  // TODO remove
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB

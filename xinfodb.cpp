@@ -98,11 +98,6 @@ XInfoDB::~XInfoDB()
     delete g_pMutexThread;
 }
 
-void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode)
-{
-    // TODO remove
-}
-
 void XInfoDB::initDB()
 {
     // #ifdef QT_SQL_LIB
@@ -341,54 +336,7 @@ qint64 XInfoDB::write_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint
     return nResult;
 }
 #endif
-#ifndef USE_XPROCESS
-quint32 XInfoDB::read_uint32(qint64 nOffset, bool bIsBigEndian)
-{
-    return g_binary.read_uint32(nOffset, bIsBigEndian);
-}
-#endif
-#ifndef USE_XPROCESS
-quint64 XInfoDB::read_uint64(qint64 nOffset, bool bIsBigEndian)
-{
-    return g_binary.read_uint64(nOffset, bIsBigEndian);
-}
-#endif
-#ifndef USE_XPROCESS
-qint64 XInfoDB::read_array(qint64 nOffset, char *pData, quint64 nSize)
-{
-    return g_binary.read_array(nOffset, pData, nSize);
-}
-#endif
-#ifndef USE_XPROCESS
-qint64 XInfoDB::write_array(qint64 nOffset, char *pData, quint64 nSize)
-{
-    return g_binary.write_array(nOffset, pData, nSize);
-}
-#endif
-#ifndef USE_XPROCESS
-QByteArray XInfoDB::read_array(qint64 nOffset, quint64 nSize)
-{
-    return g_binary.read_array(nOffset, nSize);
-}
-#endif
-#ifndef USE_XPROCESS
-QString XInfoDB::read_ansiString(qint64 nOffset, quint64 nMaxSize)
-{
-    return g_binary.read_ansiString(nOffset, nMaxSize);
-}
-#endif
-#ifndef USE_XPROCESS
-QString XInfoDB::read_unicodeString(qint64 nOffset, quint64 nMaxSize)
-{
-    return g_binary.read_unicodeString(nOffset, nMaxSize);
-}
-#endif
-#ifndef USE_XPROCESS
-QString XInfoDB::read_utf8String(qint64 nOffset, quint64 nMaxSize)
-{
-    return g_binary.read_utf8String(nOffset, nMaxSize);
-}
-#endif
+
 QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PDSTRUCT *pPdStruct)
 {
     XBinary::PDSTRUCT pdStructEmpty = {};
@@ -6863,7 +6811,9 @@ bool XInfoDB::isAnalyzed(PROFILE profile)
 XInfoDB::STATE *XInfoDB::getState(PROFILE profile)
 {
     if (!g_mapProfiles.contains(profile)) {
-        g_mapProfiles.insert(profile, new STATE);
+        XInfoDB::STATE *pState = new STATE;
+        XBinary::_zeroMemory((char *)pState, sizeof(STATE));
+        g_mapProfiles.insert(profile, pState);
     }
 
     return g_mapProfiles.value(profile);
