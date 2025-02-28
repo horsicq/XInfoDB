@@ -6812,7 +6812,13 @@ XInfoDB::STATE *XInfoDB::getState(PROFILE profile)
 {
     if (!g_mapProfiles.contains(profile)) {
         XInfoDB::STATE *pState = new STATE;
-        XBinary::_zeroMemory((char *)pState, sizeof(STATE));
+        pState->bIsAnalyzed = false;
+        pState->bIsImage = false;
+        pState->nCurrentBranch = 0;
+        pState->pDevice = nullptr;
+        pState->fileType = XBinary::FT_UNKNOWN;
+        pState->nModuleAddress = 0;
+        // XBinary::_zeroMemory((char *)pState, sizeof(STATE));
         g_mapProfiles.insert(profile, pState);
     }
 
