@@ -1016,7 +1016,7 @@ private:
     QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
 #endif
-    MODE g_mode; // TODO remove
+    MODE g_mode;  // TODO remove
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;

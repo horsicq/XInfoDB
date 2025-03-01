@@ -4626,7 +4626,8 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
             qint32 nNumberOfFunctions = exportHeader.listPositions.count();
 
             for (qint32 i = 0; i < nNumberOfFunctions; i++) {
-                addSymbolOrUpdateFlags(pState, exportHeader.listPositions.at(i).nAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_EXPORT, exportHeader.listPositions.at(i).sFunctionName);
+                addSymbolOrUpdateFlags(pState, exportHeader.listPositions.at(i).nAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_EXPORT,
+                                       exportHeader.listPositions.at(i).sFunctionName);
             }
         }
     }
@@ -4687,7 +4688,7 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
                         quint16 nBranch = ++(pState->nCurrentBranch);
 
                         _addCode(pState, &mr, pMemory, function.nRelOffset, nSize, nBranch, pPdStruct);
-                        pState->listSymbols[i].nBranch = nBranch; // mb TODO if _addCode
+                        pState->listSymbols[i].nBranch = nBranch;  // mb TODO if _addCode
                     }
                 }
             }
@@ -4702,7 +4703,7 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
                     qint32 nIndex = _searchXRecordBySegmentRelOffset(&(pState->listRecords), mrCurrent.nIndex, mrCurrent.nAddress - nCurrentAddress, true);
 
                     if (nIndex == -1) {
-                        addSymbolOrUpdateFlags(pState, nCurrentAddress, 0, XSYMBOL_FLAG_FUNCTION); // TODO optimize
+                        addSymbolOrUpdateFlags(pState, nCurrentAddress, 0, XSYMBOL_FLAG_FUNCTION);  // TODO optimize
                     }
                 }
             }
@@ -4786,8 +4787,8 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
                 dataRecord.nFlags |= XRECORD_FLAG_CODE | XRECORD_FLAG_OPCODE;
                 dataRecord.nBranch = nBranch;
 
-                if ((dr.relType != XDisasmAbstract::RELTYPE_NONE) || (dr.memType != XDisasmAbstract::MEMTYPE_NONE) ||
-                        dr.bIsCall || dr.bIsJmp || dr.bIsCondJmp || dr.bIsRet) {
+                if ((dr.relType != XDisasmAbstract::RELTYPE_NONE) || (dr.memType != XDisasmAbstract::MEMTYPE_NONE) || dr.bIsCall || dr.bIsJmp || dr.bIsCondJmp ||
+                    dr.bIsRet) {
                     refInfo.nRelOffset = i;
                     refInfo.nRegionIndex = pMemoryRecord->nIndex;
                     refInfo.nBranch = nBranch;
