@@ -4596,16 +4596,18 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
                 }
             }
 
-            qint64 nOffsetFS = mach.getCommandRecordOffset(XMACH_DEF::S_LC_FUNCTION_STARTS, 0, &listCR);
+            {
+                qint64 nOffsetFS = mach.getCommandRecordOffset(XMACH_DEF::S_LC_FUNCTION_STARTS, 0, &listCR);
 
-            if (nOffsetFS != -1) {
-                XMACH_DEF::linkedit_data_command linkedit = mach._read_linkedit_data_command(nOffsetFS);
-                QList<XMACH::FUNCTION_RECORD> listFR = mach.getFunctionRecords(linkedit.dataoff, linkedit.datasize);
+                if (nOffsetFS != -1) {
+                    XMACH_DEF::linkedit_data_command linkedit = mach._read_linkedit_data_command(nOffsetFS);
+                    QList<XMACH::FUNCTION_RECORD> listFR = mach.getFunctionRecords(linkedit.dataoff, linkedit.datasize);
 
-                qint32 nNumberOfRecords = listFR.count();
+                    qint32 nNumberOfRecords = listFR.count();
 
-                for (qint32 i = 0; i < nNumberOfRecords; i++) {
-                    addSymbolOrUpdateFlags(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
+                    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+                        addSymbolOrUpdateFlags(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
+                    }
                 }
             }
 
