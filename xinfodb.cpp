@@ -4636,9 +4636,7 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
 
     pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
 
-    if (!(pPdStruct->bIsStop)) std::sort(pState->listSymbols.begin(), pState->listSymbols.end(), compareXSYMBOL_location);
-
-    {
+    if (!(pPdStruct->bIsStop)) {
         XBinary binary(pDevice, bIsImage, nModuleAddress);
 
         char *pMemory = 0;
@@ -4669,12 +4667,6 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
                                 // Correct size
                                 mr.nSize = binary.read_array(mr.nOffset, pMemory, mr.nSize, pPdStruct);
                             }
-
-                            // if (function.nRelOffset) {
-                            //     if (_isCode(pState, &mr, pMemory, 0, function.nRelOffset)) {
-                            //         _addCode(pState, &mr, pMemory, 0, function.nRelOffset, pPdStruct);
-                            //     }
-                            // }
                         }
                     }
 
@@ -4702,7 +4694,7 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
                 XBinary::_MEMORY_RECORD mrCurrent = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nCurrentAddress);
 
                 if (mrCurrent.nSize) {
-                    qint32 nIndex = _searchXRecordBySegmentRelOffset(&(pState->listRecords), mrCurrent.nIndex, mrCurrent.nAddress - nCurrentAddress, true);
+                    qint32 nIndex = _searchXRecordBySegmentRelOffset(&(pState->listRecords), mrCurrent.nIndex,  nCurrentAddress - mrCurrent.nAddress, true);
 
                     if (nIndex == -1) {
                         addSymbolOrUpdateFlags(pState, nCurrentAddress, 0, XSYMBOL_FLAG_FUNCTION);  // TODO optimize
@@ -4719,6 +4711,33 @@ bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR
 
         if (pMemory) {
             delete[] pMemory;
+        }
+    }
+
+    if (!(pPdStruct->bIsStop)) {
+        // Update symbols
+        QMap<quint16, XADDR> mapMaxAddress;
+
+        qint32 nNumberOfRecords = pState->listRecords.count();
+
+        for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+            XRECORD record = pState->listRecords.at(i);
+
+            XADDR nValue = record.nRelOffset + record.nSize;
+
+            if (nValue > mapMaxAddress.value(record.nBranch)) {
+                mapMaxAddress.insert(record.nBranch, nValue);
+            }
+        }
+
+        qint32 nNumberOfSymbols = pState->listSymbols.count();
+
+        for (qint32 i = 0; (i < nNumberOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
+            XSYMBOL symbol = pState->listSymbols.at(i);
+
+            if (symbol.nBranch) {
+                pState->listSymbols[i].nSize = mapMaxAddress.value(symbol.nBranch) - symbol.nRelOffset;
+            }
         }
     }
 
@@ -5669,312 +5688,9 @@ XADDR XInfoDB::segmentRelOffsetToAddress(PROFILE profile, quint16 nRegionIndex, 
     return XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), nRegionIndex, nRelOffset);
 }
 
-XInfoDB::SHOWRECORD XInfoDB::getShowRecordByAddress(XADDR nAddress, bool bIsAprox)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     g_pMutexSQL->lock();
-    //     if (!bIsAprox) {
-    //         querySQL(&query,
-    //                  QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS = %2")
-    //                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-    //                  false);
-    //     } else {
-    //         querySQL(&query,
-    //                  QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE (ADDRESS <= %2) AND ((ADDRESS + SIZE) > %2)")
-    //                      .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-    //                  false);
-    //     }
-
-    //     if (query.next()) {
-    //         result.bValid = true;
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    //     g_pMutexSQL->unlock();
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(bIsAprox)
-    // #endif
-
-    return result;
-}
-
-XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByAddress(XADDR nAddress)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS > '%2' ORDER BY ADDRESS LIMIT 1")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-    //              false);
-
-    //     if (query.next()) {
-    //         result.bValid = true;
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
-    return result;
-}
-
-XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByAddress(XADDR nAddress)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ADDRESS < '%2' ORDER BY ADDRESS DESC LIMIT 1")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)),
-    //              false);
-
-    //     if (query.next()) {
-    //         result.bValid = true;
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
-    return result;
-}
-
-XInfoDB::SHOWRECORD XInfoDB::getNextShowRecordByOffset(qint64 nOffset)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET > '%2' ORDER BY ROFFSET LIMIT 1")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-    //              false);
-
-    //     if (query.next()) {
-    //         result.bValid = true;
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nOffset)
-    // #endif
-
-    return result;
-}
-
-XInfoDB::SHOWRECORD XInfoDB::getPrevShowRecordByOffset(qint64 nOffset)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET < '%2' ORDER BY ROFFSET DESC LIMIT 1")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-    //              false);
-
-    //     if (query.next()) {
-    //         result.bValid = true;
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nOffset)
-    // #endif
-
-    return result;
-}
-
-XInfoDB::SHOWRECORD XInfoDB::getShowRecordByOffset(qint64 nOffset)
-{
-    XInfoDB::SHOWRECORD result = {};
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS FROM %1 WHERE ROFFSET = '%2'")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)),
-    //              false);
-
-    //     if (query.next()) {
-    //         result.nAddress = query.value(0).toULongLong();
-    //         result.nOffset = query.value(1).toLongLong();
-    //         result.nSize = query.value(2).toLongLong();
-    //         result.recordType = (RT)query.value(3).toULongLong();
-    //         result.nRefTo = query.value(4).toULongLong();
-    //         result.nRefFrom = query.value(5).toULongLong();
-    //         result.nBranch = query.value(6).toULongLong();
-    //         result.dbstatus = (DBSTATUS)query.value(7).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nOffset)
-    // #endif
-
-    return result;
-}
-
-qint64 XInfoDB::getShowRecordOffsetByAddress(XADDR nAddress)
-{
-    qint64 nResult = 0;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT MIN(ROFFSET) FROM %1 WHERE ADDRESS >= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
-    return nResult;
-}
-
-qint64 XInfoDB::getShowRecordPrevOffsetByAddress(XADDR nAddress)
-{
-    qint64 nResult = 0;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT MAX(ROFFSET) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
-    return nResult;
-}
-
-qint64 XInfoDB::getShowRecordOffsetByLine(qint64 nNumber)
-{
-    return getShowRecordOffsetByAddress(getShowRecordAddressByLine(nNumber));
-}
-
-XADDR XInfoDB::getShowRecordAddressByOffset(qint64 nOffset)
-{
-    XADDR nResult = 0;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ROFFSET >= %2 LIMIT 1").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nOffset)), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toULongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nOffset)
-    // #endif
-
-    return nResult;
-}
-
-XADDR XInfoDB::getShowRecordAddressByLine(qint64 nLine)
-{
-    XADDR nResult = 0;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE LINENUMBER = %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine)), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toULongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nLine)
-    // #endif
-
-    return nResult;
-}
-
 qint64 XInfoDB::getRecordsCount(PROFILE profile)
 {
     return getState(profile)->listRecords.count();
-}
-
-qint64 XInfoDB::getShowRecordLineByAddress(XADDR nAddress)
-{
-    qint64 nResult = 0;
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("SELECT max(LINENUMBER) FROM %1 WHERE ADDRESS <= %2").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress)), false);
-
-    //     if (query.next()) {
-    //         nResult = query.value(0).toLongLong();
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
-    return nResult;
-}
-
-qint64 XInfoDB::getShowRecordLineByOffset(qint64 nOffset)
-{
-    return getShowRecordLineByAddress(getShowRecordAddressByOffset(nOffset));
-}
-
-void XInfoDB::updateShowRecordLine(XADDR nAddress, qint64 nLine)
-{
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("UPDATE %1 SET LINENUMBER = %2 WHERE ADDRESS = %3").arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nLine),
-    //              QString::number(nAddress)), true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(nLine)
-    // #endif
 }
 
 QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct)

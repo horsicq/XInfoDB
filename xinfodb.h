@@ -907,11 +907,6 @@ public:
     XInfoDB::XRECORD getRecordByAddress(XInfoDB::PROFILE profile, XADDR nAddress, bool bInRecord);
     XADDR segmentRelOffsetToAddress(XInfoDB::PROFILE profile, quint16 nSegment, XADDR nRelOffset);
 
-    SHOWRECORD getNextShowRecordByAddress(XADDR nAddress);
-    SHOWRECORD getPrevShowRecordByAddress(XADDR nAddress);
-    SHOWRECORD getNextShowRecordByOffset(qint64 nOffset);
-    SHOWRECORD getPrevShowRecordByOffset(qint64 nOffset);
-    SHOWRECORD getShowRecordByOffset(qint64 nOffset);
     qint64 getShowRecordOffsetByAddress(XADDR nAddress);
     qint64 getShowRecordPrevOffsetByAddress(XADDR nAddress);
     qint64 getShowRecordOffsetByLine(qint64 nLine);
