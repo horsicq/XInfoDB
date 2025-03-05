@@ -800,11 +800,7 @@ public:
     //    QList<XADDR> getSymbolAddresses(ST symbolType);
 
     bool _addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol, SS symSource);
-    void _sortSymbols();
     qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
-    bool _addExportSymbol(XADDR nAddress, const QString &sSymbol);
-    bool _addImportSymbol(XADDR nAddress, const QString &sSymbol);
-    bool _addTLSSymbol(XADDR nAddress, const QString &sSymbol);
 
     //    static QString symbolSourceIdToString(SS symbolSource);
     //    static QString symbolTypeIdToString(ST symbolType);

@@ -3058,13 +3058,6 @@ bool XInfoDB::_addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol,
     return bResult;
 }
 
-void XInfoDB::_sortSymbols()
-{
-    // #ifndef QT_SQL_LIB
-    //     std::sort(g_listSymbols.begin(), g_listSymbols.end(), _symbolSort);
-    // #endif
-}
-
 qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex)
 {
     Q_UNUSED(nAddress)
@@ -3090,66 +3083,6 @@ qint32 XInfoDB::_getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, q
 
 #endif
     return nResult;
-}
-
-bool XInfoDB::_addExportSymbol(XADDR nAddress, const QString &sSymbol)
-{
-    bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-    //                           "VALUES (?, ?)")
-    //                       .arg(s_sql_tableName[DBTABLE_EXPORT]));
-
-    //     query.bindValue(0, nAddress);
-    //     query.bindValue(1, sSymbol);
-
-    //     bResult = querySQL(&query, true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(sSymbol)
-    // #endif
-    return bResult;
-}
-
-bool XInfoDB::_addImportSymbol(XADDR nAddress, const QString &sSymbol)
-{
-    bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-    //                           "VALUES (?, ?)")
-    //                       .arg(s_sql_tableName[DBTABLE_IMPORT]));
-
-    //     query.bindValue(0, nAddress);
-    //     query.bindValue(1, sSymbol);
-
-    //     bResult = querySQL(&query, true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(sSymbol)
-    // #endif
-    return bResult;
-}
-
-bool XInfoDB::_addTLSSymbol(XADDR nAddress, const QString &sSymbol)
-{
-    bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     query.prepare(QString("INSERT INTO %1 (ADDRESS, ORIGNAME) "
-    //                           "VALUES (?, ?)")
-    //                       .arg(s_sql_tableName[DBTABLE_TLS]));
-
-    //     query.bindValue(0, nAddress);
-    //     query.bindValue(1, sSymbol);
-
-    //     bResult = querySQL(&query, true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(sSymbol)
-    // #endif
-    return bResult;
 }
 
 // QString XInfoDB::symbolSourceIdToString(SS symbolSource)
@@ -3670,64 +3603,6 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 
             stAddresses.insert(memoryMap.nEntryPointAddress);
 
-            {
-                XPE::EXPORT_HEADER _export = pe.getExport(&memoryMap, false, pPdStruct);
-
-                qint32 nNumberOfRecords = _export.listPositions.count();
-
-                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    XADDR nAddress = _export.listPositions.at(i).nAddress;
-
-                    if (!stAddresses.contains(nAddress)) {
-                        QString sFunctionName = _export.listPositions.at(i).sFunctionName;
-                        if (sFunctionName == "") {
-                            sFunctionName = QString::number(_export.listPositions.at(i).nOrdinal);
-                        }
-
-                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
-                        stAddresses.insert(nAddress);
-
-                        _addExportSymbol(nAddress, _export.listPositions.at(i).sFunctionName);  // TODO ordinals
-                        _addFunction(nAddress, 0, _export.listPositions.at(i).sFunctionName);
-                    }
-                }
-            }
-            {
-                QList<XPE::IMPORT_RECORD> listImportRecords = pe.getImportRecords(&memoryMap, pPdStruct);
-
-                qint32 nNumberOfRecords = listImportRecords.count();
-
-                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    XADDR nAddress = XBinary::relAddressToAddress(&memoryMap, listImportRecords.at(i).nRVA);
-
-                    if (!stAddresses.contains(nAddress)) {
-                        QString sFunctionName = listImportRecords.at(i).sLibrary + "#" + listImportRecords.at(i).sFunction;
-                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
-                        stAddresses.insert(nAddress);
-
-                        _addImportSymbol(nAddress, listImportRecords.at(i).sFunction);  // TODO ordinals
-                        //_addFunction(nAddress, 0, listImportRecords.at(i).sFunction);
-                    }
-                }
-            }
-            {
-                QList<XADDR> listTLSFunctions = pe.getTLS_CallbacksList(&memoryMap, pPdStruct);
-
-                qint32 nNumberOfRecords = listTLSFunctions.count();
-
-                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
-                    XADDR nAddress = listTLSFunctions.at(i);
-
-                    if (!stAddresses.contains(nAddress)) {
-                        QString sFunctionName = QString("tls_sub_%1").arg(XBinary::valueToHexEx(listTLSFunctions.at(i)));
-                        _addSymbol(nAddress, 0, sFunctionName, SS_FILE);
-                        stAddresses.insert(nAddress);
-
-                        _addTLSSymbol(nAddress, sFunctionName);
-                        _addFunction(nAddress, 0, sFunctionName);
-                    }
-                }
-            }
             // TODO PDB
             // TODO DWARF
             // TODO More
@@ -3753,8 +3628,6 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
     //     g_dataBase.commit();
     //     vacuumDb();
     // #endif
-
-    _sortSymbols();
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     g_pMutexSQL->unlock();
