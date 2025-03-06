@@ -4398,9 +4398,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
-bool XInfoDB::_analyze(PROFILE profile, QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    STATE *pState = getState(profile);
+    STATE *pState = getState(fileType);
 
     pState->nCurrentBranch = 0;
 
@@ -5539,9 +5539,9 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
     // #endif
 }
 #endif
-XInfoDB::XRECORD XInfoDB::getRecordByAddress(PROFILE profile, XADDR nAddress, bool bInRecord)
+XInfoDB::XRECORD XInfoDB::getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord)
 {
-    STATE *pState = getState(profile);
+    STATE *pState = getState(fileType);
 
     XInfoDB::XRECORD result = {};
 
@@ -5554,16 +5554,16 @@ XInfoDB::XRECORD XInfoDB::getRecordByAddress(PROFILE profile, XADDR nAddress, bo
     return result;
 }
 
-XADDR XInfoDB::segmentRelOffsetToAddress(PROFILE profile, quint16 nRegionIndex, XADDR nRelOffset)
+XADDR XInfoDB::segmentRelOffsetToAddress(XBinary::FT fileType, quint16 nRegionIndex, XADDR nRelOffset)
 {
-    STATE *pState = getState(profile);
+    STATE *pState = getState(fileType);
 
     return XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), nRegionIndex, nRelOffset);
 }
 
-qint64 XInfoDB::getRecordsCount(PROFILE profile)
+qint64 XInfoDB::getRecordsCount(XBinary::FT fileType)
 {
-    return getState(profile)->listRecords.count();
+    return getState(fileType)->listRecords.count();
 }
 
 QList<XInfoDB::SHOWRECORD> XInfoDB::getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct)
@@ -6395,14 +6395,14 @@ bool XInfoDB::isDatabaseChanged()
     return g_bIsDatabaseChanged;
 }
 
-bool XInfoDB::isAnalyzed(PROFILE profile)
+bool XInfoDB::isAnalyzed(XBinary::FT fileType)
 {
-    return getState(profile)->bIsAnalyzed;
+    return getState(fileType)->bIsAnalyzed;
 }
 
-XInfoDB::STATE *XInfoDB::getState(PROFILE profile)
+XInfoDB::STATE *XInfoDB::getState(XBinary::FT fileType)
 {
-    if (!g_mapProfiles.contains(profile)) {
+    if (!g_mapProfiles.contains(fileType)) {
         XInfoDB::STATE *pState = new STATE;
         pState->bIsAnalyzed = false;
         pState->bIsImage = false;
@@ -6411,10 +6411,10 @@ XInfoDB::STATE *XInfoDB::getState(PROFILE profile)
         pState->fileType = XBinary::FT_UNKNOWN;
         pState->nModuleAddress = 0;
         // XBinary::_zeroMemory((char *)pState, sizeof(STATE));
-        g_mapProfiles.insert(profile, pState);
+        g_mapProfiles.insert(fileType, pState);
     }
 
-    return g_mapProfiles.value(profile);
+    return g_mapProfiles.value(fileType);
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)

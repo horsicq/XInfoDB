@@ -46,7 +46,6 @@ public:
     struct OPTIONS {
         XBinary::FT fileType;
         QString sFileName;
-        XInfoDB::PROFILE profile;
         QIODevice *pDevice;
         bool bIsImage;
         XADDR nModuleAddress;
