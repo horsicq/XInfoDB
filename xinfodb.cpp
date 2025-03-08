@@ -4567,7 +4567,7 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
                 XBinary::_MEMORY_RECORD mrCurrent = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nCurrentAddress);
 
                 if (mrCurrent.nSize) {
-                    qint32 nIndex = _searchXRecordBySegmentRelOffset(&(pState->listRecords), mrCurrent.nIndex,  nCurrentAddress - mrCurrent.nAddress, true);
+                    qint32 nIndex = _searchXRecordBySegmentRelOffset(&(pState->listRecords), mrCurrent.nIndex, nCurrentAddress - mrCurrent.nAddress, true);
 
                     if (nIndex == -1) {
                         addSymbolOrUpdateFlags(pState, nCurrentAddress, 0, XSYMBOL_FLAG_FUNCTION);  // TODO optimize
