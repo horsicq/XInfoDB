@@ -4649,13 +4649,13 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
         qint32 nDataSize = 0;
 
         qint32 nRefDataSize = 0;
-        if ((nTotalSize - nRelOffset) >= 4) {
-            nRefAddress = *(quint32 *)(pMemory + i);
+        // if ((nTotalSize - nRelOffset) >= 4) {
+        //     nRefAddress = *(quint32 *)(pMemory + i);
 
-            if (XBinary::isAddressValid(&(pState->memoryMap), nRefAddress)) {
-                nRefDataSize = 4;
-            }
-        }
+        //     if (XBinary::isAddressValid(&(pState->memoryMap), nRefAddress)) {
+        //         nRefDataSize = 4;
+        //     }
+        // }
 
         if (nRefDataSize) {
             dataRecord.nRelOffset = i;
