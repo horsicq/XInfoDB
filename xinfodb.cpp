@@ -4521,7 +4521,10 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
 
             bool bContinue = false;
 
-            for (int i = 0; i < nNumbersOfSymbols; i++) {
+            qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
+            XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
+
+            for (int i = 0; (i < nNumbersOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
                 if ((pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_FUNCTION) && (pState->listSymbols.at(i).nBranch == 0)) {
                     bContinue = true;
                     XSYMBOL function = pState->listSymbols.at(i);
@@ -4558,7 +4561,11 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
                         pState->listSymbols[i].nBranch = nBranch;  // mb TODO if _addCode
                     }
                 }
+
+                XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
             }
+
+            XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
 
             QSetIterator<XADDR> i(pState->stCodeTemp);
             while (i.hasNext() && (!(pPdStruct->bIsStop))) {
@@ -4593,6 +4600,9 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
 
         qint32 nNumberOfRecords = pState->listRecords.count();
 
+        qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
+        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
+
         for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
             XRECORD record = pState->listRecords.at(i);
 
@@ -4601,7 +4611,11 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
             if (nValue > mapMaxAddress.value(record.nBranch)) {
                 mapMaxAddress.insert(record.nBranch, nValue);
             }
+
+            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
         }
+
+        XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
 
         qint32 nNumberOfSymbols = pState->listSymbols.count();
 
@@ -4656,6 +4670,9 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
         //         nRefDataSize = 4;
         //     }
         // }
+        if (pState->listRecords.count() >= 1000000) {
+            break;
+        }
 
         if (nRefDataSize) {
             dataRecord.nRelOffset = i;
