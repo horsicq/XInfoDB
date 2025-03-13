@@ -60,6 +60,9 @@ public:
         XSYMBOL_FLAG_FUNCTION = 1 << 0,
         XSYMBOL_FLAG_ENTRYPOINT = 1 << 1,
         XSYMBOL_FLAG_EXPORT = 1 << 2,
+        XSYMBOL_FLAG_IMPORT = 1 << 3,
+        XSYMBOL_FLAG_ADDRESS = 1 << 4,
+        XSYMBOL_FLAG_DATA = 1 << 5,
     };
 
     enum XRECORD_FLAG {
