@@ -160,16 +160,15 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
 void XInfoDB::_createTableNames()
 {
 #ifdef QT_SQL_LIB
-    QString sPrefix;
-    //= XBinary::fileTypeIdToString(g_fileType);
-    s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
-    s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
-    s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
-    s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(sPrefix));
-    s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(sPrefix));
-    s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(sPrefix));
-    s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(sPrefix));
-    s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
+    // QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
+    // s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(sPrefix));
+    // s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
 #endif
 }
 
@@ -3704,9 +3703,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-    XBinary::DM disasmMode;
+    // XBinary::DM disasmMode;
     //= getDisasmMode();
-    XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
+    // XBinary::DMFAMILY dmFamily = XBinary::getDisasmFamily(disasmMode);
     // XBinary::MODE mode = XBinary::getModeFromDisasmMode(disasmMode);
 
     XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
