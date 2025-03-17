@@ -846,7 +846,7 @@ public:
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
-    bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
+    bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
 
     qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);

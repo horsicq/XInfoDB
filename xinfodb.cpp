@@ -4844,7 +4844,7 @@ bool XInfoDB::updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags)
     return bResult;
 }
 
-bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName)
+bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName)
 {
     bool bResult = false;
 
