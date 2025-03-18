@@ -4800,7 +4800,7 @@ bool XInfoDB::_isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, cha
     return true;
 }
 
-bool XInfoDB::addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName)
+bool XInfoDB::addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName)
 {
     bool bResult = false;
 

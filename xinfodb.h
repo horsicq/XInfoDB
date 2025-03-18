@@ -844,7 +844,7 @@ public:
     bool _analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
-    bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, QString sSymbolName = QString());
+    bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
 
