@@ -812,7 +812,7 @@ public:
     void initHexDb();
 #ifdef QT_SQL_LIB
     bool isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable);
-    bool isTableNotEmpty(QSqlDatabase *pDatabase, QString sTable);
+    bool isTableNotEmpty(QSqlDatabase *pDatabase, const QString &sTable);
     bool isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     bool isTablePresentAndNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);

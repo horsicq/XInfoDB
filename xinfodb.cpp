@@ -3248,7 +3248,7 @@ bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 }
 #endif
 #ifdef QT_SQL_LIB
-bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, QString sTable)
+bool XInfoDB::isTableNotEmpty(QSqlDatabase *pDatabase, const QString &sTable)
 {
     bool bResult = false;
     QSqlQuery query(*pDatabase);
