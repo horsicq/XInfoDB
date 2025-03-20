@@ -733,79 +733,20 @@ public:
         DBSTATUS_PROCESS
     };
 
-    enum SS {
-        SS_FILE,
-        SS_ANALYZE
-    };
-
-    struct SYMBOL {
-        XADDR nAddress;
-        qint64 nOffset;
-        QString sSymbol;
-        SS symSource;
-    };
-
-    struct REFERENCE {
-        XADDR nAddress;
-        QString sCode;
-    };
-
-    struct FUNCTION {
-        XADDR nAddress;
-        qint64 nSize;
-        QString sName;
-    };
-
-    struct SHOWRECORD {
-        bool bValid;
-        XADDR nAddress;
-        qint64 nOffset;
-        qint64 nSize;
-        DBSTATUS dbstatus;
-        RT recordType;
-        quint64 nRefTo;
-        quint64 nRefFrom;
-        quint64 nBranch;
-    };
-
-    struct RELRECORD {
-        XADDR nAddress;
-        XDisasmAbstract::RELTYPE relType;
-        XADDR nXrefToRelative;
-        XDisasmAbstract::MEMTYPE memType;
-        XADDR nXrefToMemory;
-        qint32 nMemorySize;
-        DBSTATUS dbstatus;
-    };
-#ifdef QT_GUI_LIB
     struct BOOKMARKRECORD {
         QString sUUID;
         quint64 nLocation;
         XBinary::LT locationType;
         qint64 nSize;
+    #ifdef QT_GUI_LIB
         QColor colText;
         QColor colBackground;
+    #endif
         QString sTemplate;  // mb rename to sScript
         QString sComment;
     };
-#endif
 
-    bool isSymbolsPresent();        // TODO pdStruct
-    QList<SYMBOL> getAllSymbols();  // TODO pdStruct
-    // QMap<quint32, QString> getSymbolModules();                 // TODO pdStruct
-    QList<REFERENCE> getReferencesForAddress(XADDR nAddress);  // TODO pdStruct
-
-    //    QList<XADDR> getSymbolAddresses(ST symbolType);
-
-    bool _addSymbol(XADDR nAddress, qint64 nOffset, const QString &sSymbol, SS symSource);
-    qint32 _getSymbolIndex(XADDR nAddress, qint64 nSize, quint32 nModule, qint32 *pnInsertIndex);
-
-    //    static QString symbolSourceIdToString(SS symbolSource);
-    //    static QString symbolTypeIdToString(ST symbolType);
-
-    SYMBOL getSymbolByAddress(XADDR nAddress);
     bool isSymbolPresent(XADDR nAddress);
-    QList<FUNCTION> getAllFunctions();
     bool isFunctionPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
     void initDisasmDb();
@@ -816,7 +757,7 @@ public:
     bool isTableNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     bool isTablePresentAndNotEmpty(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void createTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
-    void removeTable(QSqlDatabase *pDatabase, QString sTable);
+    void removeTable(QSqlDatabase *pDatabase, const QString &sTable);
     void removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
     QString getCreateSqlString(QSqlDatabase *pDatabase, QString sTable);
@@ -863,31 +804,23 @@ public:
     static qint64 getOffset(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
     static XADDR getAddress(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
 
-    bool _addShowRecord(const SHOWRECORD &record);
-    bool _addRelRecord(const RELRECORD &record);
     void _completeDbAnalyze();
 #ifdef QT_SQL_LIB
     bool _addShowRecord_prepare(QSqlQuery *pQuery);
-    bool _addShowRecord_bind(QSqlQuery *pQuery, const SHOWRECORD &record);
     bool _isShowRecordPresent_prepare1(QSqlQuery *pQuery);
     bool _isShowRecordPresent_prepare2(QSqlQuery *pQuery);
     bool _isShowRecordPresent_bind1(QSqlQuery *pQuery, XADDR nAddress);
     bool _isShowRecordPresent_bind(QSqlQuery *pQuery1, QSqlQuery *pQuery2, XADDR nAddress, qint64 nSize);
     bool _addRelRecord_prepare(QSqlQuery *pQuery);
-    bool _addRelRecord_bind(QSqlQuery *pQuery, const RELRECORD &record);
     bool _isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSize);
-    void _addShowRecords_bind(QSqlQuery *pQuery, QList<SHOWRECORD> *pListRecords);
-    void _addRelRecords_bind(QSqlQuery *pQuery, QList<RELRECORD> *pListRecords);
     quint64 _getBranchNumber();
 #endif
-    QList<RELRECORD> getRelRecords(DBSTATUS dbstatus);
     bool _incShowRecordRefFrom(XADDR nAddress);
     bool _removeAnalyze(XADDR nAddress, qint64 nSize);
     void _clearAnalyze();
     bool _setArray(XADDR nAddress, qint64 nSize);
     bool _addFunction(XADDR nAddress, qint64 nSize, const QString &sName);
     void updateFunctionSize(XADDR nAddress, qint64 nSize);
-#ifdef QT_GUI_LIB
     QString _addBookmarkRecord(const BOOKMARKRECORD &record);
     bool _removeBookmarkRecord(const QString &sUUID);
     QList<BOOKMARKRECORD> getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct = nullptr);
@@ -895,9 +828,7 @@ public:
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
-#endif
 
-    SHOWRECORD getShowRecordByAddress(XADDR nAddress, bool bIsAprox);
     XInfoDB::XRECORD getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord);
     XADDR segmentRelOffsetToAddress(XBinary::FT fileType, quint16 nSegment, XADDR nRelOffset);
 
@@ -910,8 +841,6 @@ public:
     qint64 getShowRecordLineByAddress(XADDR nAddress);
     qint64 getShowRecordLineByOffset(qint64 nOffset);
     void updateShowRecordLine(XADDR nAddress, qint64 nLine);
-    QList<SHOWRECORD> getShowRecords(qint64 nLine, qint32 nCount, XBinary::PDSTRUCT *pPdStruct);
-    QList<SHOWRECORD> getShowRecordsInRegion(XADDR nAddress, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
     QList<XADDR> getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getShowRecordMemoryVariables(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
     QList<XBinary::ADDRESSSIZE> getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct);
@@ -921,7 +850,6 @@ public:
     QList<XADDR> getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct);
     QList<XADDR> getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct);
 
-    RELRECORD getRelRecordByAddress(XADDR nAddress);
     bool isAddressHasRefFrom(XADDR nAddress);
     bool isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize);
 
@@ -1009,9 +937,6 @@ private:
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;
-#endif
-#ifndef QT_SQL_LIB
-    QList<SYMBOL> g_listSymbols;  // TODO remove
 #endif
     // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
     // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
