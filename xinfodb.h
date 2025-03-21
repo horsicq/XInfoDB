@@ -44,7 +44,9 @@ class XInfoDB : public QObject {
 public:
     enum MODE {
         MODE_UNKNOWN = 0,
-        MODE_DEVICE,
+        MODE_PE_X86_FILE,
+        MODE_PE_X64_FILE,
+        MODE_MACHO_X64_FILE,
 #ifdef USE_XPROCESS
         MODE_PROCESS
 #endif
@@ -121,9 +123,6 @@ public:
 
     struct STATE {
         QIODevice *pDevice;
-        bool bIsImage;
-        XADDR nModuleAddress;
-        XBinary::FT fileType;
         XBinary::_MEMORY_MAP memoryMap;
         XDisasmCore disasmCore;
         QVector<XRECORD> listRecords;
@@ -782,12 +781,13 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
+    bool _analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::DM disasmMode, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
+    static MODE getMode(XBinary::FT fileType, XBinary::DM disasmMode);
 
     qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
@@ -829,8 +829,8 @@ public:
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
 
-    XInfoDB::XRECORD getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord);
-    XADDR segmentRelOffsetToAddress(XBinary::FT fileType, quint16 nSegment, XADDR nRelOffset);
+    // XInfoDB::XRECORD getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord);
+    // XADDR segmentRelOffsetToAddress(XBinary::FT fileType, quint16 nSegment, XADDR nRelOffset);
 
     qint64 getShowRecordOffsetByAddress(XADDR nAddress);
     qint64 getShowRecordPrevOffsetByAddress(XADDR nAddress);
@@ -877,8 +877,9 @@ public:
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 
-    STATE *getState(XBinary::FT fileType);
-    bool isAnalyzed(XBinary::FT fileType);
+    STATE *getState(MODE mode);
+    bool isAnalyzed(MODE mode);
+    bool isStatePresent(MODE mode);
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -950,7 +951,7 @@ private:
 #endif
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
-    QMap<XBinary::FT, STATE *> g_mapProfiles;
+    QMap<MODE, STATE *> g_mapProfiles;
 };
 
 #endif  // XINFODB_H

@@ -45,6 +45,7 @@ public:
 
     struct OPTIONS {
         XBinary::FT fileType;
+        XBinary::DM disasmMode;
         QString sFileName;
         QIODevice *pDevice;
         bool bIsImage;
