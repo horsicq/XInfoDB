@@ -4133,11 +4133,9 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
-bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::DM disasmMode, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
 {
-    MODE mode = getMode(fileType, disasmMode);
-
-    if (mode == MODE_UNKNOWN) {
+    if (!g_mapProfiles.contains(mode)) {
         return false;
     }
 
@@ -4149,10 +4147,9 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
     pState->listRecords.clear();
     pState->listRefs.clear();
     pState->listStrings.clear();
-    pState->pDevice = pDevice;
 
-    if ((fileType == XBinary::FT_MACHO) || (fileType == XBinary::FT_MACHO32) || (fileType == XBinary::FT_MACHO64)) {
-        XMACH mach(pDevice, bIsImage, nModuleAddress);
+    if (mode == MODE_MACHO_X86_64) {
+        XMACH mach(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         if (mach.isValid()) {
             pState->memoryMap = mach.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
@@ -4225,8 +4222,8 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
                 addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
             }
         }
-    } else if ((fileType == XBinary::FT_PE) || (fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
-        XPE pe(pDevice, bIsImage, nModuleAddress);
+    } else if ((mode == MODE_PE_X86_32) || (mode == MODE_PE_X86_64)) {
+        XPE pe(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         if (pe.isValid()) {
             pState->memoryMap = pe.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
@@ -4247,7 +4244,7 @@ bool XInfoDB::_analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, 
     pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
 
     if (!(pPdStruct->bIsStop)) {
-        XBinary binary(pDevice, bIsImage, nModuleAddress);
+        XBinary binary(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         char *pMemory = 0;
         XBinary::_MEMORY_RECORD mr = {};
@@ -4602,20 +4599,51 @@ bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSiz
     return bResult;
 }
 
-XInfoDB::MODE XInfoDB::getMode(XBinary::FT fileType, XBinary::DM disasmMode)
+void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType)
+{
+    XBinary::FILEFORMATINFO fileFormatInfo = XFormats::getFileFormatInfo(fileType, pDevice);
+
+    if (fileFormatInfo.bIsValid) {
+        addMode(pDevice, fileType, XBinary::getDisasmMode(&fileFormatInfo), true);
+    }
+}
+
+XInfoDB::MODE XInfoDB::getDefaultMode()
+{
+    return g_defaultMode;
+}
+
+XInfoDB::MODE XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode, bool bIsDefault)
 {
     MODE result = MODE_UNKNOWN;
 
-    if (fileType == XBinary::FT_MACHO) {
-        if (disasmMode == XBinary::DM_X86_64) {
-            result = MODE_MACHO_X64_FILE;
+    if ((fileType == XBinary::FT_MACHO64) && (disasmMode == XBinary::DM_X86_32)) {
+        result = MODE_MACHO_X86_64;
+    } else if ((fileType == XBinary::FT_PE32) && (disasmMode == XBinary::DM_X86_32)) {
+        result = MODE_PE_X86_32;
+    } else if ((fileType == XBinary::FT_PE64) && (disasmMode == XBinary::DM_X86_64)) {
+        result = MODE_PE_X86_64;
+    }
+
+    if (!g_mapProfiles.contains(result)) {
+        XInfoDB::STATE *pState = new STATE;
+        pState->bIsAnalyzed = false;
+        pState->nCurrentBranch = 0;
+        pState->pDevice = pDevice;
+        pState->bIsImage = false; // TODO
+        pState->nModuleAddress = -1; // TODO
+
+        if (result != MODE_UNKNOWN) {
+            pState->memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
+        } else {
+            pState->memoryMap = XFormats::getMemoryMap(XBinary::FT_BINARY, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
         }
-    } else if (fileType == XBinary::FT_PE) {
-        if (disasmMode == XBinary::DM_X86_32) {
-            result = MODE_PE_X86_FILE;
-        } else if (disasmMode == XBinary::DM_X86_64) {
-            result = MODE_PE_X64_FILE;
-        }
+
+        g_mapProfiles.insert(result, pState);
+    }
+
+    if (bIsDefault) {
+        g_defaultMode = result;
     }
 
     return result;

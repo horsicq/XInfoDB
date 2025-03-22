@@ -175,7 +175,7 @@ void XInfoMenu::actionClear()
             DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
             dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
             XInfoDBTransfer::OPTIONS options = {};
-            options.nModuleAddress = -1;
+            // options.nModuleAddress = -1;
 
             dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_CLEAR, options);
 
@@ -191,7 +191,7 @@ void XInfoMenu::save(QString sFileName)
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
     options.sFileName = sFileName;
-    options.nModuleAddress = -1;
+    // options.nModuleAddress = -1;
 
     dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
 
@@ -205,7 +205,7 @@ void XInfoMenu::load(QString sFileName)
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
     options.sFileName = sFileName;
-    options.nModuleAddress = -1;
+    // options.nModuleAddress = -1;
 
     dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);
 

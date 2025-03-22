@@ -44,12 +44,9 @@ public:
     };
 
     struct OPTIONS {
-        XBinary::FT fileType;
-        XBinary::DM disasmMode;
+        XInfoDB::MODE mode;
         QString sFileName;
         QIODevice *pDevice;
-        bool bIsImage;
-        XADDR nModuleAddress;
         XADDR nAddress;
         qint64 nSize;
         qint64 nCount;

@@ -44,9 +44,9 @@ class XInfoDB : public QObject {
 public:
     enum MODE {
         MODE_UNKNOWN = 0,
-        MODE_PE_X86_FILE,
-        MODE_PE_X64_FILE,
-        MODE_MACHO_X64_FILE,
+        MODE_PE_X86_32,
+        MODE_PE_X86_64,
+        MODE_MACHO_X86_64,
 #ifdef USE_XPROCESS
         MODE_PROCESS
 #endif
@@ -123,6 +123,8 @@ public:
 
     struct STATE {
         QIODevice *pDevice;
+        XADDR nModuleAddress;
+        bool bIsImage;
         XBinary::_MEMORY_MAP memoryMap;
         XDisasmCore disasmCore;
         QVector<XRECORD> listRecords;
@@ -781,13 +783,16 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyze(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::DM disasmMode, XBinary::PDSTRUCT *pPdStruct);
+    bool _analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
-    static MODE getMode(XBinary::FT fileType, XBinary::DM disasmMode);
+
+    void setData(QIODevice *pDevice, XBinary::FT fileType);
+    MODE addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode, bool bIsDefault);
+    MODE getDefaultMode();
 
     qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
@@ -935,6 +940,7 @@ private:
     QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
 #endif
     MODE g_mode;  // TODO remove
+    MODE g_defaultMode;
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;

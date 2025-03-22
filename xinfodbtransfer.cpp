@@ -128,12 +128,12 @@ bool XInfoDBTransfer::process()
                     // }
                     // // TODO sort records
 
-                    g_pXInfoDB->_analyze(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_options.disasmMode, g_pPdStruct);
+                    g_pXInfoDB->_analyze(g_options.mode, g_pPdStruct);
                 }
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {
                     //                    g_pXInfoDB->clearDb();
-                    g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
+                    // g_pXInfoDB->_addSymbolsFromFile(pDevice, g_options.bIsImage, g_options.nModuleAddress, g_options.fileType, g_pPdStruct);
                 }
             }
 
