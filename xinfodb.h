@@ -739,10 +739,10 @@ public:
         quint64 nLocation;
         XBinary::LT locationType;
         qint64 nSize;
-    #ifdef QT_GUI_LIB
+#ifdef QT_GUI_LIB
         QColor colText;
         QColor colBackground;
-    #endif
+#endif
         QString sTemplate;  // mb rename to sScript
         QString sComment;
     };

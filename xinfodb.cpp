@@ -157,18 +157,17 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
     // TODO
 }
 
-void XInfoDB::_createTableNames()
-{
+void XInfoDB::_createTableNames(){
 #ifdef QT_SQL_LIB
-    // QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
-    // s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(sPrefix));
-    // s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
+// QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
+// s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
+// s_sql_tableName[DBTABLE_SHOWRECORDS] = convertStringSQLTableName(QString("%1_SHOWRECORDS").arg(sPrefix));
+// s_sql_tableName[DBTABLE_RELATIVS] = convertStringSQLTableName(QString("%1_RELRECORDS").arg(sPrefix));
+// s_sql_tableName[DBTABLE_IMPORT] = convertStringSQLTableName(QString("%1_IMPORT").arg(sPrefix));
+// s_sql_tableName[DBTABLE_EXPORT] = convertStringSQLTableName(QString("%1_EXPORT").arg(sPrefix));
+// s_sql_tableName[DBTABLE_TLS] = convertStringSQLTableName(QString("%1_TLS").arg(sPrefix));
+// s_sql_tableName[DBTABLE_FUNCTIONS] = convertStringSQLTableName(QString("%1_FUNCTIONS").arg(sPrefix));
+// s_sql_tableName[DBTABLE_BOOKMARKS] = convertStringSQLTableName(QString("BOOKMARKS"));
 #endif
 }
 
@@ -4630,8 +4629,8 @@ XInfoDB::MODE XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary
         pState->bIsAnalyzed = false;
         pState->nCurrentBranch = 0;
         pState->pDevice = pDevice;
-        pState->bIsImage = false; // TODO
-        pState->nModuleAddress = -1; // TODO
+        pState->bIsImage = false;     // TODO
+        pState->nModuleAddress = -1;  // TODO
 
         if (result != MODE_UNKNOWN) {
             pState->memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
