@@ -947,12 +947,9 @@ private:
 #endif
     // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
     // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
-    // QIODevice *g_pDevice;
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
-    // QString g_sDatabaseName;
-    // QSqlDatabase g_dataBase;
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
     bool g_bIsDatabaseChanged;
