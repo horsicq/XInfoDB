@@ -4211,9 +4211,30 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
 
                     qint32 nNumberOfRecords = listFR.count();
 
-                    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+                    for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
                         addSymbolOrUpdateFlags(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
                     }
+                }
+            }
+
+            {
+                QList<XMACH::EXPORT_RECORD> listExportRecords;
+
+                {
+                    qint64 nOffsetExports = mach.getCommandRecordOffset(XMACH_DEF::S_LC_DYLD_EXPORTS_TRIE, 0, &listCR);
+
+                    if (nOffsetExports != -1) {
+                        XMACH_DEF::linkedit_data_command linkedit = mach._read_linkedit_data_command(nOffsetExports);
+                        mach.handleImport(linkedit.dataoff, 0, linkedit.datasize, &listExportRecords, "", pPdStruct);
+                    }
+                }
+
+                qint32 nNumberOfRecords = listExportRecords.count();
+
+                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+                    XADDR nExportAddress = XBinary::offsetToAddress(&(pState->memoryMap), listExportRecords.at(i).nOffset);
+                    quint32 nFlags = listExportRecords.at(i).nFlags; // TODO
+                    addSymbolOrUpdateFlags(pState, nExportAddress, 0, XSYMBOL_FLAG_EXPORT);
                 }
             }
 
@@ -4616,7 +4637,7 @@ XInfoDB::MODE XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary
 {
     MODE result = MODE_UNKNOWN;
 
-    if ((fileType == XBinary::FT_MACHO64) && (disasmMode == XBinary::DM_X86_32)) {
+    if ((fileType == XBinary::FT_MACHO64) && (disasmMode == XBinary::DM_X86_64)) {
         result = MODE_MACHO_X86_64;
     } else if ((fileType == XBinary::FT_PE32) && (disasmMode == XBinary::DM_X86_32)) {
         result = MODE_PE_X86_32;
