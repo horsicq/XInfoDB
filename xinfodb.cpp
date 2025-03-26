@@ -4178,10 +4178,6 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
                         nAddress = _nlist.n_value;
 
                         nOffsetSymTab += sizeof(XMACH_DEF::nlist_64);
-
-                        if (_nlist.n_strx == 0) {
-                            break;
-                        }
                     } else {
                         XMACH_DEF::nlist _nlist = mach._read_nlist(nOffsetSymTab);
 
@@ -4192,7 +4188,7 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
                     }
 
                     if (nAddress) {
-                        QString sSymbol = mach._read_ansiString_safe(pBuffer, nBufferSize, 256);
+                        QString sSymbol = mach._read_ansiString_safe(pBuffer, nBufferSize, nIndex, 256);
                         addSymbol(pState, nAddress, 0, 0, sSymbol);
                     }
 
@@ -4229,12 +4225,36 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
                     }
                 }
 
+                if (!listExportRecords.count()) {
+                    qint64 nOffsetExports = mach.getCommandRecordOffset(XMACH_DEF::S_LC_DYLD_INFO, 0, &listCR);
+
+                    if (nOffsetExports != -1) {
+                        XMACH_DEF::dyld_info_command dyldInfo = mach._read_dyld_info_command(nOffsetExports);
+
+                        if (dyldInfo.export_size) {
+                            mach.handleImport(dyldInfo.export_off, 0, dyldInfo.export_size, &listExportRecords, "", pPdStruct);
+                        }
+                    }
+                }
+
+                if (!listExportRecords.count()) {
+                    qint64 nOffsetExports = mach.getCommandRecordOffset(XMACH_DEF::S_LC_DYLD_INFO_ONLY, 0, &listCR);
+
+                    if (nOffsetExports != -1) {
+                        XMACH_DEF::dyld_info_command dyldInfo = mach._read_dyld_info_command(nOffsetExports);
+
+                        if (dyldInfo.export_size) {
+                            mach.handleImport(dyldInfo.export_off, 0, dyldInfo.export_size, &listExportRecords, "", pPdStruct);
+                        }
+                    }
+                }
+
                 qint32 nNumberOfRecords = listExportRecords.count();
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
                     XADDR nExportAddress = XBinary::offsetToAddress(&(pState->memoryMap), listExportRecords.at(i).nOffset);
                     quint32 nFlags = listExportRecords.at(i).nFlags; // TODO
-                    addSymbolOrUpdateFlags(pState, nExportAddress, 0, XSYMBOL_FLAG_EXPORT);
+                    addSymbolOrUpdateFlags(pState, nExportAddress, 0, XSYMBOL_FLAG_EXPORT, listExportRecords.at(i).sName);
                 }
             }
 
