@@ -945,8 +945,6 @@ private:
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;
 #endif
-    // QMap<quint32, QString> g_mapSymbolModules;  // TODO move to SQL
-    // QMap<quint64, RECORD_INFO> g_mapSRecordInfoCache;
     QMutex *g_pMutexSQL;
     QMutex *g_pMutexThread;
 #ifdef QT_SQL_LIB
