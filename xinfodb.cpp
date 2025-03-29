@@ -4253,7 +4253,7 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
 
                 for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
                     XADDR nExportAddress = XBinary::offsetToAddress(&(pState->memoryMap), listExportRecords.at(i).nOffset);
-                    quint32 nFlags = listExportRecords.at(i).nFlags; // TODO
+                    quint32 nFlags = listExportRecords.at(i).nFlags;  // TODO
                     addSymbolOrUpdateFlags(pState, nExportAddress, 0, XSYMBOL_FLAG_EXPORT, listExportRecords.at(i).sName);
                 }
             }
