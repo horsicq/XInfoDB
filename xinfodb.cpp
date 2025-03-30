@@ -3127,7 +3127,7 @@ void XInfoDB::clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
 }
 #endif
 #ifdef QT_SQL_LIB
-QString XInfoDB::getCreateSqlString(QSqlDatabase *pDatabase, QString sTable)
+QString XInfoDB::getCreateSqlString(QSqlDatabase *pDatabase, const QString &sTable)
 {
     QString sResult;
 

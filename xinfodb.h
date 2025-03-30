@@ -761,7 +761,7 @@ public:
     void removeTable(QSqlDatabase *pDatabase, const QString &sTable);
     void removeTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
     void clearTable(QSqlDatabase *pDatabase, DBTABLE dbTable);
-    QString getCreateSqlString(QSqlDatabase *pDatabase, QString sTable);
+    QString getCreateSqlString(QSqlDatabase *pDatabase, const QString &sTable);
     QList<QString> getNotEmptyTables(QSqlDatabase *pDatabase);
 #endif
     bool isDbPresent();
