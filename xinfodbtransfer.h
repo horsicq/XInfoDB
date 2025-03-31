@@ -44,7 +44,7 @@ public:
     };
 
     struct OPTIONS {
-        XInfoDB::MODE mode;
+        XBinary::FT fileType;
         QString sFileName;
         QIODevice *pDevice;
         XADDR nAddress;

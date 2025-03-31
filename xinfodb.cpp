@@ -49,7 +49,6 @@ bool compareXSYMBOL_location(const XInfoDB::XSYMBOL &a, const XInfoDB::XSYMBOL &
 
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
-    g_mode = MODE_UNKNOWN;
 #ifdef USE_XPROCESS
     g_processInfo = {};
 
@@ -4132,13 +4131,13 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
-bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
+bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    if (!g_mapProfiles.contains(mode)) {
+    if (!g_mapProfiles.contains(fileType)) {
         return false;
     }
 
-    STATE *pState = getState(mode);
+    STATE *pState = getState(fileType);
 
     pState->nCurrentBranch = 0;
 
@@ -4147,7 +4146,7 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
     pState->listRefs.clear();
     pState->listStrings.clear();
 
-    if (mode == MODE_MACHO_X86_64) {
+    if ((fileType == XBinary::FT_MACHO32) || (fileType == XBinary::FT_MACHO64)) {
         XMACH mach(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         if (mach.isValid()) {
@@ -4262,7 +4261,7 @@ bool XInfoDB::_analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct)
                 addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
             }
         }
-    } else if ((mode == MODE_PE_X86_32) || (mode == MODE_PE_X86_64)) {
+    } else if ((fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
         XPE pe(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         if (pe.isValid()) {
@@ -4641,28 +4640,17 @@ bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSiz
 
 void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType)
 {
-    XBinary::FILEFORMATINFO fileFormatInfo = XFormats::getFileFormatInfo(fileType, pDevice);
-
-    if (fileFormatInfo.bIsValid) {
-        addMode(pDevice, fileType, XBinary::getDisasmMode(&fileFormatInfo), true);
-    }
+    addMode(pDevice, fileType);
 }
 
-XInfoDB::MODE XInfoDB::getDefaultMode()
+XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
 {
-    return g_defaultMode;
-}
+    XBinary::FT result = XBinary::FT_UNKNOWN;
 
-XInfoDB::MODE XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode, bool bIsDefault)
-{
-    MODE result = MODE_UNKNOWN;
-
-    if ((fileType == XBinary::FT_MACHO64) && (disasmMode == XBinary::DM_X86_64)) {
-        result = MODE_MACHO_X86_64;
-    } else if ((fileType == XBinary::FT_PE32) && (disasmMode == XBinary::DM_X86_32)) {
-        result = MODE_PE_X86_32;
-    } else if ((fileType == XBinary::FT_PE64) && (disasmMode == XBinary::DM_X86_64)) {
-        result = MODE_PE_X86_64;
+    if (fileType == XBinary::FT_MACHO64) {
+        result = fileType;
+    } else if ((fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
+        result = fileType;
     }
 
     if (!g_mapProfiles.contains(result)) {
@@ -4673,17 +4661,13 @@ XInfoDB::MODE XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary
         pState->bIsImage = false;     // TODO
         pState->nModuleAddress = -1;  // TODO
 
-        if (result != MODE_UNKNOWN) {
-            pState->memoryMap = XFormats::getMemoryMap(fileType, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
+        if (result != XBinary::FT_UNKNOWN) {
+            pState->memoryMap = XFormats::getMemoryMap(result, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
         } else {
             pState->memoryMap = XFormats::getMemoryMap(XBinary::FT_BINARY, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
         }
 
         g_mapProfiles.insert(result, pState);
-    }
-
-    if (bIsDefault) {
-        g_defaultMode = result;
     }
 
     return result;
@@ -5946,6 +5930,7 @@ bool XInfoDB::isDebugger()
 {
     return g_bIsDebugger;
 }
+
 #ifdef QT_GUI_LIB
 QColor XInfoDB::stringToColor(const QString &sCode)
 {
@@ -5961,6 +5946,7 @@ QString XInfoDB::colorToString(QColor color)
     return color.name();
 }
 #endif
+
 QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {
     QString sResult = disasmResult.sOperands;
@@ -6005,33 +5991,33 @@ bool XInfoDB::isDatabaseChanged()
     return g_bIsDatabaseChanged;
 }
 
-bool XInfoDB::isAnalyzed(MODE mode)
+bool XInfoDB::isAnalyzed(XBinary::FT fileType)
 {
     bool bResult = false;
 
-    if (isStatePresent(mode)) {
-        bResult = g_mapProfiles.value(mode)->bIsAnalyzed;
+    if (isStatePresent(fileType)) {
+        bResult = g_mapProfiles.value(fileType)->bIsAnalyzed;
     }
 
     return bResult;
 }
 
-bool XInfoDB::isStatePresent(MODE mode)
+bool XInfoDB::isStatePresent(XBinary::FT fileType)
 {
-    return g_mapProfiles.contains(mode);
+    return g_mapProfiles.contains(fileType);
 }
 
-XInfoDB::STATE *XInfoDB::getState(MODE mode)
+XInfoDB::STATE *XInfoDB::getState(XBinary::FT fileType)
 {
-    if (!g_mapProfiles.contains(mode)) {
+    if (!g_mapProfiles.contains(fileType)) {
         XInfoDB::STATE *pState = new STATE;
         pState->bIsAnalyzed = false;
         pState->nCurrentBranch = 0;
         pState->pDevice = nullptr;
-        g_mapProfiles.insert(mode, pState);
+        g_mapProfiles.insert(fileType, pState);
     }
 
-    return g_mapProfiles.value(mode);
+    return g_mapProfiles.value(fileType);
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)

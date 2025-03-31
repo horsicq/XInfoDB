@@ -128,7 +128,7 @@ bool XInfoDBTransfer::process()
                     // }
                     // // TODO sort records
 
-                    g_pXInfoDB->_analyze(g_options.mode, g_pPdStruct);
+                    g_pXInfoDB->_analyze(g_options.fileType, g_pPdStruct);
                 }
             } else if (g_transferType == COMMAND_SYMBOLS) {
                 if (pDevice) {

@@ -42,15 +42,15 @@ class XInfoDB : public QObject {
     Q_OBJECT
 
 public:
-    enum MODE {
-        MODE_UNKNOWN = 0,
-        MODE_PE_X86_32,
-        MODE_PE_X86_64,
-        MODE_MACHO_X86_64,
-#ifdef USE_XPROCESS
-        MODE_PROCESS
-#endif
-    };
+//     enum MODE {
+//         MODE_UNKNOWN = 0,
+//         MODE_PE_X86_32,
+//         MODE_PE_X86_64,
+//         MODE_MACHO_X86_64,
+// #ifdef USE_XPROCESS
+//         MODE_PROCESS
+// #endif
+//     };
 
     enum SYMBOL_MODE {
         SYMBOL_MODE_UNKNOWN = 0,
@@ -783,7 +783,7 @@ public:
     };
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
-    bool _analyze(MODE mode, XBinary::PDSTRUCT *pPdStruct);
+    bool _analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
@@ -791,8 +791,7 @@ public:
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
 
     void setData(QIODevice *pDevice, XBinary::FT fileType);
-    MODE addMode(QIODevice *pDevice, XBinary::FT fileType, XBinary::DM disasmMode, bool bIsDefault);
-    MODE getDefaultMode();
+    XBinary::FT addMode(QIODevice *pDevice, XBinary::FT fileType);
 
     qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
     bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
@@ -882,9 +881,9 @@ public:
     void setDatabaseChanged(bool bState);
     bool isDatabaseChanged();
 
-    STATE *getState(MODE mode);
-    bool isAnalyzed(MODE mode);
-    bool isStatePresent(MODE mode);
+    STATE *getState(XBinary::FT fileType);
+    bool isAnalyzed(XBinary::FT fileType);
+    bool isStatePresent(XBinary::FT fileType);
 
 public slots:
     void readDataSlot(quint64 nOffset, char *pData, qint64 nSize);
@@ -939,8 +938,8 @@ private:
     QList<THREAD_INFO> g_listThreadInfos;
     QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
 #endif
-    MODE g_mode;  // TODO remove
-    MODE g_defaultMode;
+    // MODE g_mode;  // TODO remove
+    // MODE g_defaultMode;
 #ifdef USE_XPROCESS
     STATUS g_statusCurrent;
 //    STATUS g_statusPrev;
@@ -952,7 +951,7 @@ private:
 #endif
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
-    QMap<MODE, STATE *> g_mapProfiles;
+    QMap<XBinary::FT, STATE *> g_mapProfiles;
 };
 
 #endif  // XINFODB_H
