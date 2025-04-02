@@ -136,6 +136,10 @@ public:
         bool bIsAnalyzed;
     };
 
+    struct USER_NOTES {
+        quint32 nDummy;
+    };
+
 #ifdef USE_XPROCESS
     struct XREG_OPTIONS {
         bool bGeneral;
@@ -739,10 +743,8 @@ public:
         quint64 nLocation;
         XBinary::LT locationType;
         qint64 nSize;
-#ifdef QT_GUI_LIB
-        QColor colText;
-        QColor colBackground;
-#endif
+        QString sColorText;
+        QString sColorBackground;
         QString sTemplate;  // mb rename to sScript
         QString sComment;
     };
@@ -827,8 +829,8 @@ public:
     void updateFunctionSize(XADDR nAddress, qint64 nSize);
     QString _addBookmarkRecord(const BOOKMARKRECORD &record);
     bool _removeBookmarkRecord(const QString &sUUID);
-    QList<BOOKMARKRECORD> getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct = nullptr);
-    QList<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    QVector<BOOKMARKRECORD> *getBookmarkRecords();
+    QVector<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
     void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
@@ -872,10 +874,6 @@ public:
     void testFunction();
     void setDebuggerState(bool bState);
     bool isDebugger();
-#ifdef QT_GUI_LIB
-    static QColor stringToColor(const QString &sCode);
-    static QString colorToString(QColor color);
-#endif
     QString convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions);
     QString _convertOpcodeString(const QString &sString, XADDR nAddress, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions);
     void setDatabaseChanged(bool bState);
@@ -952,6 +950,7 @@ private:
     bool g_bIsDatabaseChanged;
     bool g_bIsDebugger;
     QMap<XBinary::FT, STATE *> g_mapProfiles;
+    QVector<BOOKMARKRECORD> g_listBookmarks;
 };
 
 #endif  // XINFODB_H

@@ -29,10 +29,7 @@ XInfoMenu::XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions)
     //    g_pActionAnalyze = nullptr;
     g_pActionExport = nullptr;
     g_pActionImport = nullptr;
-    g_pActionClear = nullptr;
     g_pXInfoDB = nullptr;
-    g_bIsDatabasePresent = false;
-    g_bIsDataBaseInit = false;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
@@ -44,18 +41,14 @@ QMenu *XInfoMenu::createMenu(QWidget *pParent)
     //    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
     g_pActionImport = new QAction(tr("Import"), pParent);
     g_pActionExport = new QAction(tr("Export"), pParent);
-    g_pActionClear = new QAction(tr("Clear"), pParent);
 
     //    g_pMenu->addAction(g_pActionAnalyze);
     g_pMenu->addAction(g_pActionExport);
     g_pMenu->addAction(g_pActionImport);
-    g_pMenu->addSeparator();
-    g_pMenu->addAction(g_pActionClear);
 
     //    connect(g_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
     connect(g_pActionExport, SIGNAL(triggered()), this, SLOT(actionExport()));
     connect(g_pActionImport, SIGNAL(triggered()), this, SLOT(actionImport()));
-    connect(g_pActionClear, SIGNAL(triggered()), this, SLOT(actionClear()));
 
     updateMenu();
 
@@ -119,20 +112,11 @@ void XInfoMenu::updateMenu()
     if (g_pXInfoDB) {
         bool bIsDatabasePresent = g_pXInfoDB->isDbPresent();
 
-        if ((g_bIsDatabasePresent != bIsDatabasePresent) || (!g_bIsDataBaseInit)) {
-            g_bIsDatabasePresent = bIsDatabasePresent;
-            g_bIsDataBaseInit = true;
-
-            g_pActionExport->setEnabled(bIsDatabasePresent);
-            g_pActionImport->setEnabled(!bIsDatabasePresent);
-            g_pActionClear->setEnabled(bIsDatabasePresent);
-        }
-        //        connect(g_pXInfoDB, SIGNAL(analyzeStateChanged()), this, SLOT(updateMenu()));
+        g_pActionExport->setEnabled(bIsDatabasePresent);
+        g_pActionImport->setEnabled(true);
     } else {
-        g_bIsDataBaseInit = false;
         g_pActionExport->setEnabled(false);
         g_pActionImport->setEnabled(false);
-        g_pActionClear->setEnabled(false);
     }
 }
 
@@ -164,23 +148,6 @@ void XInfoMenu::actionImport()
 
         if (!_sFileName.isEmpty()) {
             save(_sFileName);
-        }
-    }
-}
-
-void XInfoMenu::actionClear()
-{
-    if (g_pXInfoDB) {
-        if (QMessageBox::question(g_pParent, tr("Database"), tr("Are you sure?")) == QMessageBox::Yes) {
-            DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
-            dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
-            XInfoDBTransfer::OPTIONS options = {};
-            // options.nModuleAddress = -1;
-
-            dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_CLEAR, options);
-
-            dialogTransfer.showDialogDelay();
-            g_pXInfoDB->reloadView();
         }
     }
 }

@@ -3164,14 +3164,7 @@ QList<QString> XInfoDB::getNotEmptyTables(QSqlDatabase *pDatabase)
 bool XInfoDB::isDbPresent()
 {
     bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     if (g_dataBase.isOpen()) {
-    //         bResult = isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_BOOKMARKS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SHOWRECORDS) ||
-    //                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_RELATIVS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_IMPORT) ||
-    //                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_EXPORT) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_TLS) ||
-    //                   isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_SYMBOLS) || isTablePresentAndNotEmpty(&g_dataBase, DBTABLE_FUNCTIONS);
-    //     }
-    // #endif
+
     return bResult;
 }
 
@@ -5055,133 +5048,29 @@ void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 
 QString XInfoDB::_addBookmarkRecord(const BOOKMARKRECORD &record)
 {
-    QString sResult;
+    g_listBookmarks.append(record);
 
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     QString sUUID = record.sUUID;
-
-    //     if (sUUID == "") {
-    //         sUUID = XBinary::generateUUID();
-    //     }
-
-    //     query.prepare(QString("INSERT INTO %1 (UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT) "
-    //                           "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-    //                       .arg(s_sql_tableName[DBTABLE_BOOKMARKS]));
-
-    //     query.bindValue(0, sUUID);
-    //     query.bindValue(1, record.nLocation);
-    //     query.bindValue(2, record.locationType);
-    //     query.bindValue(3, record.nSize);
-    //     query.bindValue(4, colorToString(record.colText));
-    //     query.bindValue(5, colorToString(record.colBackground));
-    //     query.bindValue(6, record.sTemplate);
-    //     query.bindValue(7, record.sComment);
-
-    //     if (querySQL(&query, true)) {
-    //         sResult = sUUID;
-    //     }
-    // #else
-    //     Q_UNUSED(record)
-    // #endif
-
-    return sResult;
+    return record.sUUID;
 }
 
 bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 {
     bool bResult = false;
 
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("DELETE FROM %1 WHERE UUID = '%2'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], sUUID), true);
-
-    //     bResult = querySQL(&query, true);
-    // #else
-    //     Q_UNUSED(sUUID)
-    // #endif
+    // TODO
 
     return bResult;
 }
 
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(XBinary::PDSTRUCT *pPdStruct)
+QVector<XInfoDB::BOOKMARKRECORD> *XInfoDB::getBookmarkRecords()
 {
-    QList<XInfoDB::BOOKMARKRECORD> listResult;
-    // #ifdef QT_SQL_LIB
-    //     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
-
-    //     if (!pPdStruct) {
-    //         pPdStruct = &pdStructEmpty;
-    //     }
-
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 ORDER BY
-    //              LOCATION").arg(s_sql_tableName[DBTABLE_BOOKMARKS]), false);
-
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
-    //         BOOKMARKRECORD record = {};
-
-    //         record.sUUID = query.value(0).toString();
-    //         record.nLocation = query.value(1).toULongLong();
-    //         record.locationType = (XBinary::LT)query.value(2).toLongLong();
-    //         record.nSize = query.value(3).toLongLong();
-    //         record.colText = stringToColor(query.value(4).toString());
-    //         record.colBackground = stringToColor(query.value(5).toString());
-    //         record.sTemplate = query.value(6).toString();
-    //         record.sComment = query.value(7).toString();
-
-    //         listResult.append(record);
-    //     }
-    // #else
-    //     Q_UNUSED(pPdStruct)
-    // #endif
-
-    return listResult;
+    return &g_listBookmarks;
 }
 
-QList<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
+QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
-    QList<XInfoDB::BOOKMARKRECORD> listResult;
-    // #ifdef QT_SQL_LIB
-    //     XBinary::PDSTRUCT pdStructEmpty = XBinary::createPdStruct();
+    QVector<XInfoDB::BOOKMARKRECORD> listResult;
 
-    //     if (!pPdStruct) {
-    //         pPdStruct = &pdStructEmpty;
-    //     }
-
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("SELECT UUID, LOCATION, LOCTYPE, SIZE, COLTEXT, COLBACKGROUND, TEMPLATE, COMMENT FROM %1 "
-    //                      "WHERE ((%2 + %3) > LOCATION) AND ((LOCATION >= %2) OR ((%2 + %3) < (LOCATION + SIZE))) "
-    //                      "OR ((LOCATION + SIZE) > %2) AND ((%2 >= LOCATION) OR ((LOCATION + SIZE) < (%2 + %3))) AND LOCTYPE = '%4'  ORDER BY LOCATION")
-    //                  .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(nLocation), QString::number(nSize), QString::number(locationType)),
-    //              false);
-
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
-    //         BOOKMARKRECORD record = {};
-
-    //         record.sUUID = query.value(0).toString();
-    //         record.nLocation = query.value(1).toULongLong();
-    //         record.locationType = (XBinary::LT)query.value(2).toLongLong();
-    //         record.nSize = query.value(3).toLongLong();
-    //         record.colText = stringToColor(query.value(4).toString());
-    //         record.colBackground = stringToColor(query.value(5).toString());
-    //         record.sTemplate = query.value(6).toString();
-    //         record.sComment = query.value(7).toString();
-
-    //         listResult.append(record);
-    //     }
-    // #else
-    //     Q_UNUSED(nLocation)
-    //     Q_UNUSED(locationType)
-    //     Q_UNUSED(nSize)
-    //     Q_UNUSED(pPdStruct)
-    // #endif
 
     return listResult;
 }
@@ -5930,22 +5819,6 @@ bool XInfoDB::isDebugger()
 {
     return g_bIsDebugger;
 }
-
-#ifdef QT_GUI_LIB
-QColor XInfoDB::stringToColor(const QString &sCode)
-{
-    QColor color;
-    color.setNamedColor(sCode);
-
-    return color;
-}
-#endif
-#ifdef QT_GUI_LIB
-QString XInfoDB::colorToString(QColor color)
-{
-    return color.name();
-}
-#endif
 
 QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {

@@ -41,7 +41,6 @@ private slots:
     //    void actionAnalyze();
     void actionExport();
     void actionImport();
-    void actionClear();
     void save(QString sFileName);
     void load(QString sFileName);
 
@@ -53,10 +52,7 @@ private:
     //    QAction *g_pActionAnalyze;
     QAction *g_pActionExport;
     QAction *g_pActionImport;
-    QAction *g_pActionClear;
     XInfoDB *g_pXInfoDB;
-    bool g_bIsDataBaseInit;
-    bool g_bIsDatabasePresent;
 };
 
 #endif  // XINFOMENU_H
