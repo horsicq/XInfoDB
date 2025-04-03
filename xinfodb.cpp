@@ -3013,68 +3013,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
 {
     QSqlQuery query(*pDatabase);
 
-    if (dbTable == DBTABLE_SYMBOLS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "ROFFSET INTEGER,"
-                         "SYMTEXT TEXT,"
-                         "SYMSOURCE INTEGER"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_SYMBOLS]),
-                 false);
-    } else if (dbTable == DBTABLE_SHOWRECORDS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "ROFFSET INTEGER,"
-                         "SIZE INTEGER,"
-                         "RECTYPE INTEGER,"
-                         "REFTO INTEGER,"
-                         "REFFROM INTEGER,"
-                         "BRANCH INTEGER,"
-                         "DBSTATUS INTEGER"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]),
-                 false);
-    } else if (dbTable == DBTABLE_RELATIVS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "RELTYPE INTEGER,"
-                         "XREFTORELATIVE INTEGER,"
-                         "MEMTYPE INTEGER,"
-                         "XREFTOMEMORY INTEGER,"
-                         "MEMORYSIZE INTEGER,"
-                         "DBSTATUS INTEGER"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_RELATIVS]),
-                 false);
-    } else if (dbTable == DBTABLE_IMPORT) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "ORIGNAME TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_IMPORT]),
-                 false);
-    } else if (dbTable == DBTABLE_EXPORT) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "ORIGNAME TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_EXPORT]),
-                 false);
-    } else if (dbTable == DBTABLE_TLS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "ORIGNAME TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_TLS]),
-                 false);
-    } else if (dbTable == DBTABLE_BOOKMARKS) {
+    if (dbTable == DBTABLE_BOOKMARKS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
                          "UUID TEXT PRIMARY KEY,"
@@ -3088,15 +3027,6 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          ")")
                      .arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
                  false);  // mb column BASE for share objects
-    } else if (dbTable == DBTABLE_FUNCTIONS) {
-        querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "SIZE INTEGER,"
-                         "NAME TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_FUNCTIONS]),
-                 false);
     }
 
     // TODO PDB
@@ -4824,21 +4754,24 @@ bool XInfoDB::_insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &reco
 #ifdef QT_SQL_LIB
 bool XInfoDB::_addShowRecord_prepare(QSqlQuery *pQuery)
 {
-    return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
-                                   "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
-                               .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    // return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, ROFFSET, SIZE, RECTYPE, REFTO, REFFROM, BRANCH, DBSTATUS) "
+    //                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    //                            .arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    return false;
 }
 #endif
 #ifdef QT_SQL_LIB
 bool XInfoDB::_isShowRecordPresent_prepare1(QSqlQuery *pQuery)
 {
-    return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    // return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    return false;
 }
 #endif
 #ifdef QT_SQL_LIB
 bool XInfoDB::_isShowRecordPresent_prepare2(QSqlQuery *pQuery)
 {
-    return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    // return pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    return false;
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -4881,9 +4814,10 @@ bool XInfoDB::_isShowRecordPresent_bind(QSqlQuery *pQuery1, QSqlQuery *pQuery2, 
 #ifdef QT_SQL_LIB
 bool XInfoDB::_addRelRecord_prepare(QSqlQuery *pQuery)
 {
-    return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
-                                   "VALUES (?, ?, ?, ?, ?, ?, ?)")
-                               .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+    // return pQuery->prepare(QString("INSERT INTO %1 (ADDRESS, RELTYPE, XREFTORELATIVE, MEMTYPE, XREFTOMEMORY, MEMORYSIZE, DBSTATUS) "
+    //                                "VALUES (?, ?, ?, ?, ?, ?, ?)")
+    //                            .arg(s_sql_tableName[DBTABLE_RELATIVS]));
+    return false;
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -4891,18 +4825,18 @@ bool XInfoDB::_isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSi
 {
     bool bResult = false;
 
-    if (nSize <= 1) {
-        pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-        pQuery->bindValue(0, nAddress);
-    } else {
-        pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
-        pQuery->bindValue(0, nAddress);
-        pQuery->bindValue(1, nAddress + nSize);
-    }
+    // if (nSize <= 1) {
+    //     pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = ?").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    //     pQuery->bindValue(0, nAddress);
+    // } else {
+    //     pQuery->prepare(QString("SELECT ADDRESS FROM %1 WHERE (ADDRESS >= ?) AND (ADDRESS < ?)").arg(s_sql_tableName[DBTABLE_SHOWRECORDS]));
+    //     pQuery->bindValue(0, nAddress);
+    //     pQuery->bindValue(1, nAddress + nSize);
+    // }
 
-    if (querySQL(pQuery, false)) {
-        bResult = pQuery->next();
-    }
+    // if (querySQL(pQuery, false)) {
+    //     bResult = pQuery->next();
+    // }
 
     return bResult;
 }

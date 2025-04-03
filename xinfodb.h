@@ -136,6 +136,17 @@ public:
         bool bIsAnalyzed;
     };
 
+    struct BOOKMARKRECORD {
+        QString sUUID;
+        quint64 nLocation;
+        XBinary::LT locationType;
+        qint64 nSize;
+        QString sColorText;
+        QString sColorBackground;
+        QString sTemplate;  // mb rename to sScript
+        QString sComment;
+    };
+
     struct USER_NOTES {
         quint32 nDummy;
     };
@@ -518,13 +529,6 @@ public:
 #ifdef QT_SQL_LIB
     enum DBTABLE {
         DBTABLE_BOOKMARKS = 0,
-        DBTABLE_SHOWRECORDS,
-        DBTABLE_RELATIVS,
-        DBTABLE_IMPORT,
-        DBTABLE_EXPORT,
-        DBTABLE_TLS,
-        DBTABLE_SYMBOLS,
-        DBTABLE_FUNCTIONS,
         __DBTABLE_SIZE
     };
 #endif
@@ -736,17 +740,6 @@ public:
     enum DBSTATUS {
         DBSTATUS_NONE,
         DBSTATUS_PROCESS
-    };
-
-    struct BOOKMARKRECORD {
-        QString sUUID;
-        quint64 nLocation;
-        XBinary::LT locationType;
-        qint64 nSize;
-        QString sColorText;
-        QString sColorBackground;
-        QString sTemplate;  // mb rename to sScript
-        QString sComment;
     };
 
     bool isSymbolPresent(XADDR nAddress);
