@@ -42,15 +42,15 @@ class XInfoDB : public QObject {
     Q_OBJECT
 
 public:
-//     enum MODE {
-//         MODE_UNKNOWN = 0,
-//         MODE_PE_X86_32,
-//         MODE_PE_X86_64,
-//         MODE_MACHO_X86_64,
-// #ifdef USE_XPROCESS
-//         MODE_PROCESS
-// #endif
-//     };
+    //     enum MODE {
+    //         MODE_UNKNOWN = 0,
+    //         MODE_PE_X86_32,
+    //         MODE_PE_X86_64,
+    //         MODE_MACHO_X86_64,
+    // #ifdef USE_XPROCESS
+    //         MODE_PROCESS
+    // #endif
+    //     };
 
     enum SYMBOL_MODE {
         SYMBOL_MODE_UNKNOWN = 0,

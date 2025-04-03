@@ -5071,7 +5071,6 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
 {
     QVector<XInfoDB::BOOKMARKRECORD> listResult;
 
-
     return listResult;
 }
 
