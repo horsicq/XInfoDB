@@ -98,7 +98,7 @@ XInfoDB::~XInfoDB()
 }
 
 void XInfoDB::initDB()
-{    
+{
     // #ifdef QT_SQL_LIB
     //     if (!g_dataBase.isOpen()) {
     //         g_sDatabaseName = QString("memdb_%1").arg(XBinary::randomString(10));
@@ -4983,8 +4983,7 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
     QVector<XInfoDB::BOOKMARKRECORD> listResult;
 
     qint32 nNumberOfRecords = g_listBookmarks.size();
-    for(int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-
+    for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
         const BOOKMARKRECORD &record = g_listBookmarks.at(i);
 
         bool bMatch = true;
@@ -4994,11 +4993,11 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
 
         bool bOverlap = (record.nLocation <= regionEnd) && (recordEnd >= nLocation);
 
-        if(!bOverlap) {
+        if (!bOverlap) {
             bMatch = false;
         }
 
-        if(bMatch) {
+        if (bMatch) {
             listResult.append(record);
         }
     }
