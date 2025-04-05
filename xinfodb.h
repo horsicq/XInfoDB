@@ -143,7 +143,7 @@ public:
         qint64 nSize;
         QString sColorText;
         QString sColorBackground;
-        QString sTemplate;  // mb rename to sScript
+        QString sTemplate;
         QString sComment;
     };
 
@@ -745,8 +745,6 @@ public:
     bool isSymbolPresent(XADDR nAddress);
     bool isFunctionPresent(XADDR nAddress);
     QString getSymbolStringByAddress(XADDR nAddress);
-    void initDisasmDb();
-    void initHexDb();
 #ifdef QT_SQL_LIB
     bool isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable);
     bool isTableNotEmpty(QSqlDatabase *pDatabase, const QString &sTable);

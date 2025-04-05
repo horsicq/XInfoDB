@@ -33,23 +33,14 @@ public:
         COMMAND_UNKNOWN = 0,
         COMMAND_ANALYZEALL,
         COMMAND_ANALYZE,
-        COMMAND_SYMBOLS,  // TODO reload
-        COMMAND_DISASM,
-        COMMAND_REMOVE,
-        COMMAND_CLEAR,
         COMMAND_EXPORT,
         COMMAND_IMPORT,
-        COMMAND_SCANFORIAT,
-        COMMAND_GETIAT
     };
 
     struct OPTIONS {
         XBinary::FT fileType;
         QString sFileName;
         QIODevice *pDevice;
-        XADDR nAddress;
-        qint64 nSize;
-        qint64 nCount;
 #ifdef USE_XPROCESS
         X_ID nProcessID;
 #endif

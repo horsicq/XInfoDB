@@ -81,22 +81,10 @@ void DialogXInfoDBTransferProcess::updateTitle(XInfoDBTransfer::COMMAND command)
     if ((command == XInfoDBTransfer::COMMAND_ANALYZEALL) || (command == XInfoDBTransfer::COMMAND_ANALYZE)) {
         // TODO if FT_UNKNOWN show a dialog with options
         sTitle = tr("Analyze");
-    } else if (command == XInfoDBTransfer::COMMAND_DISASM) {
-        sTitle = tr("Disasm");
-    } else if (command == XInfoDBTransfer::COMMAND_SYMBOLS) {
-        sTitle = tr("Symbols");
-    } else if (command == XInfoDBTransfer::COMMAND_CLEAR) {
-        sTitle = tr("Clear");
-    } else if (command == XInfoDBTransfer::COMMAND_REMOVE) {
-        sTitle = tr("Remove");
     } else if (command == XInfoDBTransfer::COMMAND_EXPORT) {
         sTitle = tr("Export");
     } else if (command == XInfoDBTransfer::COMMAND_IMPORT) {
         sTitle = tr("Import");
-    } else if (command == XInfoDBTransfer::COMMAND_SCANFORIAT) {
-        sTitle = tr("Scan for IAT");
-    } else if (command == XInfoDBTransfer::COMMAND_GETIAT) {
-        sTitle = tr("Get IAT");
     }
 
     setWindowTitle(sTitle);

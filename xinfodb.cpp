@@ -98,7 +98,7 @@ XInfoDB::~XInfoDB()
 }
 
 void XInfoDB::initDB()
-{
+{    
     // #ifdef QT_SQL_LIB
     //     if (!g_dataBase.isOpen()) {
     //         g_sDatabaseName = QString("memdb_%1").arg(XBinary::randomString(10));
@@ -2951,26 +2951,6 @@ bool XInfoDB::isFunctionPresent(XADDR nAddress)
     return bResult;
 }
 
-void XInfoDB::initDisasmDb()
-{
-    // #ifdef QT_SQL_LIB
-    //     createTable(&g_dataBase, DBTABLE_SYMBOLS);
-    //     createTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    //     createTable(&g_dataBase, DBTABLE_RELATIVS);
-    //     createTable(&g_dataBase, DBTABLE_IMPORT);
-    //     createTable(&g_dataBase, DBTABLE_EXPORT);
-    //     createTable(&g_dataBase, DBTABLE_TLS);
-    //     createTable(&g_dataBase, DBTABLE_FUNCTIONS);
-    //     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    // #endif
-}
-
-void XInfoDB::initHexDb()
-{
-    // #ifdef QT_SQL_LIB
-    //     createTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    // #endif
-}
 #ifdef QT_SQL_LIB
 bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 {
@@ -3016,21 +2996,18 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     if (dbTable == DBTABLE_BOOKMARKS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "UUID TEXT PRIMARY KEY,"
-                         "LOCATION INTEGER,"
-                         "LOCTYPE INTEGER,"
-                         "SIZE INTEGER,"
-                         "COLTEXT TEXT,"
-                         "COLBACKGROUND TEXT,"
-                         "TEMPLATE,"
-                         "COMMENT TEXT"
+                         "sUUID TEXT PRIMARY KEY,"
+                         "nLocation INTEGER,"
+                         "locationType INTEGER,"
+                         "nSize INTEGER,"
+                         "sColorText TEXT,"
+                         "sColorBackground TEXT,"
+                         "sTemplate TEXT,"
+                         "sComment TEXT"
                          ")")
                      .arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
-                 false);  // mb column BASE for share objects
+                 false);
     }
-
-    // TODO PDB
-    // TODO DWARF
 }
 #endif
 #ifdef QT_SQL_LIB
@@ -5004,6 +4981,27 @@ QVector<XInfoDB::BOOKMARKRECORD> *XInfoDB::getBookmarkRecords()
 QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
     QVector<XInfoDB::BOOKMARKRECORD> listResult;
+
+    qint32 nNumberOfRecords = g_listBookmarks.size();
+    for(int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+
+        const BOOKMARKRECORD &record = g_listBookmarks.at(i);
+
+        bool bMatch = true;
+
+        quint64 recordEnd = record.nLocation + record.nSize - 1;
+        quint64 regionEnd = nLocation + nSize - 1;
+
+        bool bOverlap = (record.nLocation <= regionEnd) && (recordEnd >= nLocation);
+
+        if(!bOverlap) {
+            bMatch = false;
+        }
+
+        if(bMatch) {
+            listResult.append(record);
+        }
+    }
 
     return listResult;
 }
