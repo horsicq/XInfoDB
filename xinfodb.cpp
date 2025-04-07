@@ -5812,14 +5812,6 @@ bool XInfoDB::isStatePresent(XBinary::FT fileType)
 
 XInfoDB::STATE *XInfoDB::getState(XBinary::FT fileType)
 {
-    if (!g_mapProfiles.contains(fileType)) {
-        XInfoDB::STATE *pState = new STATE;
-        pState->bIsAnalyzed = false;
-        pState->nCurrentBranch = 0;
-        pState->pDevice = nullptr;
-        g_mapProfiles.insert(fileType, pState);
-    }
-
     return g_mapProfiles.value(fileType);
 }
 

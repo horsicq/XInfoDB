@@ -95,6 +95,7 @@ bool XInfoDBTransfer::process()
 
             if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE)) {
                 if (pDevice) {
+                    g_pXInfoDB->addMode(g_options.pDevice, g_options.fileType);
                     g_pXInfoDB->_analyze(g_options.fileType, g_pPdStruct);
                 }
             }
