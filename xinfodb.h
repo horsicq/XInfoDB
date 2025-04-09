@@ -104,14 +104,6 @@ public:
         quint16 nBranch;
     };
 
-    struct XREFCOUNT {
-        quint16 nRegionIndex;
-        quint16 nCount;
-        quint16 nFlags;
-        quint16 nDummy;
-        quint64 nRelOffset;
-    };
-
     struct XSYMBOL {
         quint16 nStringIndex;
         quint16 nBranch;
@@ -782,6 +774,9 @@ public:
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
+    void dumpSymbols(XBinary::FT fileType);
+    void dumpRecords(XBinary::FT fileType);
+    void dumpRefs(XBinary::FT fileType);
 
     void setData(QIODevice *pDevice, XBinary::FT fileType);
     XBinary::FT addMode(QIODevice *pDevice, XBinary::FT fileType);

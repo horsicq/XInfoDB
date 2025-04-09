@@ -38,6 +38,15 @@ bool compareXREFINFO_location(const XInfoDB::XREFINFO &a, const XInfoDB::XREFINF
     }
 }
 
+bool compareXREFINFO_location_ref(const XInfoDB::XREFINFO &a, const XInfoDB::XREFINFO &b)
+{
+    if (a.nRegionIndexRef != b.nRegionIndexRef) {
+        return a.nRegionIndexRef < b.nRegionIndexRef;
+    } else {
+        return a.nRelOffsetRef < b.nRelOffsetRef;
+    }
+}
+
 bool compareXSYMBOL_location(const XInfoDB::XSYMBOL &a, const XInfoDB::XSYMBOL &b)
 {
     if (a.nRegionIndex != b.nRegionIndex) {
@@ -2896,58 +2905,17 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
     return sResult;
 }
 
-// void XInfoDB::clearRecordInfoCache()
-// {
-//     g_mapSRecordInfoCache.clear();
-// }
-
-// XInfoDB::RECORD_INFO XInfoDB::getRecordInfoCache(quint64 nValue)
-// {
-//     RECORD_INFO result = {};
-
-//     if (g_mapSRecordInfoCache.contains(nValue)) {
-//         result = g_mapSRecordInfoCache.value(nValue);
-//     } else {
-//         result = getRecordInfo(nValue, RI_TYPE_GENERAL);
-
-//         g_mapSRecordInfoCache.insert(nValue, result);
-//     }
-
-//     return result;
-// }
-
-// QMap<quint32, QString> XInfoDB::getSymbolModules()
-// {
-//     return g_mapSymbolModules;
-// }
-
 bool XInfoDB::isSymbolPresent(XADDR nAddress)
 {
     bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(nAddress)), false);
-
-    //     bResult = query.next();
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
     return bResult;
 }
 
 bool XInfoDB::isFunctionPresent(XADDR nAddress)
 {
     bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     querySQL(&query, QString("SELECT ADDRESS FROM %1 WHERE ADDRESS = '%2'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nAddress)), false);
-
-    //     bResult = query.next();
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
     return bResult;
 }
 
@@ -3077,49 +3045,13 @@ bool XInfoDB::isDbPresent()
 
 void XInfoDB::removeAllTables()
 {
-    // #ifdef QT_SQL_LIB
-    //     removeTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    //     removeTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    //     removeTable(&g_dataBase, DBTABLE_RELATIVS);
-    //     removeTable(&g_dataBase, DBTABLE_IMPORT);
-    //     removeTable(&g_dataBase, DBTABLE_EXPORT);
-    //     removeTable(&g_dataBase, DBTABLE_TLS);
-    //     removeTable(&g_dataBase, DBTABLE_SYMBOLS);
-    //     removeTable(&g_dataBase, DBTABLE_FUNCTIONS);
-
-    //     // clearRecordInfoCache();
-    // #endif
 }
 
 void XInfoDB::clearAllTables()
 {
-    // #ifdef QT_SQL_LIB
-    //     clearTable(&g_dataBase, DBTABLE_BOOKMARKS);
-    //     clearTable(&g_dataBase, DBTABLE_SHOWRECORDS);
-    //     clearTable(&g_dataBase, DBTABLE_RELATIVS);
-    //     clearTable(&g_dataBase, DBTABLE_IMPORT);
-    //     clearTable(&g_dataBase, DBTABLE_EXPORT);
-    //     clearTable(&g_dataBase, DBTABLE_TLS);
-    //     clearTable(&g_dataBase, DBTABLE_SYMBOLS);
-    //     clearTable(&g_dataBase, DBTABLE_FUNCTIONS);
-
-    //     // clearRecordInfoCache();
-    // #endif
 }
 void XInfoDB::clearDb()
 {
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("PRAGMA writable_schema = 1"), false);
-    //     querySQL(&query, QString("delete from sqlite_master where type in ('table', 'index', 'trigger')"), false);
-    //     querySQL(&query, QString("PRAGMA writable_schema = 0"), false);
-
-    //     querySQL(&query, QString("VACUUM"), false);
-    //     querySQL(&query, QString("PRAGMA INTEGRITY_CHECK"), false);
-
-    //     // clearRecordInfoCache();
-    // #endif
 }
 
 void XInfoDB::vacuumDb()
@@ -3134,24 +3066,6 @@ void XInfoDB::vacuumDb()
 void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
     g_pMutexSQL->lock();
-
-    // #ifdef QT_SQL_LIB
-    //     {
-    //         createTable(&g_dataBase, DBTABLE_SYMBOLS);
-    //         createTable(&g_dataBase, DBTABLE_IMPORT);
-    //         createTable(&g_dataBase, DBTABLE_EXPORT);
-    //         createTable(&g_dataBase, DBTABLE_TLS);
-    //     }
-
-    //     {
-    //         QSqlQuery query(g_dataBase);
-
-    //         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]), true);
-    //         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]), true);
-    //         querySQL(&query, QString("DELETE FROM %1").arg(s_sql_tableName[DBTABLE_TLS]), true);
-    //         querySQL(&query, QString("DELETE FROM %1 WHERE SYMSOURCE = '%2'").arg(s_sql_tableName[DBTABLE_SYMBOLS], QString::number(SS_FILE)), true);
-    //     }
-    // #endif
 
     XBinary::PDSTRUCT pdStructEmpty = {};
 
@@ -4268,6 +4182,37 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
     }
 
     if (!(pPdStruct->bIsStop)) {
+        // Update refs
+        std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location_ref);
+
+        qint32 nNumberOfRecords = pState->listRefs.count();
+
+        qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
+        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
+
+        for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+            XREFINFO record = pState->listRefs.at(i);
+
+            if (record.nRegionIndexRef == (quint16)-1) {
+                XADDR nRefAddress = record.nRelOffsetRef;
+
+                XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nRefAddress);
+
+                if (mr.nSize) {
+                    pState->listRefs[i].nRegionIndexRef = mr.nIndex;
+                    pState->listRefs[i].nRelOffsetRef = nRefAddress - mr.nAddress;
+                }
+            }
+
+            XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
+        }
+
+        XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
+
+        std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location);
+    }
+
+    if (!(pPdStruct->bIsStop)) {
         // Update symbols
         QMap<quint16, XADDR> mapMaxAddress;
 
@@ -4536,6 +4481,70 @@ bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSiz
     }
 
     return bResult;
+}
+
+void XInfoDB::dumpSymbols(XBinary::FT fileType)
+{
+#ifdef QT_DEBUG
+    XInfoDB::STATE *pState = getState(fileType);
+
+    qint32 nNumberOfSymbols = pState->listSymbols.count();
+
+    for (qint32 i = 0; i < nNumberOfSymbols; i++) {
+        XSYMBOL symbol = pState->listSymbols.at(i);
+        QString sSymbolName = "";
+
+        if (symbol.nStringIndex != (quint16)-1) {
+            sSymbolName = g_mapProfiles.value(XBinary::FT_MACHO64)->listStrings.at(symbol.nStringIndex);
+        }
+
+        QString sDebugString = QString("%1 %2 %3 %4 %5").arg(XBinary::valueToHex(symbol.nRelOffset), XBinary::valueToHex(symbol.nSize),
+                                       XBinary::valueToHex(symbol.nRegionIndex), XBinary::valueToHex(symbol.nFlags), sSymbolName);
+
+        qDebug("%s", sDebugString.toUtf8().data());
+    }
+#endif
+}
+
+void XInfoDB::dumpRecords(XBinary::FT fileType)
+{
+#ifdef QT_DEBUG
+    XInfoDB::STATE *pState = getState(fileType);
+
+    qint32 nNumberOfRecords = pState->listRecords.count();
+
+    for (qint32 i = 0; i < nNumberOfRecords; i++) {
+        XRECORD record = pState->listRecords.at(i);
+
+        QString sDebugString = QString("%1 %2 %3 %4 %5").arg(XBinary::valueToHex(record.nRelOffset), XBinary::valueToHex(record.nSize),
+                                       XBinary::valueToHex(record.nRegionIndex), XBinary::valueToHex(record.nBranch), XBinary::valueToHex(record.nFlags));
+
+        qDebug("%s", sDebugString.toUtf8().data());
+    }
+#endif
+}
+
+void XInfoDB::dumpRefs(XBinary::FT fileType)
+{
+#ifdef QT_DEBUG
+    XInfoDB::STATE *pState = getState(fileType);
+
+    qint32 nNumberOfRefs = pState->listRefs.count();
+
+    for (qint32 i = 0; i < nNumberOfRefs; i++) {
+        XREFINFO refInfo = pState->listRefs.at(i);
+
+        QString sDebugString = QString("%1 %2 %3 %4 %5 %6").arg(
+                    XBinary::valueToHex(refInfo.nRelOffset),
+                    XBinary::valueToHex(refInfo.nRelOffsetRef),
+                    XBinary::valueToHex(refInfo.nRegionIndex),
+                    XBinary::valueToHex(refInfo.nRegionIndexRef),
+                    XBinary::valueToHex(refInfo.nFlags),
+                    XBinary::valueToHex(refInfo.nBranch));
+
+        qDebug("%s", sDebugString.toUtf8().data());
+    }
+#endif
 }
 
 void XInfoDB::setData(QIODevice *pDevice, XBinary::FT fileType)
