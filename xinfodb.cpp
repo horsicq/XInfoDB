@@ -4497,12 +4497,9 @@ void XInfoDB::dumpSymbols(XBinary::FT fileType)
             sSymbolName = g_mapProfiles.value(XBinary::FT_MACHO64)->listStrings.at(symbol.nStringIndex);
         }
 
-        QString sDebugString = QString("%1 %2 %3 %4 %5").arg(
-                    XBinary::valueToHex(symbol.nRelOffset),
-                    XBinary::valueToHex(symbol.nSize),
-                    XBinary::valueToHex(symbol.nRegionIndex),
-                    XBinary::valueToHex(symbol.nFlags),
-                    sSymbolName);
+        QString sDebugString = QString("%1 %2 %3 %4 %5")
+                                   .arg(XBinary::valueToHex(symbol.nRelOffset), XBinary::valueToHex(symbol.nSize), XBinary::valueToHex(symbol.nRegionIndex),
+                                        XBinary::valueToHex(symbol.nFlags), sSymbolName);
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -4519,12 +4516,9 @@ void XInfoDB::dumpRecords(XBinary::FT fileType)
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XRECORD record = pState->listRecords.at(i);
 
-        QString sDebugString = QString("%1 %2 %3 %4 %5").arg(
-                    XBinary::valueToHex(record.nRelOffset),
-                    XBinary::valueToHex(record.nSize),
-                    XBinary::valueToHex(record.nRegionIndex),
-                    XBinary::valueToHex(record.nBranch),
-                    XBinary::valueToHex(record.nFlags));
+        QString sDebugString = QString("%1 %2 %3 %4 %5")
+                                   .arg(XBinary::valueToHex(record.nRelOffset), XBinary::valueToHex(record.nSize), XBinary::valueToHex(record.nRegionIndex),
+                                        XBinary::valueToHex(record.nBranch), XBinary::valueToHex(record.nFlags));
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -4541,14 +4535,10 @@ void XInfoDB::dumpRefs(XBinary::FT fileType)
     for (qint32 i = 0; i < nNumberOfRefs; i++) {
         XREFINFO refInfo = pState->listRefs.at(i);
 
-        QString sDebugString = QString("%1 %2 %3 %4 %5 %6 %7").arg(
-                    XBinary::valueToHex(refInfo.nRelOffset),
-                    XBinary::valueToHex(refInfo.nRelOffsetRef),
-                    XBinary::valueToHex(refInfo.nRegionIndex),
-                    XBinary::valueToHex(refInfo.nRegionIndexRef),
-                    XBinary::valueToHex(refInfo.nSize),
-                    XBinary::valueToHex(refInfo.nFlags),
-                    XBinary::valueToHex(refInfo.nBranch));
+        QString sDebugString = QString("%1 %2 %3 %4 %5 %6 %7")
+                                   .arg(XBinary::valueToHex(refInfo.nRelOffset), XBinary::valueToHex(refInfo.nRelOffsetRef), XBinary::valueToHex(refInfo.nRegionIndex),
+                                        XBinary::valueToHex(refInfo.nRegionIndexRef), XBinary::valueToHex(refInfo.nSize), XBinary::valueToHex(refInfo.nFlags),
+                                        XBinary::valueToHex(refInfo.nBranch));
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -4575,10 +4565,7 @@ void XInfoDB::dumpShowRecords(XBinary::FT fileType)
 
         QString sShowRecord = getShowString(pState, record, disasmOptions);
 
-        QString sDebugString = QString("%1: %2 %3").arg(
-                    XBinary::valueToHex(nAddress),
-                    baData.toHex(),
-                    sShowRecord);
+        QString sDebugString = QString("%1: %2 %3").arg(XBinary::valueToHex(nAddress), baData.toHex(), sShowRecord);
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -4623,9 +4610,7 @@ QString XInfoDB::getShowString(STATE *pState, const XRECORD &record, const XDisa
         }
 
     } else {
-
     }
-
 
     return sResult;
 }
