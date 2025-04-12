@@ -41,8 +41,8 @@ private slots:
     //    void actionAnalyze();
     void actionExport();
     void actionImport();
-    void save(QString sFileName);
-    void load(QString sFileName);
+    void save(const QString &sFileName);
+    void load(const QString &sFileName);
 
 private:
     XShortcuts *g_pShortcuts;

@@ -152,7 +152,7 @@ void XInfoMenu::actionImport()
     }
 }
 
-void XInfoMenu::save(QString sFileName)
+void XInfoMenu::save(const QString &sFileName)
 {
     DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
@@ -166,7 +166,7 @@ void XInfoMenu::save(QString sFileName)
     g_pXInfoDB->reloadView();
 }
 
-void XInfoMenu::load(QString sFileName)
+void XInfoMenu::load(const QString &sFileName)
 {
     DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
