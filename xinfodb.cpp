@@ -4594,12 +4594,12 @@ QString XInfoDB::getShowString(STATE *pState, const XRECORD &record, const XDisa
 
             if (disasmResult.relType) {
                 sReplace = pState->disasmCore.getNumberString(disasmResult.nXrefToRelative);
-                // sSymbol = _getSymbolStringByAddress(pState, disasmResult.nXrefToRelative);
+                sSymbol = _getSymbolStringByAddress(pState, disasmResult.nXrefToRelative);
             }
 
             if (disasmResult.memType) {
                 sReplace = pState->disasmCore.getNumberString(disasmResult.nXrefToMemory);
-                // sSymbol = _getSymbolStringByAddress(pState, disasmResult.nXrefToMemory);
+                sSymbol = _getSymbolStringByAddress(pState, disasmResult.nXrefToMemory);
             }
 
             if ((sReplace != "") && (sSymbol != "")) {
@@ -4610,6 +4610,25 @@ QString XInfoDB::getShowString(STATE *pState, const XRECORD &record, const XDisa
         }
 
     } else {
+    }
+
+    return sResult;
+}
+
+QString XInfoDB::_getSymbolStringByAddress(STATE *pState, XADDR nAddress)
+{
+    QString sResult;
+
+    qint32 nIndex = _searchXSymbolByAddress(&(pState->memoryMap), &(pState->listSymbols), nAddress);
+
+    if (nIndex != -1) {
+        XSYMBOL xsymbol = pState->listSymbols.at(nIndex);
+
+        if (xsymbol.nStringIndex != (quint16)-1) {
+            sResult = pState->listStrings.at(xsymbol.nStringIndex);
+        } else {
+            sResult = QString("loc_%1").arg(XBinary::valueToHexEx(nAddress));
+        }
     }
 
     return sResult;

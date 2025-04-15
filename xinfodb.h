@@ -770,6 +770,7 @@ public:
     void dumpShowRecords(XBinary::FT fileType);
 
     QString getShowString(STATE *pState, const XRECORD &record, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions);
+    QString _getSymbolStringByAddress(STATE *pState, XADDR nAddress);
 
     void setData(QIODevice *pDevice, XBinary::FT fileType);
     XBinary::FT addMode(QIODevice *pDevice, XBinary::FT fileType);
