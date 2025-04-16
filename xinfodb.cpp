@@ -4615,11 +4615,11 @@ QString XInfoDB::getShowString(STATE *pState, const XRECORD &record, const XDisa
     return sResult;
 }
 
-QString XInfoDB::_getSymbolStringByAddress(STATE *pState, XADDR nAddress)
+QString XInfoDB::_getSymbolStringBySegmentRelOffset(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset)
 {
     QString sResult;
 
-    qint32 nIndex = _searchXSymbolByAddress(&(pState->memoryMap), &(pState->listSymbols), nAddress);
+    qint32 nIndex = _searchXSymbolBySegmentRelOffset(&(pState->listSymbols), nRegionIndex, nRelOffset);
 
     if (nIndex != -1) {
         XSYMBOL xsymbol = pState->listSymbols.at(nIndex);
@@ -4627,8 +4627,21 @@ QString XInfoDB::_getSymbolStringByAddress(STATE *pState, XADDR nAddress)
         if (xsymbol.nStringIndex != (quint16)-1) {
             sResult = pState->listStrings.at(xsymbol.nStringIndex);
         } else {
-            sResult = QString("loc_%1").arg(XBinary::valueToHexEx(nAddress));
+            sResult = QString("loc_%1").arg(XBinary::valueToHexEx(pState->memoryMap.listRecords.at(nRegionIndex).nAddress + nRelOffset));
         }
+    }
+
+    return sResult;
+}
+
+QString XInfoDB::_getSymbolStringByAddress(STATE *pState, XADDR nAddress)
+{
+    QString sResult;
+
+    XBinary::_MEMORY_RECORD memoryRecord = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    if (memoryRecord.nSize) {
+        sResult = _getSymbolStringBySegmentRelOffset(pState, memoryRecord.nIndex, memoryRecord.nAddress - nAddress);
     }
 
     return sResult;
