@@ -2964,16 +2964,27 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     if (dbTable == DBTABLE_BOOKMARKS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "sUUID TEXT PRIMARY KEY,"
-                         "nLocation INTEGER,"
-                         "locationType INTEGER,"
-                         "nSize INTEGER,"
-                         "sColorText TEXT,"
-                         "sColorBackground TEXT,"
-                         "sTemplate TEXT,"
-                         "sComment TEXT"
+                         "UUID TEXT PRIMARY KEY,"
+                         "LOCATION INTEGER,"
+                         "LOCTYPE INTEGER,"
+                         "LOCSIZE INTEGER,"
+                         "TEXTCOLOR TEXT,"
+                         "BACKGROUNDCOLOR TEXT,"
+                         "TEMPLATE TEXT,"
+                         "COMMENT TEXT"
                          ")")
                      .arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
+                 false);
+    } else if (dbTable == DBTABLE_SYMBOLS) {
+        querySQL(&query,
+                 QString("CREATE TABLE IF NOT EXISTS %1 ("
+                         "ADDRESS INTEGER PRIMARY KEY,"
+                         "SIZE INTEGER PRIMARY KEY,"
+                         "NAME TEXT,"
+                         "nType INTEGER,"
+                         "sComment TEXT"
+                         ")")
+                     .arg(s_sql_tableName[DBTABLE_SYMBOLS]),
                  false);
     }
 }
@@ -5444,22 +5455,23 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 {
     bool bResult = false;
 
-    // #ifdef QT_SQL_LIB
-    //     QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
-    //     dataBase.setDatabaseName(sDBFileName);
+    #ifdef QT_SQL_LIB
+        QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+        dataBase.setDatabaseName(sDBFileName);
 
-    //     if (dataBase.open()) {
-    //         bResult = copyDb(&g_dataBase, &dataBase, pPdStruct);
+        if (dataBase.open()) {
+            createTable(&dataBase, DBTABLE_BOOKMARKS);
+            createTable(&dataBase, DBTABLE_SYMBOLS);
 
-    //         dataBase.close();
-    //     }
+            dataBase.close();
+        }
 
-    //     dataBase = QSqlDatabase();
-    //     QSqlDatabase::removeDatabase("local_db");
-    // #else
-    //     Q_UNUSED(sDBFileName)
-    //     Q_UNUSED(pPdStruct)
-    // #endif
+        dataBase = QSqlDatabase();
+        QSqlDatabase::removeDatabase("local_db");
+    #else
+        Q_UNUSED(sDBFileName)
+        Q_UNUSED(pPdStruct)
+    #endif
     return bResult;
 }
 #ifdef USE_XPROCESS

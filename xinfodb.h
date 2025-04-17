@@ -511,6 +511,7 @@ public:
 #ifdef QT_SQL_LIB
     enum DBTABLE {
         DBTABLE_BOOKMARKS = 0,
+        DBTABLE_SYMBOLS,
         __DBTABLE_SIZE
     };
 #endif
