@@ -5455,23 +5455,23 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 {
     bool bResult = false;
 
-    #ifdef QT_SQL_LIB
-        QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
-        dataBase.setDatabaseName(sDBFileName);
+#ifdef QT_SQL_LIB
+    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    dataBase.setDatabaseName(sDBFileName);
 
-        if (dataBase.open()) {
-            createTable(&dataBase, DBTABLE_BOOKMARKS);
-            createTable(&dataBase, DBTABLE_SYMBOLS);
+    if (dataBase.open()) {
+        createTable(&dataBase, DBTABLE_BOOKMARKS);
+        createTable(&dataBase, DBTABLE_SYMBOLS);
 
-            dataBase.close();
-        }
+        dataBase.close();
+    }
 
-        dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("local_db");
-    #else
-        Q_UNUSED(sDBFileName)
-        Q_UNUSED(pPdStruct)
-    #endif
+    dataBase = QSqlDatabase();
+    QSqlDatabase::removeDatabase("local_db");
+#else
+    Q_UNUSED(sDBFileName)
+    Q_UNUSED(pPdStruct)
+#endif
     return bResult;
 }
 #ifdef USE_XPROCESS
