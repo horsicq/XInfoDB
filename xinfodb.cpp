@@ -2964,7 +2964,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
     if (dbTable == DBTABLE_BOOKMARKS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS BOOKMARKS ("
-                         "UUID TEXT PRIMARY KEY,"
+                         "UUID TEXT,"
                          "LOCATION INTEGER,"
                          "LOCTYPE INTEGER,"
                          "LOCSIZE INTEGER,"
@@ -2982,6 +2982,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "SIZE INTEGER,"
                          "NAME TEXT,"
                          "FLAGS INTEGER,"
+                         "BRANCH INTEGER,"
                          "PRIMARY KEY (ADDRESS, SIZE)"
                          ")"), false);
     }
@@ -3097,7 +3098,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
     if (XBinary::checkFileType(XBinary::FT_ELF, fileType)) {
         XELF elf(pDevice, bIsImage, nModuleAddress);
 
-        if (elf.isValid()) {
+        if (elf.isValid(pPdStruct)) {
             XBinary::_MEMORY_MAP memoryMap = elf.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
 
             if (memoryMap.nEntryPointAddress) {
@@ -5461,6 +5462,49 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
         createTable(&dataBase, DBTABLE_BOOKMARKS);
         createTable(&dataBase, DBTABLE_SYMBOLS);
 
+        QList<XBinary::FT> listKeys = g_mapProfiles.keys();
+
+        QSqlQuery query(dataBase);
+
+        dataBase.transaction();
+
+        {
+            qint32 nNumberOfKeys = listKeys.count();
+
+            for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+                STATE *pState = g_mapProfiles.value(listKeys.at(i));
+
+                if (pState) {
+                    querySQL(&query, QString("DELETE FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+
+                    qint32 nNumberOfRecords = pState->listSymbols.count();
+
+                    query.prepare("INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
+                                      "VALUES (?, ?, ?, ?, ?, ?)");
+
+                    for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                        const XSYMBOL &symbol = pState->listSymbols.at(j);
+
+                        QString sName;
+
+                        if (symbol.nStringIndex != (quint16)-1) {
+                            sName = pState->listStrings.at(symbol.nStringIndex);
+                        }
+
+                        query.bindValue(0, listKeys.at(i));
+                        query.bindValue(1, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), symbol.nRegionIndex, symbol.nRelOffset));
+                        query.bindValue(2, symbol.nSize);
+                        query.bindValue(3, sName);
+                        query.bindValue(4, symbol.nFlags);
+                        query.bindValue(5, symbol.nBranch);
+
+                        bResult = querySQL(&query, true);
+                    }
+                }
+            }
+        }
+
+        dataBase.commit();
         //TODO
 
         dataBase.close();
