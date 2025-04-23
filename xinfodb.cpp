@@ -2963,7 +2963,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
 
     if (dbTable == DBTABLE_BOOKMARKS) {
         querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
+                 QString("CREATE TABLE IF NOT EXISTS BOOKMARKS ("
                          "UUID TEXT PRIMARY KEY,"
                          "LOCATION INTEGER,"
                          "LOCTYPE INTEGER,"
@@ -2971,21 +2971,19 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "TEXTCOLOR TEXT,"
                          "BACKGROUNDCOLOR TEXT,"
                          "TEMPLATE TEXT,"
-                         "COMMENT TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_BOOKMARKS]),
-                 false);
+                         "COMMENT TEXT,"
+                         "PRIMARY KEY (UUID)"
+                         ")"), false);
     } else if (dbTable == DBTABLE_SYMBOLS) {
         querySQL(&query,
-                 QString("CREATE TABLE IF NOT EXISTS %1 ("
-                         "ADDRESS INTEGER PRIMARY KEY,"
-                         "SIZE INTEGER PRIMARY KEY,"
+                 QString("CREATE TABLE IF NOT EXISTS SYMBOLS ("
+                         "FILETYPE INTEGER,"
+                         "ADDRESS INTEGER,"
+                         "SIZE INTEGER,"
                          "NAME TEXT,"
-                         "nType INTEGER,"
-                         "sComment TEXT"
-                         ")")
-                     .arg(s_sql_tableName[DBTABLE_SYMBOLS]),
-                 false);
+                         "FLAGS INTEGER,"
+                         "PRIMARY KEY (ADDRESS, SIZE)"
+                         ")"), false);
     }
 }
 #endif
@@ -5462,6 +5460,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
     if (dataBase.open()) {
         createTable(&dataBase, DBTABLE_BOOKMARKS);
         createTable(&dataBase, DBTABLE_SYMBOLS);
+
+        //TODO
 
         dataBase.close();
     }
