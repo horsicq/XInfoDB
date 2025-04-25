@@ -512,6 +512,7 @@ public:
     enum DBTABLE {
         DBTABLE_BOOKMARKS = 0,
         DBTABLE_SYMBOLS,
+        DBTABLE_REFINFO,
         __DBTABLE_SIZE
     };
 #endif
