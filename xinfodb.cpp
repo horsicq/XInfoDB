@@ -2973,7 +2973,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "TEMPLATE TEXT,"
                          "COMMENT TEXT,"
                          "PRIMARY KEY (UUID)"
-                         ")"), false);
+                         ")"),
+                 false);
     } else if (dbTable == DBTABLE_SYMBOLS) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS SYMBOLS ("
@@ -2984,7 +2985,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "FLAGS INTEGER,"
                          "BRANCH INTEGER,"
                          "PRIMARY KEY (ADDRESS, SIZE)"
-                         ")"), false);
+                         ")"),
+                 false);
     } else if (dbTable == DBTABLE_REFINFO) {
         querySQL(&query,
                  QString("CREATE TABLE IF NOT EXISTS REFINFO ("
@@ -2995,7 +2997,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "FLAGS INTEGER,"
                          "BRANCH INTEGER,"
                          "PRIMARY KEY (ADDRESS, SIZE)"
-                         ")"), false);
+                         ")"),
+                 false);
     }
 }
 #endif
@@ -5456,104 +5459,104 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
 {
     bool bResult = false;
 
-    #ifdef QT_SQL_LIB
-        QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
-        dataBase.setDatabaseName(sDBFileName);
+#ifdef QT_SQL_LIB
+    QSqlDatabase dataBase = QSqlDatabase::addDatabase("QSQLITE", "local_db");
+    dataBase.setDatabaseName(sDBFileName);
 
-        if (dataBase.open()) {
-            QSqlQuery query(dataBase);
+    if (dataBase.open()) {
+        QSqlQuery query(dataBase);
 
-            if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                qint32 nNumberOfRecords = 0;
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+            qint32 nNumberOfRecords = 0;
 
-                querySQL(&query, QString("SELECT COUNT(*) FROM BOOKMARKS"), false);
+            querySQL(&query, QString("SELECT COUNT(*) FROM BOOKMARKS"), false);
 
-                if (query.next()) {
-                    nNumberOfRecords = query.value(0).toInt();
-                }
-
-                if (nNumberOfRecords > 0) {
-                    g_listBookmarks.clear();
-
-                    // querySQL(&query, QString("SELECT * FROM BOOKMARKS"), false);
-                    querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT FROM BOOKMARKS"), false);
-
-                    while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
-                        BOOKMARKRECORD record = {};
-                        record.sUUID = query.value(0).toString();
-                        record.nLocation = query.value(1).toULongLong();
-                        record.locationType = (XBinary::LT)query.value(2).toInt();
-                        record.nSize = query.value(3).toLongLong();
-                        record.sColorText = query.value(4).toString();
-                        record.sColorBackground = query.value(5).toString();
-                        record.sTemplate = query.value(6).toString();
-                        record.sComment = query.value(7).toString();
-
-                        _addBookmarkRecord(record);
-                    }
-                }
+            if (query.next()) {
+                nNumberOfRecords = query.value(0).toInt();
             }
 
-            if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                qint32 nNumberOfRecords = 0;
+            if (nNumberOfRecords > 0) {
+                g_listBookmarks.clear();
 
-                querySQL(&query, QString("SELECT COUNT(*) FROM SYMBOLS"), false);
+                // querySQL(&query, QString("SELECT * FROM BOOKMARKS"), false);
+                querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT FROM BOOKMARKS"), false);
 
-                if (query.next()) {
-                    nNumberOfRecords = query.value(0).toInt();
-                }
+                while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                    BOOKMARKRECORD record = {};
+                    record.sUUID = query.value(0).toString();
+                    record.nLocation = query.value(1).toULongLong();
+                    record.locationType = (XBinary::LT)query.value(2).toInt();
+                    record.nSize = query.value(3).toLongLong();
+                    record.sColorText = query.value(4).toString();
+                    record.sColorBackground = query.value(5).toString();
+                    record.sTemplate = query.value(6).toString();
+                    record.sComment = query.value(7).toString();
 
-                if (nNumberOfRecords > 0) {
-                    QList<XBinary::FT> listKeys;
-
-                    querySQL(&query, QString("SELECT DISTINCT FILETYPE FROM SYMBOLS"), false); // TODO Use records, refs
-
-                    while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
-                        XBinary::FT fileType = (XBinary::FT)query.value(0).toULongLong();
-
-                        if (addMode(pDevice, fileType) == fileType) {
-                            listKeys.append(fileType);
-                        }
-                    }
-
-                    qint32 nNumberOfKeys = listKeys.count();
-
-                    for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-                        STATE *pState = g_mapProfiles.value(listKeys.at(i));
-
-                        if (pState) {
-                            pState->listStrings.clear();
-                            pState->listSymbols.clear();
-
-                            querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
-
-                            while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
-                                XADDR nAddress = query.value(1).toULongLong();
-                                quint32 nSize = query.value(2).toULongLong();
-                                QString sName = query.value(3).toString();
-                                quint16 nFlags = query.value(4).toULongLong();
-                                quint16 nBranch = query.value(5).toULongLong();
-
-                                addSymbol(pState, nAddress, nSize, nFlags, sName, nBranch);
-                            }
-                        }
-                    }
+                    _addBookmarkRecord(record);
                 }
             }
-
-            dataBase.close();
-
-            // if (bResult) {
-            //     setDatabaseChanged(false);
-            // }
         }
 
-        dataBase = QSqlDatabase();
-        QSqlDatabase::removeDatabase("local_db");
-    #else
-        Q_UNUSED(sDBFileName)
-        Q_UNUSED(pPdStruct)
-    #endif
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+            qint32 nNumberOfRecords = 0;
+
+            querySQL(&query, QString("SELECT COUNT(*) FROM SYMBOLS"), false);
+
+            if (query.next()) {
+                nNumberOfRecords = query.value(0).toInt();
+            }
+
+            if (nNumberOfRecords > 0) {
+                QList<XBinary::FT> listKeys;
+
+                querySQL(&query, QString("SELECT DISTINCT FILETYPE FROM SYMBOLS"), false);  // TODO Use records, refs
+
+                while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                    XBinary::FT fileType = (XBinary::FT)query.value(0).toULongLong();
+
+                    if (addMode(pDevice, fileType) == fileType) {
+                        listKeys.append(fileType);
+                    }
+                }
+
+                qint32 nNumberOfKeys = listKeys.count();
+
+                for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+                    STATE *pState = g_mapProfiles.value(listKeys.at(i));
+
+                    if (pState) {
+                        pState->listStrings.clear();
+                        pState->listSymbols.clear();
+
+                        querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
+
+                        while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                            XADDR nAddress = query.value(1).toULongLong();
+                            quint32 nSize = query.value(2).toULongLong();
+                            QString sName = query.value(3).toString();
+                            quint16 nFlags = query.value(4).toULongLong();
+                            quint16 nBranch = query.value(5).toULongLong();
+
+                            addSymbol(pState, nAddress, nSize, nFlags, sName, nBranch);
+                        }
+                    }
+                }
+            }
+        }
+
+        dataBase.close();
+
+        // if (bResult) {
+        //     setDatabaseChanged(false);
+        // }
+    }
+
+    dataBase = QSqlDatabase();
+    QSqlDatabase::removeDatabase("local_db");
+#else
+    Q_UNUSED(sDBFileName)
+    Q_UNUSED(pPdStruct)
+#endif
     return bResult;
 }
 
@@ -5582,8 +5585,9 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
             qint32 nNumberOfRecords = g_listBookmarks.count();
 
-            query.prepare("INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT) "
-                          "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            query.prepare(
+                "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 const BOOKMARKRECORD &record = g_listBookmarks.at(i);
 
@@ -5612,8 +5616,9 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
                         qint32 nNumberOfRecords = pState->listSymbols.count();
 
-                        query.prepare("INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
-                                          "VALUES (?, ?, ?, ?, ?, ?)");
+                        query.prepare(
+                            "INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
+                            "VALUES (?, ?, ?, ?, ?, ?)");
 
                         for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XSYMBOL &symbol = pState->listSymbols.at(j);
@@ -5641,8 +5646,9 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
                     qint32 nNumberOfRecords = pState->listRefs.count();
 
-                    query.prepare("INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
-                                  "VALUES (?, ?, ?, ?, ?, ?)");
+                    query.prepare(
+                        "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
+                        "VALUES (?, ?, ?, ?, ?, ?)");
 
                     for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                         const XREFINFO &refInfo = pState->listRefs.at(j);
@@ -5661,7 +5667,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
         }
 
         dataBase.commit();
-        //TODO
+        // TODO
 
         dataBase.close();
     }
