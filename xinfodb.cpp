@@ -2999,6 +2999,17 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "PRIMARY KEY (ADDRESS, SIZE)"
                          ")"),
                  false);
+    } else if (dbTable == DBTABLE_RECORDS) {
+        querySQL(&query,
+                 QString("CREATE TABLE IF NOT EXISTS RECORDS ("
+                         "FILETYPE INTEGER,"
+                         "ADDRESS INTEGER,"
+                         "SIZE INTEGER,"
+                         "FLAGS INTEGER,"
+                         "BRANCH INTEGER,"
+                         "PRIMARY KEY (ADDRESS, SIZE)"
+                         ")"),
+                 false);
     }
 }
 #endif
@@ -4117,8 +4128,6 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         }
     }
 
-    pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
-
     if (!(pPdStruct->bIsStop)) {
         XBinary binary(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
@@ -4448,22 +4457,86 @@ bool XInfoDB::addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nF
 
     XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
 
+    XSYMBOL symbol = {};
+    symbol.nStringIndex = -1;
+
     if (mr.nSize) {
-        XSYMBOL symbol = {};
-        symbol.nStringIndex = -1;
         symbol.nRegionIndex = mr.nIndex;
         symbol.nRelOffset = nAddress - mr.nAddress;
-        symbol.nSize = nSize;
-        symbol.nFlags = nFlags;
-        symbol.nBranch = nBranch;
-
-        if (sSymbolName != "") {
-            pState->listStrings.append(sSymbolName);
-            symbol.nStringIndex = pState->listStrings.size() - 1;
-        }
-
-        bResult = _insertXSymbol(&(pState->listSymbols), symbol);
+    } else {
+        symbol.nRegionIndex = -1;
+        symbol.nRelOffset = mr.nAddress;
     }
+
+    symbol.nSize = nSize;
+    symbol.nFlags = nFlags;
+    symbol.nBranch = nBranch;
+
+    if (sSymbolName != "") {
+        pState->listStrings.append(sSymbolName);
+        symbol.nStringIndex = pState->listStrings.size() - 1;
+    }
+
+    bResult = _insertXSymbol(&(pState->listSymbols), symbol);
+
+    return bResult;
+}
+
+bool XInfoDB::addRefInfo(STATE *pState, XADDR nAddress, XADDR nAddressRef, quint32 nSize, quint16 nFlags, quint16 nBranch)
+{
+    bool bResult = false;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+    XBinary::_MEMORY_RECORD mrRef = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddressRef);
+
+    XREFINFO refInfo = {};
+
+    if (mr.nSize) {
+        refInfo.nRegionIndex = mr.nIndex;
+        refInfo.nRelOffset = nAddress - mr.nAddress;
+    } else {
+        refInfo.nRegionIndex = -1;
+        refInfo.nRelOffset = mr.nAddress;
+    }
+
+    if (mrRef.nSize) {
+        refInfo.nRegionIndexRef = mrRef.nIndex;
+        refInfo.nRelOffsetRef = nAddressRef - mrRef.nAddress;
+    } else {
+        refInfo.nRegionIndexRef = -1;
+        refInfo.nRelOffsetRef = mrRef.nAddress;
+    }
+
+    refInfo.nSize = nSize;
+    refInfo.nFlags = nFlags;
+    refInfo.nBranch = nBranch;
+
+    bResult = _insertXRefinfo(&(pState->listRefs), refInfo);
+
+    return bResult;
+}
+
+bool XInfoDB::addRecord(STATE *pState, XADDR nAddress, quint16 nSize, quint16 nFlags, quint16 nBranch)
+{
+    bool bResult = false;
+
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    XRECORD record = {};
+
+    if (mr.nSize) {
+        record.nRegionIndex = mr.nIndex;
+        record.nRelOffset = nAddress - mr.nAddress;
+    } else {
+        record.nRegionIndex = -1;
+        record.nRelOffset = mr.nAddress;
+    }
+
+    record.nSize = nSize;
+    record.nFlags = nFlags;
+    record.nBranch = nBranch;
+
+    bResult = _insertXRecord(&(pState->listRecords), record);
 
     return bResult;
 }
@@ -4717,6 +4790,8 @@ XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
         } else {
             pState->memoryMap = XFormats::getMemoryMap(XBinary::FT_BINARY, XBinary::MAPMODE_UNKNOWN, pDevice, pState->bIsImage, pState->nModuleAddress, nullptr);
         }
+
+        pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
 
         g_mapProfiles.insert(result, pState);
     }
@@ -5498,47 +5573,76 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
         }
 
         if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-            qint32 nNumberOfRecords = 0;
+            QList<XBinary::FT> listKeys;
 
-            querySQL(&query, QString("SELECT COUNT(*) FROM SYMBOLS"), false);
+            querySQL(&query, QString("SELECT DISTINCT FILETYPE FROM SYMBOLS "
+                                     "UNION "
+                                     "SELECT DISTINCT FILETYPE FROM REFINFO "
+                                     "UNION "
+                                     "SELECT DISTINCT FILETYPE FROM RECORDS"), false);
 
-            if (query.next()) {
-                nNumberOfRecords = query.value(0).toInt();
+            while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                XBinary::FT fileType = (XBinary::FT)query.value(0).toULongLong();
+
+                if (addMode(pDevice, fileType) == fileType) {
+                    listKeys.append(fileType);
+                }
             }
 
-            if (nNumberOfRecords > 0) {
-                QList<XBinary::FT> listKeys;
+            qint32 nNumberOfKeys = listKeys.count();
 
-                querySQL(&query, QString("SELECT DISTINCT FILETYPE FROM SYMBOLS"), false);  // TODO Use records, refs
+            for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+                STATE *pState = g_mapProfiles.value(listKeys.at(i));
 
-                while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
-                    XBinary::FT fileType = (XBinary::FT)query.value(0).toULongLong();
+                if (pState) {
+                    pState->listStrings.clear();
+                    pState->listSymbols.clear();
 
-                    if (addMode(pDevice, fileType) == fileType) {
-                        listKeys.append(fileType);
+        //             qint32 nNumberOfRecords = 0;
+
+        //             querySQL(&query, QString("SELECT COUNT(*) FROM SYMBOLS"), false);
+
+        //             if (query.next()) {
+        //                 nNumberOfRecords = query.value(0).toInt();
+        //             }
+
+                    querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
+
+                    while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        XADDR nAddress = query.value(1).toULongLong();
+                        quint32 nSize = query.value(2).toULongLong();
+                        QString sName = query.value(3).toString();
+                        quint16 nFlags = query.value(4).toULongLong();
+                        quint16 nBranch = query.value(5).toULongLong();
+
+                        addSymbol(pState, nAddress, nSize, nFlags, sName, nBranch);
                     }
-                }
 
-                qint32 nNumberOfKeys = listKeys.count();
+                    pState->listRefs.clear();
 
-                for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-                    STATE *pState = g_mapProfiles.value(listKeys.at(i));
+                    querySQL(&query, QString("SELECT FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH FROM REFINFO WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
 
-                    if (pState) {
-                        pState->listStrings.clear();
-                        pState->listSymbols.clear();
+                    while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        XADDR nAddress = query.value(1).toULongLong();
+                        XADDR nRefAddress = query.value(2).toULongLong();
+                        quint32 nSize = query.value(3).toULongLong();
+                        quint16 nFlags = query.value(4).toULongLong();
+                        quint16 nBranch = query.value(5).toULongLong();
 
-                        querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
+                        addRefInfo(pState, nAddress, nRefAddress, nSize, nFlags, nBranch);
+                    }
 
-                        while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
-                            XADDR nAddress = query.value(1).toULongLong();
-                            quint32 nSize = query.value(2).toULongLong();
-                            QString sName = query.value(3).toString();
-                            quint16 nFlags = query.value(4).toULongLong();
-                            quint16 nBranch = query.value(5).toULongLong();
+                    pState->listRecords.clear();
 
-                            addSymbol(pState, nAddress, nSize, nFlags, sName, nBranch);
-                        }
+                    querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, FLAGS, BRANCH BRANCH FROM RECORDS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
+
+                    while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        XADDR nAddress = query.value(1).toULongLong();
+                        quint32 nSize = query.value(2).toULongLong();
+                        quint16 nFlags = query.value(3).toULongLong();
+                        quint16 nBranch = query.value(4).toULongLong();
+
+                        addRecord(pState, nAddress, nSize, nFlags, nBranch);
                     }
                 }
             }
@@ -5571,7 +5675,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
     if (dataBase.open()) {
         createTable(&dataBase, DBTABLE_BOOKMARKS);
         createTable(&dataBase, DBTABLE_SYMBOLS);
-        // createTable(&dataBase, DBTABLE_SHOWRECORDS);
+        createTable(&dataBase, DBTABLE_RECORDS);
         createTable(&dataBase, DBTABLE_REFINFO);
 
         QList<XBinary::FT> listKeys = g_mapProfiles.keys();
@@ -5639,28 +5743,50 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                             bResult = querySQL(&query, true);
                         }
                     }
-                }
 
-                if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                    querySQL(&query, QString("DELETE FROM REFINFO WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+                    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        querySQL(&query, QString("DELETE FROM REFINFO WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
 
-                    qint32 nNumberOfRecords = pState->listRefs.count();
+                        qint32 nNumberOfRecords = pState->listRefs.count();
 
-                    query.prepare(
-                        "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
-                        "VALUES (?, ?, ?, ?, ?, ?)");
+                        query.prepare(
+                            "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
+                            "VALUES (?, ?, ?, ?, ?, ?)");
 
-                    for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
-                        const XREFINFO &refInfo = pState->listRefs.at(j);
+                        for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                            const XREFINFO &refInfo = pState->listRefs.at(j);
 
-                        query.bindValue(0, listKeys.at(i));
-                        query.bindValue(1, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), refInfo.nRegionIndex, refInfo.nRelOffset));
-                        query.bindValue(2, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), refInfo.nRegionIndexRef, refInfo.nRelOffsetRef));
-                        query.bindValue(3, refInfo.nSize);
-                        query.bindValue(4, refInfo.nFlags);
-                        query.bindValue(5, refInfo.nBranch);
+                            query.bindValue(0, listKeys.at(i));
+                            query.bindValue(1, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), refInfo.nRegionIndex, refInfo.nRelOffset));
+                            query.bindValue(2, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), refInfo.nRegionIndexRef, refInfo.nRelOffsetRef));
+                            query.bindValue(3, refInfo.nSize);
+                            query.bindValue(4, refInfo.nFlags);
+                            query.bindValue(5, refInfo.nBranch);
 
-                        bResult = querySQL(&query, true);
+                            bResult = querySQL(&query, true);
+                        }
+                    }
+
+                    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        querySQL(&query, QString("DELETE FROM RECORDS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+
+                        qint32 nNumberOfRecords = pState->listRecords.count();
+
+                        query.prepare(
+                            "INSERT OR REPLACE INTO RECORDS (FILETYPE, ADDRESS, SIZE, FLAGS, BRANCH) "
+                            "VALUES (?, ?, ?, ?, ?)");
+
+                        for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                            const XRECORD &record = pState->listRecords.at(j);
+
+                            query.bindValue(0, listKeys.at(i));
+                            query.bindValue(1, XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), record.nRegionIndex, record.nRelOffset));
+                            query.bindValue(2, record.nSize);
+                            query.bindValue(3, record.nFlags);
+                            query.bindValue(4, record.nBranch);
+
+                            bResult = querySQL(&query, true);
+                        }
                     }
                 }
             }

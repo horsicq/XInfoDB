@@ -513,6 +513,7 @@ public:
         DBTABLE_BOOKMARKS = 0,
         DBTABLE_SYMBOLS,
         DBTABLE_REFINFO,
+        DBTABLE_RECORDS,
         __DBTABLE_SIZE
     };
 #endif
@@ -764,6 +765,8 @@ public:
     void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString(), quint16 nBranch = 0);
+    bool addRefInfo(STATE *pState, XADDR nAddress, XADDR nAddressRef, quint32 nSize, quint16 nFlags, quint16 nBranch = 0);
+    bool addRecord(STATE *pState, XADDR nAddress, quint16 nSize, quint16 nFlags, quint16 nBranch = 0);
     bool updateSymbolFlags(STATE *pState, XADDR nAddress, quint16 nFlags);
     bool addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString());
     void dumpBookmarks();
