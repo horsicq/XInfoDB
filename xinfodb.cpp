@@ -5553,7 +5553,6 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
             if (nNumberOfRecords > 0) {
                 g_listBookmarks.clear();
 
-                // querySQL(&query, QString("SELECT * FROM BOOKMARKS"), false);
                 querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT FROM BOOKMARKS"), false);
 
                 while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
@@ -5597,14 +5596,6 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                 if (pState) {
                     pState->listStrings.clear();
                     pState->listSymbols.clear();
-
-        //             qint32 nNumberOfRecords = 0;
-
-        //             querySQL(&query, QString("SELECT COUNT(*) FROM SYMBOLS"), false);
-
-        //             if (query.next()) {
-        //                 nNumberOfRecords = query.value(0).toInt();
-        //             }
 
                     querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
 
