@@ -856,7 +856,6 @@ public:
     bool querySQL(QSqlQuery *pSqlQuery, bool bWrite);
     QString convertStringSQLTableName(const QString &sSQL);
     QString convertStringSQLValue(const QString &sSQL);
-    bool copyDb(QSqlDatabase *pDatabaseSource, QSqlDatabase *pDatabaseDest, XBinary::PDSTRUCT *pPdStruct);
 #endif
     void testFunction();
     void setDebuggerState(bool bState);
