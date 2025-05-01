@@ -3221,7 +3221,7 @@ void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint6
     QList<XELF_DEF::Elf_Sym> listSymbols = pELF->getElf_SymList(nDataOffset, nDataSize);
     qint32 nNumberOfSymbols = listSymbols.count();
 
-    for (qint32 i = 0; (i < nNumberOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
+    for (qint32 i = 0; (i < nNumberOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
         XELF_DEF::Elf_Sym record = listSymbols.at(i);
 
         XADDR nSymbolAddress = record.st_value;
