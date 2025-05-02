@@ -358,7 +358,7 @@ QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PD
 
     if (inputFile.open(QIODevice::ReadOnly)) {
         QTextStream in(&inputFile);
-        while ((!in.atEnd()) && (!(pPdStruct->bIsStop))) {
+        while ((!in.atEnd()) && XBinary::isPdStructNotCanceled(pPdStruct)) {
             QString sLine = in.readLine();
 
             listResult.append(sLine);
@@ -382,7 +382,7 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB s
 
     qint32 nNumberOfRecords = pListStrings->count();
 
-    for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+    for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
         QString sRecord = pListStrings->at(i);
 
         if ((strDB == STRDB_PESECTIONS) || (strDB == STRDB_ELFSECTIONS)) {
@@ -3324,7 +3324,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
         qint32 nNumberOfRecords = listFunctionAddresses.count();
 
-        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+        for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct) && (i < nNumberOfRecords); i++) {
             _ENTRY _entry = {};
             _entry.nAddress = listFunctionAddresses.at(i);
             _entry.nBranch = nBranch;
@@ -3341,7 +3341,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, analyzeOptions.pMemoryMap->nImageSize);
 
         // Import table
-        if (!(pPdStruct->bIsStop)) {
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             // #ifdef QT_SQL_LIB
             //             g_dataBase.transaction();
             // #endif
@@ -3351,7 +3351,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             // qint32 nNumberOfRecords = listImportAddresses.count();
             // qint32 nSize = 4;
 
-            // for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfRecords); i++) {
+            // for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct)) && (i < nNumberOfRecords); i++) {
             //     XADDR nAddress = listImportAddresses.at(i);
             //     if (!_isShowRecordPresent(&query, nAddress, nSize)) {
             //         qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nAddress);
@@ -3375,7 +3375,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         }
         // TODO Scan code section
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
-        if (!(pPdStruct->bIsStop)) {
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             vacuumDb();
         }
     }
@@ -3403,7 +3403,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         // _addShowRecord_prepare(&queryShowRecords);
         // _isShowRecordPresent_prepare1(&queryPresent);
 
-        while (!(pPdStruct->bIsStop)) {
+        while (XBinary::isPdStructNotCanceled(pPdStruct)) {
             //        if ((!listEntries.isEmpty()) || (!listSuspect.isEmpty())) {
             if (!listEntries.isEmpty()) {
                 XADDR nEntryAddress = 0;
@@ -3425,7 +3425,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
                 // XADDR nCurrentAddress = nEntryAddress;
 
-                // while (!(pPdStruct->bIsStop)) {
+                // while XBinary::isPdStructNotCanceled(pPdStruct)) {
                 //     if ((!stShowRecords.contains(nCurrentAddress)) && (!_isShowRecordPresent_bind1(&queryPresent, nCurrentAddress))) {
                 //         qint64 nOffset = XBinary::addressToOffset(analyzeOptions.pMemoryMap, nCurrentAddress);
 
@@ -3630,12 +3630,12 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             }
         }
 
-        if (!(pPdStruct->bIsStop)) {
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             vacuumDb();
         }
     }
 
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         // #ifdef QT_SQL_LIB
         //         g_dataBase.transaction();
         // #endif
@@ -3651,7 +3651,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
             XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfLabels);
 
-            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfLabels); i++) {
+            for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct) && (i < nNumberOfLabels); i++) {
                 XADDR nCallAddress = listLabels.at(i);
                 stCalls.insert(nCallAddress);
 
@@ -3676,7 +3676,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
             XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
             XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfBranches);
 
-            for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfBranches); i++) {
+            for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct) && (i < nNumberOfBranches); i++) {
                 XADDR nSymbolAddress = listBranches.at(i).nAddress;
 
                 QString sSymbolName;
@@ -3707,7 +3707,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     // Labels
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         // #ifdef QT_SQL_LIB
         //         g_dataBase.transaction();
         // #endif
@@ -3717,7 +3717,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, 0);
         XBinary::setPdStructTotal(pPdStruct, _nFreeIndex, nNumberOfLabels);
 
-        for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfLabels); i++) {
+        for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct) && (i < nNumberOfLabels); i++) {
             XADDR nSymbolAddress = listLabels.at(i);
 
             if (!isSymbolPresent(nSymbolAddress)) {
@@ -3734,7 +3734,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         // #endif
     }
 
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         vacuumDb();
     }
 
@@ -3742,7 +3742,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     // TODO Get all functions and check size
 
     // Variables
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         // #ifdef QT_SQL_LIB
         //         g_dataBase.transaction();
         // #endif
@@ -3751,7 +3751,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         //         QList<XBinary::ADDRESSSIZE> listVariables = getShowRecordMemoryVariables(DBSTATUS_PROCESS, pPdStruct);
         //         qint32 nNumberOfVariables = listVariables.count();
 
-        //         for (qint32 i = 0; (!(pPdStruct->bIsStop)) && (i < nNumberOfVariables); i++) {
+        //         for (qint32 i = 0; XBinary::isPdStructNotCanceled(pPdStruct)) && (i < nNumberOfVariables); i++) {
         //             XBinary::ADDRESSSIZE record = listVariables.at(i);
 
         //             //                // TODO if size = 0 check if it is a string
@@ -3816,14 +3816,14 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
         //         g_dataBase.commit();
         // #endif
         // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
-        if (!(pPdStruct->bIsStop)) {
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             vacuumDb();
         }
     }
 
     // Update references
     if (analyzeOptions.bAll) {
-        if (!(pPdStruct->bIsStop)) {
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             // #ifdef QT_SQL_LIB
             //             g_dataBase.transaction();
             // #endif
@@ -3832,7 +3832,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
             // qint32 nNumberOfRecords = listRelRecords.count();
 
-            // for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+            // for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct)); i++) {
             //     RELRECORD record = listRelRecords.at(i);
 
             //     if (record.relType) {
@@ -3847,7 +3847,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
 #ifdef QT_SQL_LIB
             // g_dataBase.commit();
-            if (!(pPdStruct->bIsStop)) {
+            if (XBinary::isPdStructNotCanceled(pPdStruct)) {
                 vacuumDb();
             }
 #endif
@@ -3855,7 +3855,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     }
 
     //    if (bIsInit) {
-    //        if (!(pPdStruct->bIsStop)) {
+    //        if XBinary::isPdStructNotCanceled(pPdStruct)) {
     // #ifdef QT_SQL_LIB
     //            g_dataBase.transaction();
     // #endif
@@ -3867,7 +3867,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     //            quint64 nLineNumber = 0;
 
     //            for (XADDR nCurrentAddress = pMemoryMap->nModuleAddress;
-    //                 (!(pPdStruct->bIsStop)) && (nCurrentAddress < (pMemoryMap->nModuleAddress + pMemoryMap->nImageSize));) {
+    //                 XBinary::isPdStructNotCanceled(pPdStruct)) && (nCurrentAddress < (pMemoryMap->nModuleAddress + pMemoryMap->nImageSize));) {
     //                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nCurrentAddress)));
 
     //                SHOWRECORD showRecord = getShowRecordByAddress(nCurrentAddress);
@@ -3887,7 +3887,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     //                        nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
     //                    }
 
-    //                    for (XADDR _nCurrentAddress = nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
+    //                    for (XADDR _nCurrentAddress = nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
     //                        XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
 
     //                        if (mr.nSize == 0) {
@@ -3901,7 +3901,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     //                            QString sDataName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
     //                            _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDataName, RT_DATA, nLineNumber++, 0, 0);
     //                        } else {
-    //                            for (XADDR _nCurrentAddressData = _nCurrentAddress; (!(pPdStruct->bIsStop)) && (_nCurrentAddressData < _nCurrentAddress +
+    //                            for (XADDR _nCurrentAddressData = _nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddressData < _nCurrentAddress +
     //                            _nRecordSize);) {
     //                                qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
@@ -3950,7 +3950,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     // #ifdef QT_SQL_LIB
     //             g_dataBase.commit();
     //             // XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, tr(""));
-    //             if (!(pPdStruct->bIsStop)) {
+    //             if XBinary::isPdStructNotCanceled(pPdStruct)) {
     //                 vacuumDb();
     //             }
     // #endif
@@ -4014,7 +4014,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 
                 nOffsetSymTab = symtab.symoff;
 
-                for (qint32 i = 0; (i < (int)(symtab.nsyms)) && (!(pPdStruct->bIsStop)); i++) {
+                for (qint32 i = 0; (i < (int)(symtab.nsyms)) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                     qint32 nIndex = 0;
                     XADDR nAddress = 0;
 
@@ -4054,7 +4054,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 
                     qint32 nNumberOfRecords = listFR.count();
 
-                    for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+                    for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                         addSymbolOrUpdateFlags(pState, listFR.at(i).nFunctionAddress, 0, XSYMBOL_FLAG_FUNCTION);
                     }
                 }
@@ -4098,7 +4098,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 
                 qint32 nNumberOfRecords = listExportRecords.count();
 
-                for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+                for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                     XADDR nExportAddress = XBinary::offsetToAddress(&(pState->memoryMap), listExportRecords.at(i).nOffset);
                     quint32 nFlags = listExportRecords.at(i).nFlags;  // TODO
                     addSymbolOrUpdateFlags(pState, nExportAddress, 0, XSYMBOL_FLAG_EXPORT, listExportRecords.at(i).sName);
@@ -4128,14 +4128,14 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         }
     }
 
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         XBinary binary(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
 
         char *pMemory = 0;
         XBinary::_MEMORY_RECORD mr = {};
         qint32 nCurrentSegment = -1;
 
-        while (!(pPdStruct->bIsStop)) {
+        while (XBinary::isPdStructNotCanceled(pPdStruct)) {
             qint32 nNumbersOfSymbols = pState->listSymbols.count();
 
             bool bContinue = false;
@@ -4143,7 +4143,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
             qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
             XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-            for (int i = 0; (i < nNumbersOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
+            for (int i = 0; (i < nNumbersOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 if ((pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_FUNCTION) && (pState->listSymbols.at(i).nBranch == 0)) {
                     bContinue = true;
                     XSYMBOL function = pState->listSymbols.at(i);
@@ -4187,7 +4187,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
             XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
 
             QSetIterator<XADDR> i(pState->stCodeTemp);
-            while (i.hasNext() && (!(pPdStruct->bIsStop))) {
+            while (i.hasNext() && XBinary::isPdStructNotCanceled(pPdStruct)) {
                 XADDR nCurrentAddress = i.next();
 
                 XBinary::_MEMORY_RECORD mrCurrent = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nCurrentAddress);
@@ -4213,7 +4213,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         }
     }
 
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         // Update refs
         std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location_ref);
 
@@ -4222,7 +4222,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
         XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-        for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+        for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XREFINFO record = pState->listRefs.at(i);
 
             if (record.nRegionIndexRef == (quint16)-1) {
@@ -4244,7 +4244,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         std::sort(pState->listRefs.begin(), pState->listRefs.end(), compareXREFINFO_location);
     }
 
-    if (!(pPdStruct->bIsStop)) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         // Update symbols
         QMap<quint16, XADDR> mapMaxAddress;
 
@@ -4253,7 +4253,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
         XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-        for (qint32 i = 0; (i < nNumberOfRecords) && (!(pPdStruct->bIsStop)); i++) {
+        for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XRECORD record = pState->listRecords.at(i);
 
             XADDR nValue = record.nRelOffset + record.nSize;
@@ -4269,7 +4269,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 
         qint32 nNumberOfSymbols = pState->listSymbols.count();
 
-        for (qint32 i = 0; (i < nNumberOfSymbols) && (!(pPdStruct->bIsStop)); i++) {
+        for (qint32 i = 0; (i < nNumberOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XSYMBOL symbol = pState->listSymbols.at(i);
 
             if (symbol.nBranch) {
@@ -4304,7 +4304,7 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
 
     XADDR nRefAddress = 0;
 
-    for (quint64 i = nRelOffset; (i < nTotalSize) && (!(pPdStruct->bIsStop));) {
+    for (quint64 i = nRelOffset; (i < nTotalSize) && XBinary::isPdStructNotCanceled(pPdStruct);) {
         bool bStop = false;
         XRECORD dataRecord = {};
         XREFINFO refInfo = {};
@@ -5333,7 +5333,7 @@ QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XADDR nAddress = query.value(0).toULongLong();
 
     //         listResult.append(nAddress);
@@ -5362,7 +5362,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XBinary::ADDRESSSIZE record = {};
     //         record.nAddress = query.value(0).toULongLong();
     //         record.nSize = query.value(1).toLongLong();
@@ -5392,7 +5392,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDS
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XBinary::ADDRESSSIZE record = {};
     //         record.nAddress = query.value(0).toULongLong();
     //         record.nSize = query.value(1).toULongLong() - record.nAddress;
@@ -5416,7 +5416,7 @@ QList<XADDR> XInfoDB::getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XADDR nAddress = query.value(0).toULongLong();
 
     //         listResult.append(nAddress);
@@ -5437,7 +5437,7 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XADDR nAddress = query.value(0).toULongLong();
 
     //         listResult.append(nAddress);
@@ -5458,7 +5458,7 @@ QList<XADDR> XInfoDB::getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XADDR nAddress = query.value(0).toULongLong();
 
     //         listResult.append(nAddress);
@@ -5479,7 +5479,7 @@ QList<XADDR> XInfoDB::getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct)
 
     //     querySQL(&query, sSQL, false);
 
-    //     while (query.next() && (!(pPdStruct->bIsStop))) {
+    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
     //         XADDR nAddress = query.value(0).toULongLong();
 
     //         listResult.append(nAddress);
