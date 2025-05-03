@@ -3887,7 +3887,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     //                        nRecordSize = pMemoryMap->nModuleAddress + pMemoryMap->nImageSize - nCurrentAddress;
     //                    }
 
-    //                    for (XADDR _nCurrentAddress = nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddress < nCurrentAddress + nRecordSize);) {
+    //                    for (XADDR _nCurrentAddress = nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddress < nCurrentAddress +
+    //                    nRecordSize);) {
     //                        XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(pMemoryMap, _nCurrentAddress);
 
     //                        if (mr.nSize == 0) {
@@ -3901,8 +3902,8 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     //                            QString sDataName = QString("0x%1 dup (?)").arg(QString::number(_nRecordSize, 16));
     //                            _addShowRecord(_nCurrentAddress, _nOffset, _nRecordSize, "db", sDataName, RT_DATA, nLineNumber++, 0, 0);
     //                        } else {
-    //                            for (XADDR _nCurrentAddressData = _nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddressData < _nCurrentAddress +
-    //                            _nRecordSize);) {
+    //                            for (XADDR _nCurrentAddressData = _nCurrentAddress; XBinary::isPdStructNotCanceled(pPdStruct)) && (_nCurrentAddressData <
+    //                            _nCurrentAddress + _nRecordSize);) {
     //                                qint64 _nOffsetData = XBinary::addressToOffset(pMemoryMap, _nCurrentAddressData);
 
     //                                qint64 _nRecordSizeData = 0;
@@ -5574,11 +5575,13 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
         if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             QList<XBinary::FT> listKeys;
 
-            querySQL(&query, QString("SELECT DISTINCT FILETYPE FROM SYMBOLS "
-                                     "UNION "
-                                     "SELECT DISTINCT FILETYPE FROM REFINFO "
-                                     "UNION "
-                                     "SELECT DISTINCT FILETYPE FROM RECORDS"), false);
+            querySQL(&query,
+                     QString("SELECT DISTINCT FILETYPE FROM SYMBOLS "
+                             "UNION "
+                             "SELECT DISTINCT FILETYPE FROM REFINFO "
+                             "UNION "
+                             "SELECT DISTINCT FILETYPE FROM RECORDS"),
+                     false);
 
             while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
                 XBinary::FT fileType = (XBinary::FT)query.value(0).toULongLong();
