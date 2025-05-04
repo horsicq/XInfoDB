@@ -345,13 +345,6 @@ qint64 XInfoDB::write_userData(X_ID nThreadId, qint64 nOffset, char *pData, qint
 
 QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PDSTRUCT *pPdStruct)
 {
-    XBinary::PDSTRUCT pdStructEmpty = {};
-
-    if (!pPdStruct) {
-        pdStructEmpty = XBinary::createPdStruct();
-        pPdStruct = &pdStructEmpty;
-    }
-
     QList<QString> listResult;
 
     QFile inputFile(sFileName);
