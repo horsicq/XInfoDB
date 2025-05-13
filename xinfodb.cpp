@@ -5188,7 +5188,15 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 {
     bool bResult = false;
 
-    // TODO
+    qint32 nNumberOfBookmarks = g_listBookmarks.size();
+
+    for (int i = 0; i < nNumberOfBookmarks; i++) {
+        if (g_listBookmarks.at(i).sUUID == sUUID) {
+            g_listBookmarks.removeAt(i);
+            bResult = true;
+            break;
+        }
+    }
 
     return bResult;
 }
