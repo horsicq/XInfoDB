@@ -3958,7 +3958,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     g_pMutexSQL->unlock();
 
-    if (!pPdStruct->bIsStop) {
+    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         bResult = true;
     }
 #else
