@@ -4272,7 +4272,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         }
     }
 
-    if (pPdStruct->bIsStop) {
+    if (XBinary::isPdStructStopped(pPdStruct)) {
         pState->listSymbols.clear();
         pState->listRecords.clear();
         pState->listRefs.clear();
@@ -5235,25 +5235,14 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
 
 void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 {
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
+    qint32 nNumberOfBookmarks = g_listBookmarks.size();
 
-    //     querySQL(&query,
-    //              QString("UPDATE %1 SET "
-    //                      "LOCATION = '%2', "
-    //                      "LOCTYPE = '%3', "
-    //                      "SIZE = '%4', "
-    //                      "COLTEXT = '%5', "
-    //                      "COLBACKGROUND = '%6', "
-    //                      "TEMPLATE = '%7' "
-    //                      "COMMENT = '%8' "
-    //                      "WHERE UUID = '%9'")
-    //                  .arg(s_sql_tableName[DBTABLE_BOOKMARKS], QString::number(record.nLocation), QString::number(record.locationType), QString::number(record.nSize),
-    //                       colorToString(record.colText), colorToString(record.colBackground), record.sTemplate, record.sComment, record.sUUID),
-    //              true);
-    // #else
-    //     Q_UNUSED(record)
-    // #endif
+    for (int i = 0; i < nNumberOfBookmarks; i++) {
+        if (g_listBookmarks.at(i).sUUID == record.sUUID) {
+            g_listBookmarks[i] = record;
+            break;
+        }
+    }
 }
 
 void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground)
