@@ -39,7 +39,7 @@ public:
 
     struct OPTIONS {
         XBinary::FT fileType;
-        QString sFileName;
+        QString sDatabaseFileName;
         QIODevice *pDevice;
 #ifdef USE_XPROCESS
         X_ID nProcessID;

@@ -30,6 +30,7 @@ XInfoMenu::XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions)
     g_pActionExport = nullptr;
     g_pActionImport = nullptr;
     g_pXInfoDB = nullptr;
+    g_pDevice = nullptr;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
@@ -65,10 +66,16 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB)
     }
 }
 
+void XInfoMenu::setData(XInfoDB *pXInfoDB, QIODevice *pDevice, const QString &sDatabaseFileName)
+{
+    setData(pXInfoDB);
+    g_pDevice = pDevice;
+    g_sDatabaseFileName = sDatabaseFileName;
+}
+
 void XInfoMenu::tryToSave()
 {
-    // TODO only changes
-    if (g_pXInfoDB->isDbPresent() && g_pXInfoDB->isDatabaseChanged()) {
+    if (g_pXInfoDB->isDatabaseChanged()) {
         QString _sFileName = getDatabaseFileName();
         QString _sString = QString("%1 \"%2\"?").arg(tr("Save"), _sFileName);
 
@@ -98,13 +105,7 @@ void XInfoMenu::reset()
 
 QString XInfoMenu::getDatabaseFileName()
 {
-    QString sResult;
-
-    if (g_pXInfoDB) {
-        // sResult = XBinary::getDeviceFileName(g_pXInfoDB->getDevice()) + ".db";
-    }
-
-    return sResult;
+    return g_sDatabaseFileName;
 }
 
 void XInfoMenu::updateMenu()
@@ -157,7 +158,7 @@ void XInfoMenu::save(const QString &sFileName)
     DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
-    options.sFileName = sFileName;
+    options.sDatabaseFileName = sFileName;
     // options.nModuleAddress = -1;
 
     dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
@@ -171,7 +172,8 @@ void XInfoMenu::load(const QString &sFileName)
     DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
     dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
-    options.sFileName = sFileName;
+    options.sDatabaseFileName = sFileName;
+    options.pDevice = g_pDevice;
     // options.nModuleAddress = -1;
 
     dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);

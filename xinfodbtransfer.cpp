@@ -79,12 +79,12 @@ bool XInfoDBTransfer::process()
             bool bFile = false;
             QIODevice *pDevice = g_options.pDevice;
 
-            if ((!g_options.pDevice) && (g_options.sFileName != "")) {
+            if ((!g_options.pDevice) && (g_options.sDatabaseFileName != "")) {
                 bFile = true;
 
                 QFile *pFile = new QFile;
 
-                pFile->setFileName(g_options.sFileName);
+                pFile->setFileName(g_options.sDatabaseFileName);
 
                 if (pFile->open(QIODevice::ReadOnly)) {
                     pDevice = pFile;
@@ -108,9 +108,9 @@ bool XInfoDBTransfer::process()
                 delete pFile;
             }
         } else if (g_transferType == COMMAND_IMPORT) {
-            g_pXInfoDB->saveDbToFile(g_options.sFileName, g_pPdStruct);
+            g_pXInfoDB->saveDbToFile(g_options.sDatabaseFileName, g_pPdStruct);
         } else if (g_transferType == COMMAND_EXPORT) {
-            // g_pXInfoDB->loadDbFromFile(g_options.sFileName, g_pPdStruct);
+            g_pXInfoDB->loadDbFromFile(g_options.pDevice, g_options.sDatabaseFileName, g_pPdStruct);
         }
     }
 

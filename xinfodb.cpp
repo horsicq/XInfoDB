@@ -5201,6 +5201,28 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
     return bResult;
 }
 
+QString XInfoDB::addBookmarkRecord(const BOOKMARKRECORD &record)
+{
+    QString sResult = _addBookmarkRecord(record);
+
+    if (sResult != "") {
+        setDatabaseChanged(true);
+    }
+
+    return sResult;
+}
+
+bool XInfoDB::removeBookmarkRecord(const QString &sUUID)
+{
+    bool bResult = _removeBookmarkRecord(sUUID);
+
+    if (bResult) {
+        setDatabaseChanged(true);
+    }
+
+    return bResult;
+}
+
 QVector<XInfoDB::BOOKMARKRECORD> *XInfoDB::getBookmarkRecords()
 {
     return &g_listBookmarks;
@@ -5240,35 +5262,36 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
     for (int i = 0; i < nNumberOfBookmarks; i++) {
         if (g_listBookmarks.at(i).sUUID == record.sUUID) {
             g_listBookmarks[i] = record;
+            setDatabaseChanged(true);
             break;
         }
     }
 }
 
-void XInfoDB::updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground)
+void XInfoDB::updateBookmarkRecordColorBackground(const QString &sUUID,const QString &sColorBackground)
 {
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
+    qint32 nNumberOfBookmarks = g_listBookmarks.size();
 
-    //     querySQL(&query, QString("UPDATE %1 SET COLBACKGROUND = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], colorToString(colBackground), sUUID),
-    //     true);
-    // #else
-    //     Q_UNUSED(sUUID)
-    //     Q_UNUSED(colBackground)
-    // #endif
+    for (int i = 0; i < nNumberOfBookmarks; i++) {
+        if (g_listBookmarks.at(i).sUUID == sUUID) {
+            g_listBookmarks[i].sColorBackground = sColorBackground;
+            setDatabaseChanged(true);
+            break;
+        }
+    }
 }
 
 void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &sComment)
 {
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
+    qint32 nNumberOfBookmarks = g_listBookmarks.size();
 
-    //     querySQL(&query, QString("UPDATE %1 SET COMMENT = '%2' WHERE UUID = '%3'").arg(s_sql_tableName[DBTABLE_BOOKMARKS], convertStringSQLValue(sComment), sUUID),
-    //     true);
-    // #else
-    //     Q_UNUSED(sUUID)
-    //     Q_UNUSED(sComment)
-    // #endif
+    for (int i = 0; i < nNumberOfBookmarks; i++) {
+        if (g_listBookmarks.at(i).sUUID == sUUID) {
+            g_listBookmarks[i].sComment = sComment;
+            setDatabaseChanged(true);
+            break;
+        }
+    }
 }
 
 // XInfoDB::XRECORD XInfoDB::getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord)
@@ -5814,10 +5837,6 @@ bool XInfoDB::querySQL(QSqlQuery *pSqlQuery, const QString &sSQL, bool bWrite)
     bool bResult = false;
 
     bResult = pSqlQuery->exec(sSQL);
-
-    if (bResult && bWrite) {
-        setDatabaseChanged(true);
-    }
 
     // qDebug("%s", pSqlQuery->lastQuery().toLatin1().data());
 

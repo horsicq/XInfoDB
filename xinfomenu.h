@@ -31,6 +31,7 @@ public:
 
     QMenu *createMenu(QWidget *pParent);
     void setData(XInfoDB *pXInfoDB);
+    void setData(XInfoDB *pXInfoDB, QIODevice *pDevice, const QString &sDatabaseFileName);
     void tryToSave();
     void tryToLoad();
     void reset();
@@ -53,6 +54,8 @@ private:
     QAction *g_pActionExport;
     QAction *g_pActionImport;
     XInfoDB *g_pXInfoDB;
+    QIODevice *g_pDevice;
+    QString g_sDatabaseFileName;
 };
 
 #endif  // XINFOMENU_H

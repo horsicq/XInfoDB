@@ -818,8 +818,10 @@ public:
     bool _removeBookmarkRecord(const QString &sUUID);
     QVector<BOOKMARKRECORD> *getBookmarkRecords();
     QVector<BOOKMARKRECORD> getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    QString addBookmarkRecord(const BOOKMARKRECORD &record);
+    bool removeBookmarkRecord(const QString &sUUID);
     void updateBookmarkRecord(BOOKMARKRECORD &record);
-    void updateBookmarkRecordColor(const QString &sUUID, const QColor &colBackground);
+    void updateBookmarkRecordColorBackground(const QString &sUUID, const QString &sColorBackground);
     void updateBookmarkRecordComment(const QString &sUUID, const QString &sComment);
 
     // XInfoDB::XRECORD getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord);
