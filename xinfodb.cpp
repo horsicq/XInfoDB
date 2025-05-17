@@ -5268,7 +5268,7 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
     }
 }
 
-void XInfoDB::updateBookmarkRecordColorBackground(const QString &sUUID,const QString &sColorBackground)
+void XInfoDB::updateBookmarkRecordColorBackground(const QString &sUUID, const QString &sColorBackground)
 {
     qint32 nNumberOfBookmarks = g_listBookmarks.size();
 
