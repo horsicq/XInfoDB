@@ -1841,57 +1841,57 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
 #ifdef Q_PROCESSOR_X86
         // TODO flags
 #ifdef Q_PROCESSOR_X86_32
-        if (reg == XREG_EAX) context.Eax = variant.var.v_uint32;
-        else if (reg == XREG_EBX) context.Ebx = variant.var.v_uint32;
-        else if (reg == XREG_ECX) context.Ecx = variant.var.v_uint32;
-        else if (reg == XREG_EDX) context.Edx = variant.var.v_uint32;
-        else if (reg == XREG_EBP) context.Ebp = variant.var.v_uint32;
-        else if (reg == XREG_ESP) context.Esp = variant.var.v_uint32;
-        else if (reg == XREG_ESI) context.Esi = variant.var.v_uint32;
-        else if (reg == XREG_EDI) context.Edi = variant.var.v_uint32;
-        else if (reg == XREG_EFLAGS) context.EFlags = variant.var.v_uint32;
-        else if (reg == XREG_EIP) context.Eip = variant.var.v_uint32;
-        else if (reg == XREG_DR0) context.Dr0 = variant.var.v_uint32;
-        else if (reg == XREG_DR1) context.Dr1 = variant.var.v_uint32;
-        else if (reg == XREG_DR2) context.Dr2 = variant.var.v_uint32;
-        else if (reg == XREG_DR3) context.Dr3 = variant.var.v_uint32;
-        else if (reg == XREG_DR6) context.Dr6 = variant.var.v_uint32;
-        else if (reg == XREG_DR7) context.Dr7 = variant.var.v_uint32;
+        if (reg == XREG_EAX) context.Eax = variant.var.toULongLong();
+        else if (reg == XREG_EBX) context.Ebx = variant.var.toULongLong();
+        else if (reg == XREG_ECX) context.Ecx = variant.var.toULongLong();
+        else if (reg == XREG_EDX) context.Edx = variant.var.toULongLong();
+        else if (reg == XREG_EBP) context.Ebp = variant.var.toULongLong();
+        else if (reg == XREG_ESP) context.Esp = variant.var.toULongLong();
+        else if (reg == XREG_ESI) context.Esi = variant.var.toULongLong();
+        else if (reg == XREG_EDI) context.Edi = variant.var.toULongLong();
+        else if (reg == XREG_EFLAGS) context.EFlags = variant.var.toULongLong();
+        else if (reg == XREG_EIP) context.Eip = variant.var.toULongLong();
+        else if (reg == XREG_DR0) context.Dr0 = variant.var.toULongLong();
+        else if (reg == XREG_DR1) context.Dr1 = variant.var.toULongLong();
+        else if (reg == XREG_DR2) context.Dr2 = variant.var.toULongLong();
+        else if (reg == XREG_DR3) context.Dr3 = variant.var.toULongLong();
+        else if (reg == XREG_DR6) context.Dr6 = variant.var.toULongLong();
+        else if (reg == XREG_DR7) context.Dr7 = variant.var.toULongLong();
         else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
                  (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
                  (reg == XInfoDB::XREG_FLAGS_OF)) {
-            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint32;
+            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.toULongLong();
         } else bUnknownRegister = true;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_RAX) context.Rax = variant.var.v_uint64;
-        else if (reg == XREG_RBX) context.Rbx = variant.var.v_uint64;
-        else if (reg == XREG_RCX) context.Rcx = variant.var.v_uint64;
-        else if (reg == XREG_RDX) context.Rdx = variant.var.v_uint64;
-        else if (reg == XREG_RBP) context.Rbp = variant.var.v_uint64;
-        else if (reg == XREG_RSP) context.Rsp = variant.var.v_uint64;
-        else if (reg == XREG_RSI) context.Rsi = variant.var.v_uint64;
-        else if (reg == XREG_RDI) context.Rdi = variant.var.v_uint64;
-        else if (reg == XREG_R8) context.R8 = variant.var.v_uint64;
-        else if (reg == XREG_R9) context.R9 = variant.var.v_uint64;
-        else if (reg == XREG_R10) context.R10 = variant.var.v_uint64;
-        else if (reg == XREG_R11) context.R11 = variant.var.v_uint64;
-        else if (reg == XREG_R12) context.R12 = variant.var.v_uint64;
-        else if (reg == XREG_R13) context.R13 = variant.var.v_uint64;
-        else if (reg == XREG_R14) context.R14 = variant.var.v_uint64;
-        else if (reg == XREG_R15) context.R15 = variant.var.v_uint64;
-        else if (reg == XREG_RFLAGS) context.EFlags = variant.var.v_uint64;
-        else if (reg == XREG_RIP) context.Rip = variant.var.v_uint64;
-        else if (reg == XREG_DR0) context.Dr0 = variant.var.v_uint64;
-        else if (reg == XREG_DR1) context.Dr1 = variant.var.v_uint64;
-        else if (reg == XREG_DR2) context.Dr2 = variant.var.v_uint64;
-        else if (reg == XREG_DR3) context.Dr3 = variant.var.v_uint64;
-        else if (reg == XREG_DR6) context.Dr6 = variant.var.v_uint64;
-        else if (reg == XREG_DR7) context.Dr7 = variant.var.v_uint64;
+        if (reg == XREG_RAX) context.Rax = variant.var.toULongLong();
+        else if (reg == XREG_RBX) context.Rbx = variant.var.toULongLong();
+        else if (reg == XREG_RCX) context.Rcx = variant.var.toULongLong();
+        else if (reg == XREG_RDX) context.Rdx = variant.var.toULongLong();
+        else if (reg == XREG_RBP) context.Rbp = variant.var.toULongLong();
+        else if (reg == XREG_RSP) context.Rsp = variant.var.toULongLong();
+        else if (reg == XREG_RSI) context.Rsi = variant.var.toULongLong();
+        else if (reg == XREG_RDI) context.Rdi = variant.var.toULongLong();
+        else if (reg == XREG_R8) context.R8 = variant.var.toULongLong();
+        else if (reg == XREG_R9) context.R9 = variant.var.toULongLong();
+        else if (reg == XREG_R10) context.R10 = variant.var.toULongLong();
+        else if (reg == XREG_R11) context.R11 = variant.var.toULongLong();
+        else if (reg == XREG_R12) context.R12 = variant.var.toULongLong();
+        else if (reg == XREG_R13) context.R13 = variant.var.toULongLong();
+        else if (reg == XREG_R14) context.R14 = variant.var.toULongLong();
+        else if (reg == XREG_R15) context.R15 = variant.var.toULongLong();
+        else if (reg == XREG_RFLAGS) context.EFlags = variant.var.toULongLong();
+        else if (reg == XREG_RIP) context.Rip = variant.var.toULongLong();
+        else if (reg == XREG_DR0) context.Dr0 = variant.var.toULongLong();
+        else if (reg == XREG_DR1) context.Dr1 = variant.var.toULongLong();
+        else if (reg == XREG_DR2) context.Dr2 = variant.var.toULongLong();
+        else if (reg == XREG_DR3) context.Dr3 = variant.var.toULongLong();
+        else if (reg == XREG_DR6) context.Dr6 = variant.var.toULongLong();
+        else if (reg == XREG_DR7) context.Dr7 = variant.var.toULongLong();
         else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
                  (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
                  (reg == XInfoDB::XREG_FLAGS_OF)) {
-            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.v_uint64;
+            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.toULongLong();
         } else bUnknownRegister = true;
 #endif
 #endif
@@ -1929,36 +1929,36 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
         if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
 #ifdef Q_PROCESSOR_X86
 #ifdef Q_PROCESSOR_X86_32
-            if (reg == XREG_EAX) regs.eax = variant.var.v_uint32;
-            else if (reg == XREG_EBX) regs.ebx = variant.var.v_uint32;
-            else if (reg == XREG_ECX) regs.ecx = variant.var.v_uint32;
-            else if (reg == XREG_EDX) regs.edx = variant.var.v_uint32;
-            else if (reg == XREG_EBP) regs.ebp = variant.var.v_uint32;
-            else if (reg == XREG_ESP) regs.esp = variant.var.v_uint32;
-            else if (reg == XREG_ESI) regs.esi = variant.var.v_uint32;
-            else if (reg == XREG_EDI) regs.edi = variant.var.v_uint32;
-            else if (reg == XREG_EIP) regs.eip = variant.var.v_uint32;
-            else if (reg == XREG_EFLAGS) regs.eflags = variant.var.v_uint32;
+            if (reg == XREG_EAX) regs.eax = variant.var.toULongLong();
+            else if (reg == XREG_EBX) regs.ebx = variant.var.toULongLong();
+            else if (reg == XREG_ECX) regs.ecx = variant.var.toULongLong();
+            else if (reg == XREG_EDX) regs.edx = variant.var.toULongLong();
+            else if (reg == XREG_EBP) regs.ebp = variant.var.toULongLong();
+            else if (reg == XREG_ESP) regs.esp = variant.var.toULongLong();
+            else if (reg == XREG_ESI) regs.esi = variant.var.toULongLong();
+            else if (reg == XREG_EDI) regs.edi = variant.var.toULongLong();
+            else if (reg == XREG_EIP) regs.eip = variant.var.toULongLong();
+            else if (reg == XREG_EFLAGS) regs.eflags = variant.var.toULongLong();
 #endif
 #ifdef Q_PROCESSOR_X86_64
-            if (reg == XREG_RAX) regs.rax = variant.var.v_uint64;
-            else if (reg == XREG_RBX) regs.rbx = variant.var.v_uint64;
-            else if (reg == XREG_RCX) regs.rcx = variant.var.v_uint64;
-            else if (reg == XREG_RDX) regs.rdx = variant.var.v_uint64;
-            else if (reg == XREG_RBP) regs.rbp = variant.var.v_uint64;
-            else if (reg == XREG_RSP) regs.rsp = variant.var.v_uint64;
-            else if (reg == XREG_RSI) regs.rsi = variant.var.v_uint64;
-            else if (reg == XREG_RDI) regs.rdi = variant.var.v_uint64;
-            else if (reg == XREG_R8) regs.r8 = variant.var.v_uint64;
-            else if (reg == XREG_R9) regs.r9 = variant.var.v_uint64;
-            else if (reg == XREG_R10) regs.r10 = variant.var.v_uint64;
-            else if (reg == XREG_R11) regs.r11 = variant.var.v_uint64;
-            else if (reg == XREG_R12) regs.r12 = variant.var.v_uint64;
-            else if (reg == XREG_R13) regs.r13 = variant.var.v_uint64;
-            else if (reg == XREG_R14) regs.r14 = variant.var.v_uint64;
-            else if (reg == XREG_R15) regs.r15 = variant.var.v_uint64;
-            else if (reg == XREG_RIP) regs.rip = variant.var.v_uint64;
-            else if (reg == XREG_RFLAGS) regs.eflags = variant.var.v_uint64;
+            if (reg == XREG_RAX) regs.rax = variant.var.toULongLong();
+            else if (reg == XREG_RBX) regs.rbx = variant.var.toULongLong();
+            else if (reg == XREG_RCX) regs.rcx = variant.var.toULongLong();
+            else if (reg == XREG_RDX) regs.rdx = variant.var.toULongLong();
+            else if (reg == XREG_RBP) regs.rbp = variant.var.toULongLong();
+            else if (reg == XREG_RSP) regs.rsp = variant.var.toULongLong();
+            else if (reg == XREG_RSI) regs.rsi = variant.var.toULongLong();
+            else if (reg == XREG_RDI) regs.rdi = variant.var.toULongLong();
+            else if (reg == XREG_R8) regs.r8 = variant.var.toULongLong();
+            else if (reg == XREG_R9) regs.r9 = variant.var.toULongLong();
+            else if (reg == XREG_R10) regs.r10 = variant.var.toULongLong();
+            else if (reg == XREG_R11) regs.r11 = variant.var.toULongLong();
+            else if (reg == XREG_R12) regs.r12 = variant.var.toULongLong();
+            else if (reg == XREG_R13) regs.r13 = variant.var.toULongLong();
+            else if (reg == XREG_R14) regs.r14 = variant.var.toULongLong();
+            else if (reg == XREG_R15) regs.r15 = variant.var.toULongLong();
+            else if (reg == XREG_RIP) regs.rip = variant.var.toULongLong();
+            else if (reg == XREG_RFLAGS) regs.eflags = variant.var.toULongLong();
 #endif
 #endif
             if (ptrace(PTRACE_SETREGS, nThreadId, nullptr, &regs) != -1) {
@@ -2217,10 +2217,10 @@ XADDR XInfoDB::getCurrentStackPointerCache()
     XADDR nResult = 0;
 
 #ifdef Q_PROCESSOR_X86_32
-    nResult = getCurrentRegCache(XInfoDB::XREG_ESP).var.v_uint32;
+    nResult = getCurrentRegCache(XInfoDB::XREG_ESP).var.toULongLong;
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    nResult = getCurrentRegCache(XInfoDB::XREG_RSP).var.v_uint64;
+    nResult = getCurrentRegCache(XInfoDB::XREG_RSP).var.toULongLong();
 #endif
 
     return nResult;
@@ -2232,10 +2232,10 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
     XADDR nResult = 0;
 
 #ifdef Q_PROCESSOR_X86_32
-    nResult = getCurrentRegCache(XInfoDB::XREG_EIP).var.v_uint32;
+    nResult = getCurrentRegCache(XInfoDB::XREG_EIP).var.toULongLong();
 #endif
 #ifdef Q_PROCESSOR_X86_64
-    nResult = getCurrentRegCache(XInfoDB::XREG_RIP).var.v_uint64;
+    nResult = getCurrentRegCache(XInfoDB::XREG_RIP).var.toULongLong();
 #endif
 
     return nResult;
@@ -6084,7 +6084,7 @@ XBinary::XVARIANT XInfoDB::_getRegCache(QList<REG_RECORD> *pListRegs, XREG reg)
         }
     }
 
-    if (result.mode != XBinary::MODE_UNKNOWN) {
+    if (result.varType != XBinary::VT_UNKNOWN) {
 #ifdef Q_PROCESSOR_X86
         if ((reg == XREG_FLAGS_CF) || (reg == XREG_FLAGS_PF) || (reg == XREG_FLAGS_AF) || (reg == XREG_FLAGS_ZF) || (reg == XREG_FLAGS_SF) || (reg == XREG_FLAGS_TF) ||
             (reg == XREG_FLAGS_IF) || (reg == XREG_FLAGS_DF) || (reg == XREG_FLAGS_OF)) {
@@ -6135,29 +6135,29 @@ XBinary::XVARIANT XInfoDB::getFlagFromReg(XBinary::XVARIANT variant, XREG reg)
 {
     XBinary::XVARIANT result = variant;
 
-    if (variant.mode == XBinary::MODE_32) {
+    if (variant.varType == XBinary::VT_DWORD) {
 #ifdef Q_PROCESSOR_X86_32
-        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_CF));
-        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_PF));
-        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_AF));
-        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_ZF));
-        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_SF));
-        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_TF));
-        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_IF));
-        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_DF));
-        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.v_uint32, RFLAGS_BIT_OF));
+        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_CF));
+        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_PF));
+        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_AF));
+        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_ZF));
+        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_SF));
+        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_TF));
+        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_IF));
+        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_DF));
+        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::getBitFromDword(result.var.toULongLong(), RFLAGS_BIT_OF));
 #endif
-    } else if (variant.mode == XBinary::MODE_64) {
+    } else if (variant.varType == XBinary::VT_QWORD) {
 #ifdef Q_PROCESSOR_X86_64
-        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_CF));
-        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_PF));
-        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_AF));
-        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_ZF));
-        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_SF));
-        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_TF));
-        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_IF));
-        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_DF));
-        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.v_uint64, RFLAGS_BIT_OF));
+        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_CF));
+        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_PF));
+        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_AF));
+        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_ZF));
+        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_SF));
+        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_TF));
+        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_IF));
+        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_DF));
+        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::getBitFromQword(result.var.toULongLong(), RFLAGS_BIT_OF));
 #endif
     }
 
@@ -6170,30 +6170,30 @@ XBinary::XVARIANT XInfoDB::setFlagToReg(XBinary::XVARIANT variant, XREG reg, boo
     // TODO setBit in Xbinary
     XBinary::XVARIANT result = variant;
 
-    if (variant.mode == XBinary::MODE_32) {
+    if (variant.varType == XBinary::VT_DWORD) {
 #ifdef Q_PROCESSOR_X86_32
-        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_CF));
-        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_PF));
-        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_AF));
-        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_ZF));
-        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_SF));
-        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_TF));
-        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_IF));
-        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_DF));
-        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.v_uint32, bValue, RFLAGS_BIT_OF));
+        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_CF));
+        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_PF));
+        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_AF));
+        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_ZF));
+        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_SF));
+        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_TF));
+        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_IF));
+        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_DF));
+        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::setBitToDword(result.var.toULongLong(), bValue, RFLAGS_BIT_OF));
 #endif
-    } else if (variant.mode == XBinary::MODE_64) {
+    } else if (variant.varType == XBinary::VT_QWORD) {
 #ifdef Q_PROCESSOR_X86_64
         // TODO Check mb reg32
-        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_CF));
-        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_PF));
-        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_AF));
-        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_ZF));
-        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_SF));
-        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_TF));
-        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_IF));
-        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_DF));
-        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.v_uint64, bValue, RFLAGS_BIT_OF));
+        if (reg == XREG_FLAGS_CF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_CF));
+        else if (reg == XREG_FLAGS_PF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_PF));
+        else if (reg == XREG_FLAGS_AF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_AF));
+        else if (reg == XREG_FLAGS_ZF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_ZF));
+        else if (reg == XREG_FLAGS_SF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_SF));
+        else if (reg == XREG_FLAGS_TF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_TF));
+        else if (reg == XREG_FLAGS_IF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_IF));
+        else if (reg == XREG_FLAGS_DF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_DF));
+        else if (reg == XREG_FLAGS_OF) result = XBinary::getXVariant(XBinary::setBitToQword(result.var.toULongLong(), bValue, RFLAGS_BIT_OF));
 #endif
     }
 
