@@ -364,13 +364,6 @@ QList<QString> XInfoDB::getStringsFromFile(const QString &sFileName, XBinary::PD
 
 XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB strDB, const QString &sString, bool bIsMulti, XBinary::PDSTRUCT *pPdStruct)
 {
-    XBinary::PDSTRUCT pdStructEmpty = {};
-
-    if (!pPdStruct) {
-        pdStructEmpty = XBinary::createPdStruct();
-        pPdStruct = &pdStructEmpty;
-    }
-
     STRRECORD result = {};
 
     qint32 nNumberOfRecords = pListStrings->count();
