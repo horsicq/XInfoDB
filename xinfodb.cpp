@@ -411,13 +411,6 @@ XInfoDB::STRRECORD XInfoDB::handleStringDB(QList<QString> *pListStrings, STRDB s
 
 QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB, XBinary::PDSTRUCT *pPdStruct)
 {
-    XBinary::PDSTRUCT pdStructEmpty = {};
-
-    if (!pPdStruct) {
-        pdStructEmpty = XBinary::createPdStruct();
-        pPdStruct = &pdStructEmpty;
-    }
-
     QList<QString> listResult;
 
     QString sStrDBFileName;
