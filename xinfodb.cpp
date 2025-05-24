@@ -941,6 +941,8 @@ quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 #ifdef USE_XPROCESS
 XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 {
+    Q_UNUSED(nAddress)
+
     XADDR nResult = -1;
 
     // QByteArray baData = read_array(nAddress, 15);
@@ -2779,6 +2781,9 @@ char *XInfoDB::allocateStringMemory(const QString &sFileName)
 #endif
 XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
 {
+    Q_UNUSED(nValue)
+    Q_UNUSED(riType)
+
     RECORD_INFO result = {};
 
     //     if ((nValue >= g_nMainModuleAddress) && (nValue < (g_nMainModuleAddress + g_nMainModuleSize))) {
@@ -4414,7 +4419,7 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
 
         XBinary::setPdStructCurrent(pPdStruct, _nFreeIndex, i);
 
-        if (nRelOffsetSameSegment != -1) {
+        if (nRelOffsetSameSegment != (XADDR)-1) {
             _addCode(pState, pMemoryRecord, pMemory, nRelOffsetSameSegment, nSize - (nRelOffsetSameSegment - nRelOffset), nBranch, pPdStruct);
         }
 
@@ -4428,6 +4433,12 @@ void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, ch
 
 bool XInfoDB::_isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize)
 {
+    Q_UNUSED(pState)
+    Q_UNUSED(pMemoryRecord)
+    Q_UNUSED(pMemory)
+    Q_UNUSED(nRelOffset)
+
+
     return true;
 }
 
@@ -5378,6 +5389,9 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getShowRecordMemoryVariables(DBSTATUS dbsta
 
 QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
+    Q_UNUSED(dbstatus)
+    Q_UNUSED(pPdStruct)
+
     QList<XBinary::ADDRESSSIZE> listResult;
     // #ifdef QT_SQL_LIB
     //     QSqlQuery query(g_dataBase);
@@ -5942,6 +5956,10 @@ QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult
 
 QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, const RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
 {
+    Q_UNUSED(nAddress)
+    Q_UNUSED(riType)
+    Q_UNUSED(disasmOptions)
+
     QString sResult = sString;
 
     // QString sReplace = XInfoDB::recordInfoToString(getRecordInfoCache(nAddress), riType);
