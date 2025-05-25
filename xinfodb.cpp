@@ -5075,6 +5075,8 @@ quint64 XInfoDB::_getBranchNumber()
 
 bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
 {
+    Q_UNUSED(nAddress)
+
     bool bResult = false;
 
     // #ifdef QT_SQL_LIB
@@ -5091,6 +5093,9 @@ bool XInfoDB::_incShowRecordRefFrom(XADDR nAddress)
 
 bool XInfoDB::_removeAnalyze(XADDR nAddress, qint64 nSize)
 {
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+
     bool bResult = false;
 
     // #ifdef QT_SQL_LIB
@@ -5162,6 +5167,9 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 
 void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 {
+    Q_UNUSED(nAddress)
+    Q_UNUSED(nSize)
+
     // #ifdef QT_SQL_LIB
     //     QSqlQuery query(g_dataBase);
 
@@ -5464,6 +5472,8 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
 QList<XADDR> XInfoDB::getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
+    Q_UNUSED(pPdStruct)
+
     QList<XADDR> listResult;
     // #ifdef QT_SQL_LIB
     //     QSqlQuery query(g_dataBase);
