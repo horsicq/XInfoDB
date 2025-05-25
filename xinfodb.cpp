@@ -5328,6 +5328,10 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
 
 QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
+    Q_UNUSED(relType)
+    Q_UNUSED(dbstatus)
+    Q_UNUSED(pPdStruct)
+
     QList<XADDR> listResult;
     // #ifdef QT_SQL_LIB
     //     QSqlQuery query(g_dataBase);
@@ -5451,6 +5455,8 @@ QList<XADDR> XInfoDB::getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 
 QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
+    Q_UNUSED(pPdStruct)
+
     QList<XADDR> listResult;
     // #ifdef QT_SQL_LIB
     //     QSqlQuery query(g_dataBase);
