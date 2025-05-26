@@ -4747,7 +4747,7 @@ QString XInfoDB::_getSymbolStringByAddress(STATE *pState, XADDR nAddress)
     XBinary::_MEMORY_RECORD memoryRecord = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
 
     if (memoryRecord.nSize) {
-        sResult = _getSymbolStringBySegmentRelOffset(pState, memoryRecord.nIndex, memoryRecord.nAddress - nAddress);
+        sResult = _getSymbolStringBySegmentRelOffset(pState, memoryRecord.nIndex, nAddress - memoryRecord.nAddress);
     }
 
     return sResult;
