@@ -4438,7 +4438,6 @@ bool XInfoDB::_isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, cha
     Q_UNUSED(pMemory)
     Q_UNUSED(nRelOffset)
 
-
     return true;
 }
 
