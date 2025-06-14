@@ -155,28 +155,31 @@ void XInfoMenu::actionImport()
 
 void XInfoMenu::save(const QString &sFileName)
 {
-    DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
-    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
     options.sDatabaseFileName = sFileName;
     // options.nModuleAddress = -1;
 
-    dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options);
-
+    XInfoDBTransfer infoTransfer;
+    XDialogProcess dialogTransfer(g_pParent, &infoTransfer);
+    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
+    infoTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options, dialogTransfer.getPdStruct());
+    dialogTransfer.start();
     dialogTransfer.showDialogDelay();
     g_pXInfoDB->reloadView();
 }
 
 void XInfoMenu::load(const QString &sFileName)
 {
-    DialogXInfoDBTransferProcess dialogTransfer(g_pParent);
-    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
     XInfoDBTransfer::OPTIONS options = {};
     options.sDatabaseFileName = sFileName;
     options.pDevice = g_pDevice;
     // options.nModuleAddress = -1;
 
-    dialogTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options);
-
+    XInfoDBTransfer infoTransfer;
+    XDialogProcess dialogTransfer(g_pParent, &infoTransfer);
+    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
+    infoTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options, dialogTransfer.getPdStruct());
+    dialogTransfer.start();
     dialogTransfer.showDialogDelay();
+    g_pXInfoDB->reloadView();
 }

@@ -22,7 +22,8 @@
 #define XINFOMENU_H
 
 #include <QMenu>
-#include "dialogxinfodbtransferprocess.h"
+#include "xdialogprocess.h"
+#include "xinfodbtransfer.h"
 
 class XInfoMenu : public QObject {
     Q_OBJECT

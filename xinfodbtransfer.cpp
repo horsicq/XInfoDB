@@ -20,7 +20,7 @@
  */
 #include "xinfodbtransfer.h"
 
-XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : QObject(pParent)
+XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : XThreadObject(pParent)
 {
     g_pXInfoDB = nullptr;
     g_transferType = COMMAND_ANALYZEALL;
@@ -60,14 +60,12 @@ void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, QLis
 }
 #endif
 #endif
-bool XInfoDBTransfer::process()
+void XInfoDBTransfer::process()
 {
 #ifdef QT_DEBUG
     qDebug("bool XInfoDBTransfer::process()");
 #endif
     // TODO get string are not in code
-    bool bResult = false;
-
     QElapsedTimer scanTimer;
     scanTimer.start();
 
@@ -117,6 +115,4 @@ bool XInfoDBTransfer::process()
     XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndex);
 
     emit completed(scanTimer.elapsed());
-
-    return bResult;
 }

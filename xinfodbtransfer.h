@@ -23,8 +23,9 @@
 
 #include "xformats.h"
 #include "xinfodb.h"
+#include "xthreadobject.h"
 
-class XInfoDBTransfer : public QObject {
+class XInfoDBTransfer : public XThreadObject {
     Q_OBJECT
 public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
@@ -60,12 +61,7 @@ public:
 #endif
     //    bool loadFromFile(const QString &sFileName,XBinary::FT fileType);
 
-public slots:
-    bool process();
-
-signals:
-    void errorMessage(const QString &sText);
-    void completed(qint64 nElapsed);
+    virtual void process();
 
 private:
     XInfoDB *g_pXInfoDB;
