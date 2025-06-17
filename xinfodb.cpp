@@ -4128,7 +4128,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
             qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
             XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
-            for (int i = 0; (i < nNumbersOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+            for (qint32 i = 0; (i < nNumbersOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 if ((pState->listSymbols.at(i).nFlags & XSYMBOL_FLAG_FUNCTION) && (pState->listSymbols.at(i).nBranch == 0)) {
                     bContinue = true;
                     XSYMBOL function = pState->listSymbols.at(i);
@@ -5194,7 +5194,7 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 
     qint32 nNumberOfBookmarks = g_listBookmarks.size();
 
-    for (int i = 0; i < nNumberOfBookmarks; i++) {
+    for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
         if (g_listBookmarks.at(i).sUUID == sUUID) {
             g_listBookmarks.removeAt(i);
             bResult = true;
