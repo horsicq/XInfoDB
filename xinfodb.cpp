@@ -3086,13 +3086,6 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 {
     g_pMutexSQL->lock();
 
-    XBinary::PDSTRUCT pdStructEmpty = {};
-
-    if (!pPdStruct) {
-        pdStructEmpty = XBinary::createPdStruct();
-        pPdStruct = &pdStructEmpty;
-    }
-
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
