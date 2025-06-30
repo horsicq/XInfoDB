@@ -66,8 +66,6 @@ void XInfoDBTransfer::process()
     qDebug("bool XInfoDBTransfer::process()");
 #endif
     // TODO get string are not in code
-    QElapsedTimer scanTimer;
-    scanTimer.start();
 
     qint32 _nFreeIndex = XBinary::getFreeIndex(g_pPdStruct);
     XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
@@ -113,6 +111,4 @@ void XInfoDBTransfer::process()
     }
 
     XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndex);
-
-    emit completed(scanTimer.elapsed());
 }
