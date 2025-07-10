@@ -4561,7 +4561,6 @@ bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSiz
 void XInfoDB::dumpBookmarks()
 {
 #ifdef QT_DEBUG
-
     qint32 nNumberOfBookmarks = g_listBookmarks.count();
 
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
@@ -5134,22 +5133,6 @@ bool XInfoDB::_addFunction(XADDR nAddress, qint64 nSize, const QString &sName)
 {
     bool bResult = false;
 
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     query.prepare(QString("INSERT INTO %1 (ADDRESS, SIZE, NAME) VALUES (?, ?, ?)").arg(s_sql_tableName[DBTABLE_FUNCTIONS]));
-
-    //     query.bindValue(0, nAddress);
-    //     query.bindValue(1, nSize);
-    //     query.bindValue(2, sName);
-
-    //     bResult = querySQL(&query, true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(nSize)
-    //     Q_UNUSED(sName)
-    // #endif
-
     return bResult;
 }
 
@@ -5157,17 +5140,6 @@ void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 {
     Q_UNUSED(nAddress)
     Q_UNUSED(nSize)
-
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query, QString("UPDATE %1 SET SIZE = '%2' WHERE ADDRESS = '%3'").arg(s_sql_tableName[DBTABLE_FUNCTIONS], QString::number(nSize),
-    //     QString::number(nAddress)),
-    //              true);
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(nSize)
-    // #endif
 }
 
 QString XInfoDB::_addBookmarkRecord(const BOOKMARKRECORD &record)
