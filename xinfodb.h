@@ -127,6 +127,7 @@ public:
         QString sColorBackground;
         QString sTemplate;
         QString sComment;
+        bool bIsUser;
     };
 
     struct USER_NOTES {

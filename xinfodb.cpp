@@ -2956,6 +2956,7 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "BACKGROUNDCOLOR TEXT,"
                          "TEMPLATE TEXT,"
                          "COMMENT TEXT,"
+                         "ISUSER INTEGER,"
                          "PRIMARY KEY (UUID)"
                          ")"),
                  false);
@@ -4566,9 +4567,9 @@ void XInfoDB::dumpBookmarks()
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
         BOOKMARKRECORD bookmark = g_listBookmarks.at(i);
 
-        QString sDebugString = QString("%1 %2 %3 %4 %5 %6 %7 %8")
+        QString sDebugString = QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
                                    .arg(bookmark.sUUID, XBinary::valueToHex(bookmark.nLocation), QString::number(bookmark.locationType),
-                                        XBinary::valueToHex(bookmark.nSize), bookmark.sColorText, bookmark.sColorBackground, bookmark.sTemplate, bookmark.sComment);
+                                        XBinary::valueToHex(bookmark.nSize), bookmark.sColorText, bookmark.sColorBackground, bookmark.sTemplate, bookmark.sComment, bookmark.bIsUser ? "true" : "false");
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -5570,7 +5571,7 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
             if (nNumberOfRecords > 0) {
                 g_listBookmarks.clear();
 
-                querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT FROM BOOKMARKS"), false);
+                querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER FROM BOOKMARKS"), false);
 
                 while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
                     BOOKMARKRECORD record = {};
@@ -5582,6 +5583,7 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                     record.sColorBackground = query.value(5).toString();
                     record.sTemplate = query.value(6).toString();
                     record.sComment = query.value(7).toString();
+                    record.bIsUser = query.value(8).toBool();
 
                     _addBookmarkRecord(record);
                 }
@@ -5700,8 +5702,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
             qint32 nNumberOfRecords = g_listBookmarks.count();
 
             query.prepare(
-                "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 const BOOKMARKRECORD &record = g_listBookmarks.at(i);
 
@@ -5713,6 +5715,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                 query.bindValue(5, record.sColorBackground);
                 query.bindValue(6, record.sTemplate);
                 query.bindValue(7, record.sComment);
+                query.bindValue(8, record.bIsUser);
 
                 bResult = querySQL(&query, true);
             }
