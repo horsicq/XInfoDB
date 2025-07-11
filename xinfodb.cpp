@@ -4566,9 +4566,10 @@ void XInfoDB::dumpBookmarks()
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
         BOOKMARKRECORD bookmark = g_listBookmarks.at(i);
 
-        QString sDebugString = QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
-                                   .arg(bookmark.sUUID, XBinary::valueToHex(bookmark.nLocation), QString::number(bookmark.locationType),
-                                        XBinary::valueToHex(bookmark.nSize), bookmark.sColorText, bookmark.sColorBackground, bookmark.sTemplate, bookmark.sComment, bookmark.bIsUser ? "true" : "false");
+        QString sDebugString =
+            QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
+                .arg(bookmark.sUUID, XBinary::valueToHex(bookmark.nLocation), QString::number(bookmark.locationType), XBinary::valueToHex(bookmark.nSize),
+                     bookmark.sColorText, bookmark.sColorBackground, bookmark.sTemplate, bookmark.sComment, bookmark.bIsUser ? "true" : "false");
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
