@@ -5396,21 +5396,7 @@ QList<XBinary::ADDRESSSIZE> XInfoDB::getBranches(DBSTATUS dbstatus, XBinary::PDS
 QList<XADDR> XInfoDB::getExportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_EXPORT]);
-
-    //     querySQL(&query, sSQL, false);
-
-    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
-    //         XADDR nAddress = query.value(0).toULongLong();
-
-    //         listResult.append(nAddress);
-    //     }
-    // #else
-    //     Q_UNUSED(pPdStruct)
-    // #endif
     return listResult;
 }
 
@@ -5419,21 +5405,7 @@ QList<XADDR> XInfoDB::getImportSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
     Q_UNUSED(pPdStruct)
 
     QList<XADDR> listResult;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_IMPORT]);
-
-    //     querySQL(&query, sSQL, false);
-
-    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
-    //         XADDR nAddress = query.value(0).toULongLong();
-
-    //         listResult.append(nAddress);
-    //     }
-    // #else
-    //     Q_UNUSED(pPdStruct)
-    // #endif
     return listResult;
 }
 
@@ -5442,42 +5414,14 @@ QList<XADDR> XInfoDB::getTLSSymbolAddresses(XBinary::PDSTRUCT *pPdStruct)
     Q_UNUSED(pPdStruct)
 
     QList<XADDR> listResult;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_TLS]);
-
-    //     querySQL(&query, sSQL, false);
-
-    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
-    //         XADDR nAddress = query.value(0).toULongLong();
-
-    //         listResult.append(nAddress);
-    //     }
-    // #else
-    //     Q_UNUSED(pPdStruct)
-    // #endif
     return listResult;
 }
 
 QList<XADDR> XInfoDB::getFunctionAddresses(XBinary::PDSTRUCT *pPdStruct)
 {
     QList<XADDR> listResult;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
 
-    //     QString sSQL = QString("SELECT DISTINCT ADDRESS FROM %1").arg(s_sql_tableName[DBTABLE_FUNCTIONS]);
-
-    //     querySQL(&query, sSQL, false);
-
-    //     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct))) {
-    //         XADDR nAddress = query.value(0).toULongLong();
-
-    //         listResult.append(nAddress);
-    //     }
-    // #else
-    //     Q_UNUSED(pPdStruct)
-    // #endif
     return listResult;
 }
 
@@ -5485,39 +5429,12 @@ bool XInfoDB::isAddressHasRefFrom(XADDR nAddress)
 {
     bool bResult = false;
 
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     // mb TODO more checks
-    //     querySQL(
-    //         &query,
-    //         QString("SELECT ADDRESS FROM %1 WHERE (XREFTORELATIVE = %2) OR (XREFTOMEMORY = %2) LIMIT 1").arg(s_sql_tableName[DBTABLE_RELATIVS],
-    //         QString::number(nAddress)), false);
-
-    //     if (query.next()) {
-    //         bResult = true;
-    //     }
-    // #else
-    //     Q_UNUSED(nAddress)
-    // #endif
-
     return bResult;
 }
 
 bool XInfoDB::isAnalyzedRegionVirtual(XADDR nAddress, qint64 nSize)
 {
     bool bResult = false;
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-    //     querySQL(&query,
-    //              QString("SELECT ADDRESS FROM %1 WHERE ADDRESS >= %2 AND ADDRESS < %3 AND ROFFSET = -1")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(nAddress), QString::number(nAddress + nSize)),
-    //              false);
-
-    //     bResult = query.next();
-    // #else
-    //     Q_UNUSED(nAddress)
-    //     Q_UNUSED(nSize)
-    // #endif
     return bResult;
 }
 
