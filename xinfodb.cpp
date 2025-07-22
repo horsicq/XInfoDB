@@ -5026,18 +5026,7 @@ bool XInfoDB::_isShowRecordPresent(QSqlQuery *pQuery, XADDR nAddress, qint64 nSi
 
 void XInfoDB::_completeDbAnalyze()
 {
-    // #ifdef QT_SQL_LIB
-    //     QSqlQuery query(g_dataBase);
-
-    //     querySQL(&query,
-    //              QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
-    //                  .arg(s_sql_tableName[DBTABLE_SHOWRECORDS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
-    //              true);
-    //     querySQL(&query,
-    //              QString("UPDATE %1 SET DBSTATUS = '%2' WHERE DBSTATUS = '%3'")
-    //                  .arg(s_sql_tableName[DBTABLE_RELATIVS], QString::number(DBSTATUS_NONE), QString::number(DBSTATUS_PROCESS)),
-    //              true);
-    // #endif
+    // TODO
 }
 
 #ifdef QT_SQL_LIB
