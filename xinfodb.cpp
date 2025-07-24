@@ -5249,33 +5249,6 @@ void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &s
     }
 }
 
-// XInfoDB::XRECORD XInfoDB::getRecordByAddress(XBinary::FT fileType, XADDR nAddress, bool bInRecord)
-// {
-//     STATE *pState = getState(fileType);
-
-//     XInfoDB::XRECORD result = {};
-
-//     qint32 nIndex = _searchXRecordByAddress(&(pState->memoryMap), &(pState->listRecords), nAddress, bInRecord);
-
-//     if (nIndex != -1) {
-//         result = pState->listRecords.at(nIndex);
-//     }
-
-//     return result;
-// }
-
-// XADDR XInfoDB::segmentRelOffsetToAddress(XBinary::FT fileType, quint16 nRegionIndex, XADDR nRelOffset)
-// {
-//     STATE *pState = getState(fileType);
-
-//     return XBinary::segmentRelOffsetToAddress(&(pState->memoryMap), nRegionIndex, nRelOffset);
-// }
-
-// qint64 XInfoDB::getRecordsCount(XBinary::FT fileType)
-// {
-//     return getState(fileType)->listRecords.count();
-// }
-
 QList<XADDR> XInfoDB::getShowRecordRelAddresses(XDisasmAbstract::RELTYPE relType, DBSTATUS dbstatus, XBinary::PDSTRUCT *pPdStruct)
 {
     Q_UNUSED(relType)
