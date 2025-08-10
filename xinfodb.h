@@ -912,33 +912,33 @@ private:
 #endif
 private:
 #ifdef USE_XPROCESS
-    XInfoDB::PROCESS_INFO g_processInfo;
-    QList<BREAKPOINT> g_listBreakpoints;
-    BPT g_bpTypeDefault;
+    XInfoDB::PROCESS_INFO m_processInfo;
+    QList<BREAKPOINT> m_listBreakpoints;
+    BPT m_bpTypeDefault;
 #ifdef Q_OS_LINUX
-    QMap<X_ID, BREAKPOINT> g_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList TODO remove
+    QMap<X_ID, BREAKPOINT> m_mapThreadBreakpoints;  // STEPS, ThreadID/BP TODO QList TODO remove
 #endif
     //    QMap<X_ID,BREAKPOINT> g_mapThreadBreakpoints;         // STEPS,
     //    ThreadID/BP TODO QList
-    QMap<XADDR, SHAREDOBJECT_INFO> g_mapSharedObjectInfos;  // TODO QList
-    QList<THREAD_INFO> g_listThreadInfos;
-    QMap<QString, FUNCTIONHOOK_INFO> g_mapFunctionHookInfos;  // TODO QList
+    QMap<XADDR, SHAREDOBJECT_INFO> m_mapSharedObjectInfos;  // TODO QList
+    QList<THREAD_INFO> m_listThreadInfos;
+    QMap<QString, FUNCTIONHOOK_INFO> m_mapFunctionHookInfos;  // TODO QList
 #endif
     // MODE g_mode;  // TODO remove
     // MODE g_defaultMode;
 #ifdef USE_XPROCESS
-    STATUS g_statusCurrent;
+    STATUS m_statusCurrent;
 //    STATUS g_statusPrev;
 #endif
-    QMutex *g_pMutexSQL;
-    QMutex *g_pMutexThread;
+    QMutex *m_pMutexSQL;
+    QMutex *m_pMutexThread;
 #ifdef QT_SQL_LIB
     QString s_sql_tableName[__DBTABLE_SIZE];
 #endif
-    bool g_bIsDatabaseChanged;
-    bool g_bIsDebugger;
-    QMap<XBinary::FT, STATE *> g_mapProfiles;
-    QVector<BOOKMARKRECORD> g_listBookmarks;
+    bool m_bIsDatabaseChanged;
+    bool m_bIsDebugger;
+    QMap<XBinary::FT, STATE *> m_mapProfiles;
+    QVector<BOOKMARKRECORD> m_listBookmarks;
 };
 
 #endif  // XINFODB_H

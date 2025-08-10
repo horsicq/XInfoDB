@@ -59,7 +59,7 @@ bool compareXSYMBOL_location(const XInfoDB::XSYMBOL &a, const XInfoDB::XSYMBOL &
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
 #ifdef USE_XPROCESS
-    g_processInfo = {};
+    m_processInfo = {};
 
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
     setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);  // Checked Win
@@ -75,10 +75,10 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_UD0);
     //    setDefaultBreakpointType( BPT_CODE_SOFTWARE_UD2);
 #endif
-    g_bIsDebugger = false;
-    g_pMutexSQL = new QMutex;
-    g_pMutexThread = new QMutex;
-    g_bIsDatabaseChanged = false;
+    m_bIsDebugger = false;
+    m_pMutexSQL = new QMutex;
+    m_pMutexThread = new QMutex;
+    m_bIsDatabaseChanged = false;
 }
 
 XInfoDB::~XInfoDB()
@@ -95,15 +95,15 @@ XInfoDB::~XInfoDB()
     // }
 #endif
 
-    QList<STATE *> listStates = g_mapProfiles.values();
+    QList<STATE *> listStates = m_mapProfiles.values();
     qint32 nNumberOfRecords = listStates.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         delete listStates.at(i);
     }
 
-    delete g_pMutexSQL;
-    delete g_pMutexThread;
+    delete m_pMutexSQL;
+    delete m_pMutexThread;
 }
 
 void XInfoDB::initDB()
@@ -184,10 +184,10 @@ quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian)
 {
     quint32 nResult = 0;
 #ifdef Q_OS_WIN
-    nResult = XProcess::read_uint32(g_processInfo.hProcess, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint32(m_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_uint32(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint32(m_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
 
     return nResult;
@@ -198,10 +198,10 @@ quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian)
 {
     quint64 nResult = 0;
 #ifdef Q_OS_WIN
-    nResult = XProcess::read_uint64(g_processInfo.hProcess, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint64(m_processInfo.hProcess, nAddress, bIsBigEndian);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_uint64(g_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
+    nResult = XProcess::read_uint64(m_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
     return nResult;
 }
@@ -211,10 +211,10 @@ qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize)
 {
     qint64 nResult = 0;
 #ifdef Q_OS_WIN
-    nResult = XProcess::read_array(g_processInfo.hProcess, nAddress, pData, nSize);
+    nResult = XProcess::read_array(m_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
+    nResult = XProcess::read_array(m_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
     return nResult;
 }
@@ -224,10 +224,10 @@ qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize)
 {
     qint64 nResult = 0;
 #ifdef Q_OS_WIN
-    nResult = XProcess::write_array(g_processInfo.hProcess, nAddress, pData, nSize);
+    nResult = XProcess::write_array(m_processInfo.hProcess, nAddress, pData, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    nResult = XProcess::write_array(g_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
+    nResult = XProcess::write_array(m_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
     return nResult;
 }
@@ -237,10 +237,10 @@ QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize)
 {
     QByteArray baResult;
 #ifdef Q_OS_WIN
-    baResult = XProcess::read_array(g_processInfo.hProcess, nAddress, nSize);
+    baResult = XProcess::read_array(m_processInfo.hProcess, nAddress, nSize);
 #endif
 #ifdef Q_OS_LINUX
-    baResult = XProcess::read_array(g_processInfo.hProcessMemoryIO, nAddress, nSize);
+    baResult = XProcess::read_array(m_processInfo.hProcessMemoryIO, nAddress, nSize);
 #endif
     return baResult;
 }
@@ -250,10 +250,10 @@ QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef Q_OS_WIN
-    sResult = XProcess::read_ansiString(g_processInfo.hProcess, nAddress, nMaxSize);
+    sResult = XProcess::read_ansiString(m_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_ansiString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
+    sResult = XProcess::read_ansiString(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
     return sResult;
 }
@@ -263,10 +263,10 @@ QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef Q_OS_WIN
-    sResult = XProcess::read_unicodeString(g_processInfo.hProcess, nAddress, nMaxSize);
+    sResult = XProcess::read_unicodeString(m_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_unicodeString(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
+    sResult = XProcess::read_unicodeString(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
     return sResult;
 }
@@ -276,10 +276,10 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 {
     QString sResult;
 #ifdef Q_OS_WIN
-    sResult = XProcess::read_utf8String(g_processInfo.hProcess, nAddress, nMaxSize);
+    sResult = XProcess::read_utf8String(m_processInfo.hProcess, nAddress, nMaxSize);
 #endif
 #ifdef Q_OS_LINUX
-    sResult = XProcess::read_utf8String(g_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
+    sResult = XProcess::read_utf8String(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
     return sResult;
 }
@@ -428,31 +428,31 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB, XBinary::PD
 #ifdef USE_XPROCESS
 void XInfoDB::setDefaultBreakpointType(BPT bpType)
 {
-    g_bpTypeDefault = bpType;
+    m_bpTypeDefault = bpType;
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::setCurrentThreadId(X_ID nThreadId)
 {
-    g_statusCurrent.nThreadId = nThreadId;
+    m_statusCurrent.nThreadId = nThreadId;
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::setCurrentThreadHandle(X_HANDLE hThread)
 {
-    g_statusCurrent.hThread = hThread;
+    m_statusCurrent.hThread = hThread;
 }
 #endif
 #ifdef USE_XPROCESS
 X_ID XInfoDB::getCurrentThreadId()
 {
-    return g_statusCurrent.nThreadId;
+    return m_statusCurrent.nThreadId;
 }
 #endif
 #ifdef USE_XPROCESS
 X_HANDLE XInfoDB::getCurrentThreadHandle()
 {
-    return g_statusCurrent.hThread;
+    return m_statusCurrent.hThread;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -504,17 +504,17 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo)
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 {
     if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-        bpType = g_bpTypeDefault;
+    bpType = m_bpTypeDefault;
     }
 
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if ((g_listBreakpoints.at(i).nAddress == nAddress) && (g_listBreakpoints.at(i).bpType == bpType)) {
-            result = g_listBreakpoints.at(i);
+        if ((m_listBreakpoints.at(i).nAddress == nAddress) && (m_listBreakpoints.at(i).bpType == bpType)) {
+            result = m_listBreakpoints.at(i);
 
             break;
         }
@@ -527,18 +527,18 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType)
 {
     if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-        bpType = g_bpTypeDefault;
+    bpType = m_bpTypeDefault;
     }
 
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
+    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-        if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (g_listBreakpoints.at(i).bpType == bpType)) {
+    if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (m_listBreakpoints.at(i).bpType == bpType)) {
             result = breakPoint;
 
             break;
@@ -554,12 +554,12 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByThreadID(X_ID nThreadID, BPT bpType
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
+    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-        if ((breakPoint.nThreadID == nThreadID) && (g_listBreakpoints.at(i).bpType == bpType)) {
+    if ((breakPoint.nThreadID == nThreadID) && (m_listBreakpoints.at(i).bpType == bpType)) {
             result = breakPoint;
 
             break;
@@ -575,11 +575,11 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByUUID(const QString &sUUID)
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            result = g_listBreakpoints.at(i);
+        if (m_listBreakpoints.at(i).sUUID == sUUID) {
+            result = m_listBreakpoints.at(i);
 
             break;
         }
@@ -594,11 +594,11 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByRegion(XADDR nAddress, qint64 nSize
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (XBinary::_isAddressCrossed(g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nDataSize, nAddress, nSize)) {
-            result = g_listBreakpoints.at(i);
+        if (XBinary::_isAddressCrossed(m_listBreakpoints.at(i).nAddress, m_listBreakpoints.at(i).nDataSize, nAddress, nSize)) {
+            result = m_listBreakpoints.at(i);
 
             break;
         }
@@ -612,10 +612,10 @@ qint32 XInfoDB::getThreadBreakpointsCount(X_ID nThreadID)
 {
     qint32 nResult = 0;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listBreakpoints.at(i).nThreadID == nThreadID) {
+    if (m_listBreakpoints.at(i).nThreadID == nThreadID) {
             nResult++;
         }
     }
@@ -703,58 +703,58 @@ QString XInfoDB::bpiToString(BPI bpInfo)
 #ifdef USE_XPROCESS
 void XInfoDB::addSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
 {
-    g_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase, *pSharedObjectInfo);
+    m_mapSharedObjectInfos.insert(pSharedObjectInfo->nImageBase, *pSharedObjectInfo);
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::removeSharedObjectInfo(SHAREDOBJECT_INFO *pSharedObjectInfo)
 {
-    g_mapSharedObjectInfos.remove(pSharedObjectInfo->nImageBase);
+    m_mapSharedObjectInfos.remove(pSharedObjectInfo->nImageBase);
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::addThreadInfo(THREAD_INFO *pThreadInfo)
 {
-    g_pMutexThread->lock();
-    g_listThreadInfos.append(*pThreadInfo);
-    g_pMutexThread->unlock();
+    m_pMutexThread->lock();
+    m_listThreadInfos.append(*pThreadInfo);
+    m_pMutexThread->unlock();
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::removeThreadInfo(X_ID nThreadID)
 {
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
-    qint32 nNumberOfThread = g_listThreadInfos.count();
+    qint32 nNumberOfThread = m_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfThread; i++) {
-        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
-            g_listThreadInfos.removeAt(i);
+        if (m_listThreadInfos.at(i).nThreadID == nThreadID) {
+            m_listThreadInfos.removeAt(i);
 
             break;
         }
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 }
 #endif
 #ifdef USE_XPROCESS
 bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
 {
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
     bool bResult = false;
-    qint32 nNumberOfThread = g_listThreadInfos.count();
+    qint32 nNumberOfThread = m_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfThread; i++) {
-        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
-            g_listThreadInfos[i].threadStatus = status;
+        if (m_listThreadInfos.at(i).nThreadID == nThreadID) {
+            m_listThreadInfos[i].threadStatus = status;
 
             break;
         }
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return bResult;
 }
@@ -762,20 +762,20 @@ bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
 #ifdef USE_XPROCESS
 XInfoDB::THREAD_STATUS XInfoDB::getThreadStatus(X_ID nThreadID)
 {
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
     THREAD_STATUS result = THREAD_STATUS_UNKNOWN;
-    qint32 nNumberOfThread = g_listThreadInfos.count();
+    qint32 nNumberOfThread = m_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfThread; i++) {
-        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
-            result = g_listThreadInfos[i].threadStatus;
+        if (m_listThreadInfos.at(i).nThreadID == nThreadID) {
+            result = m_listThreadInfos[i].threadStatus;
 
             break;
         }
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return result;
 }
@@ -808,19 +808,19 @@ bool XInfoDB::removeFunctionHook(const QString &sFunctionName)
     bool bResult = false;
     // TODO Check !!!
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     // TODO Check!
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
+    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
         if (breakPoint.vInfo.toString() == sFunctionName) {
-            g_listBreakpoints.removeAt(i);
+            m_listBreakpoints.removeAt(i);
         }
     }
 
-    if (g_mapFunctionHookInfos.contains(sFunctionName)) {
-        g_mapFunctionHookInfos.remove(sFunctionName);
+    if (m_mapFunctionHookInfos.contains(sFunctionName)) {
+        m_mapFunctionHookInfos.remove(sFunctionName);
 
         bResult = true;
     }
@@ -831,19 +831,19 @@ bool XInfoDB::removeFunctionHook(const QString &sFunctionName)
 #ifdef USE_XPROCESS
 QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO> *XInfoDB::getSharedObjectInfos()
 {
-    return &g_mapSharedObjectInfos;
+    return &m_mapSharedObjectInfos;
 }
 #endif
 #ifdef USE_XPROCESS
 QList<XInfoDB::THREAD_INFO> *XInfoDB::getThreadInfos()
 {
-    return &g_listThreadInfos;
+    return &m_listThreadInfos;
 }
 #endif
 #ifdef USE_XPROCESS
 QMap<QString, XInfoDB::FUNCTIONHOOK_INFO> *XInfoDB::getFunctionHookInfos()
 {
-    return &g_mapFunctionHookInfos;
+    return &m_mapFunctionHookInfos;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -851,7 +851,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByName(const QString &sName)
 {
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
-    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
+    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = m_mapSharedObjectInfos.begin(); it != m_mapSharedObjectInfos.end();) {
         if (it.value().sName == sName) {
             result = it.value();
 
@@ -869,7 +869,7 @@ XInfoDB::SHAREDOBJECT_INFO XInfoDB::findSharedInfoByAddress(XADDR nAddress)
 {
     XInfoDB::SHAREDOBJECT_INFO result = {};
 
-    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = g_mapSharedObjectInfos.begin(); it != g_mapSharedObjectInfos.end();) {
+    for (QMap<XADDR, XInfoDB::SHAREDOBJECT_INFO>::iterator it = m_mapSharedObjectInfos.begin(); it != m_mapSharedObjectInfos.end();) {
         XInfoDB::SHAREDOBJECT_INFO record = it.value();
 
         if ((record.nImageBase <= nAddress) && (record.nImageBase + record.nImageSize > nAddress)) {
@@ -889,19 +889,19 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByID(X_ID nThreadID)
 {
     XInfoDB::THREAD_INFO result = {};
 
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
-    qint32 nNumberOfRecords = g_listThreadInfos.count();
+    qint32 nNumberOfRecords = m_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listThreadInfos.at(i).nThreadID == nThreadID) {
-            result = g_listThreadInfos.at(i);
+        if (m_listThreadInfos.at(i).nThreadID == nThreadID) {
+            result = m_listThreadInfos.at(i);
 
             break;
         }
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return result;
 }
@@ -912,19 +912,19 @@ XInfoDB::THREAD_INFO XInfoDB::findThreadInfoByHandle(X_HANDLE hThread)
 {
     XInfoDB::THREAD_INFO result = {};
 
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
-    qint32 nNumberOfRecords = g_listThreadInfos.count();
+    qint32 nNumberOfRecords = m_listThreadInfos.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listThreadInfos.at(i).hThread == hThread) {
-            result = g_listThreadInfos.at(i);
+        if (m_listThreadInfos.at(i).hThread == hThread) {
+            result = m_listThreadInfos.at(i);
 
             break;
         }
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return result;
 }
@@ -1052,7 +1052,7 @@ bool XInfoDB::suspendThread_Id(X_ID nThreadId)
     bool bResult = false;
 
 #ifdef Q_OS_LINUX
-    if (syscall(SYS_tgkill, g_processInfo.nProcessID, nThreadId, SIGSTOP) != -1) {
+    if (syscall(SYS_tgkill, m_processInfo.nProcessID, nThreadId, SIGSTOP) != -1) {
         // TODO Set thread status
         bResult = true;
     } else {
@@ -1116,21 +1116,21 @@ bool XInfoDB::suspendAllThreads()
 {
     bool bResult = false;
 
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
-    qint32 nCount = g_listThreadInfos.count();
+    qint32 nCount = m_listThreadInfos.count();
 
     // TODO Check if already suspended
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_RUNNING) {
-            if (suspendThread_Handle(g_listThreadInfos.at(i).hThread)) {
-                g_listThreadInfos[i].threadStatus = THREAD_STATUS_PAUSED;
+        if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_RUNNING) {
+            if (suspendThread_Handle(m_listThreadInfos.at(i).hThread)) {
+                m_listThreadInfos[i].threadStatus = THREAD_STATUS_PAUSED;
             }
         }
 #endif
 #ifdef Q_OS_LINUX
-        if (syscall(SYS_tgkill, g_processInfo.nProcessID, g_listThreadInfos.at(i).nThreadID, SIGSTOP) != -1) {
+        if (syscall(SYS_tgkill, m_processInfo.nProcessID, m_listThreadInfos.at(i).nThreadID, SIGSTOP) != -1) {
             //            int thread_status=0;
 
             //            if(waitpid(pListThreads->at(i).nThreadID,&thread_status,__WALL)!=-1)
@@ -1144,7 +1144,7 @@ bool XInfoDB::suspendAllThreads()
         bResult = true;
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return bResult;
 }
@@ -1154,23 +1154,23 @@ bool XInfoDB::resumeAllThreads()
 {
     bool bResult = false;
 
-    g_pMutexThread->lock();
+    m_pMutexThread->lock();
 
-    qint32 nCount = g_listThreadInfos.count();
+    qint32 nCount = m_listThreadInfos.count();
 
     // Resume all other threads
     for (qint32 i = 0; i < nCount; i++) {
 #ifdef Q_OS_WIN
-        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
-            if (resumeThread_Handle(g_listThreadInfos.at(i).hThread)) {
-                g_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+        if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (resumeThread_Handle(m_listThreadInfos.at(i).hThread)) {
+                m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
             }
         }
 #endif
 #ifdef Q_OS_LINUX
-        if (g_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
-            if (ptrace(PTRACE_CONT, g_listThreadInfos.at(i).nThreadID, 0, 0) != -1) {
-                g_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+        if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (ptrace(PTRACE_CONT, m_listThreadInfos.at(i).nThreadID, 0, 0) != -1) {
+                m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
             }
         }
 #endif
@@ -1178,7 +1178,7 @@ bool XInfoDB::resumeAllThreads()
         bResult = true;
     }
 
-    g_pMutexThread->unlock();
+    m_pMutexThread->unlock();
 
     return bResult;
 }
@@ -1407,7 +1407,7 @@ XInfoDB::XHARDWAREBPREG XInfoDB::_bitsToXHARDWAREBP(quint64 nReg, bool bLocal, b
 #ifdef USE_XPROCESS
 void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
-    g_processInfo = processInfo;
+    m_processInfo = processInfo;
     // g_mode = MODE_PROCESS;
 
     // g_nMainModuleAddress = processInfo.nImageBase;
@@ -1438,17 +1438,17 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 #ifdef USE_XPROCESS
 XInfoDB::PROCESS_INFO *XInfoDB::getProcessInfo()
 {
-    return &g_processInfo;
+    return &m_processInfo;
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 {
     // TODO HASH !!!
-    g_statusCurrent.listRegsPrev = g_statusCurrent.listRegs;  // TODO save nThreadID
+    m_statusCurrent.listRegsPrev = m_statusCurrent.listRegs;  // TODO save nThreadID
 
-    g_statusCurrent.listRegs.clear();
-    g_statusCurrent.nThreadId = nThreadId;
+    m_statusCurrent.listRegs.clear();
+    m_statusCurrent.nThreadId = nThreadId;
 
 #ifdef Q_OS_LINUX
     if (regOptions.bGeneral || regOptions.bIP || regOptions.bFlags || regOptions.bSegments) {
@@ -1565,7 +1565,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 #ifdef USE_XPROCESS
 void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOptions)
 {
-    g_statusCurrent.hThread = hThread;
+    m_statusCurrent.hThread = hThread;
 
 #ifdef Q_OS_WIN
     CONTEXT context = {};
@@ -1575,12 +1575,12 @@ void XInfoDB::updateRegsByHandle(X_HANDLE hThread, const XREG_OPTIONS &regOption
     if (GetThreadContext(hThread, &context)) {
         quint32 nRegistersHash = XBinary::_getCRC32((char *)&context, sizeof(context), 0, XBinary::_getCRC32Table_EDB88320());
 
-        if (g_statusCurrent.nRegistersHash != nRegistersHash) {
-            g_statusCurrent.nRegistersHash = nRegistersHash;
+        if (m_statusCurrent.nRegistersHash != nRegistersHash) {
+            m_statusCurrent.nRegistersHash = nRegistersHash;
 
-            g_statusCurrent.listRegsPrev = g_statusCurrent.listRegs;  // TODO save nThreadID
+            m_statusCurrent.listRegsPrev = m_statusCurrent.listRegs;  // TODO save nThreadID
 
-            g_statusCurrent.listRegs.clear();
+            m_statusCurrent.listRegs.clear();
 
             if (regOptions.bGeneral) {
 #ifdef Q_PROCESSOR_X86_32
@@ -1760,21 +1760,21 @@ void XInfoDB::updateMemoryRegionsList()
     // TODO watch changes
     //    g_statusPrev.listMemoryRegions = g_statusCurrent.listMemoryRegions;
 #ifdef Q_OS_WIN
-    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Handle(g_processInfo.hProcess);
+    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Handle(m_processInfo.hProcess);
 #endif
 #ifdef Q_OS_LINUX
-    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Id(g_processInfo.nProcessID);
+    quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Id(m_processInfo.nProcessID);
 #endif
 #ifdef Q_OS_MAC
     quint32 nMemoryRegionsHash = 0;  // TODO
 #endif
-    if (g_statusCurrent.nMemoryRegionsHash != nMemoryRegionsHash) {
-        g_statusCurrent.nMemoryRegionsHash = nMemoryRegionsHash;
+    if (m_statusCurrent.nMemoryRegionsHash != nMemoryRegionsHash) {
+        m_statusCurrent.nMemoryRegionsHash = nMemoryRegionsHash;
 #ifdef Q_OS_WIN
-        g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
+    m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
-        g_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(g_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
+    m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
         emit memoryRegionsListChanged();
     }
@@ -1785,11 +1785,11 @@ void XInfoDB::updateModulesList()
 {
     // mb TODO function for compare 2 lists
     //    g_statusPrev.listModules = g_statusCurrent.listModules;
-    quint32 nModulesHash = XProcess::getModulesListHash(g_processInfo.nProcessID);
+    quint32 nModulesHash = XProcess::getModulesListHash(m_processInfo.nProcessID);
 
-    if (g_statusCurrent.nModulesHash != nModulesHash) {
-        g_statusCurrent.nModulesHash = nModulesHash;
-        g_statusCurrent.listModules = XProcess::getModulesList(g_processInfo.nProcessID);
+    if (m_statusCurrent.nModulesHash != nModulesHash) {
+        m_statusCurrent.nModulesHash = nModulesHash;
+        m_statusCurrent.listModules = XProcess::getModulesList(m_processInfo.nProcessID);
 
         emit modulesListChanged();
     }
@@ -1800,11 +1800,11 @@ void XInfoDB::updateThreadsList()
 {
     // mb TODO function for compare 2 lists
     //    g_statusPrev.listModules = g_statusCurrent.listModules;
-    quint32 nThreadsHash = XProcess::getThreadsListHash(g_processInfo.nProcessID);
+    quint32 nThreadsHash = XProcess::getThreadsListHash(m_processInfo.nProcessID);
 
-    if (g_statusCurrent.nThreadsHash != nThreadsHash) {
-        g_statusCurrent.nThreadsHash = nThreadsHash;
-        g_statusCurrent.listThreads = XProcess::getThreadsList(g_processInfo.nProcessID);
+    if (m_statusCurrent.nThreadsHash != nThreadsHash) {
+        m_statusCurrent.nThreadsHash = nThreadsHash;
+        m_statusCurrent.listThreads = XProcess::getThreadsList(m_processInfo.nProcessID);
 
         emit threadsListChanged();
     }
@@ -1813,13 +1813,13 @@ void XInfoDB::updateThreadsList()
 #ifdef USE_XPROCESS
 XBinary::XVARIANT XInfoDB::getCurrentRegCache(XREG reg)
 {
-    return _getRegCache(&(g_statusCurrent.listRegs), reg);
+    return _getRegCache(&(m_statusCurrent.listRegs), reg);
 }
 #endif
 #ifdef USE_XPROCESS
 void XInfoDB::setCurrentRegCache(XREG reg, XBinary::XVARIANT variant)
 {
-    _setRegCache(&(g_statusCurrent.listRegs), reg, variant);
+    _setRegCache(&(m_statusCurrent.listRegs), reg, variant);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -1970,10 +1970,10 @@ bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
 {
     bool bResult = false;
 #ifdef Q_OS_WIN
-    bResult = setCurrentRegByThread(g_statusCurrent.hThread, reg, variant);
+    bResult = setCurrentRegByThread(m_statusCurrent.hThread, reg, variant);
 #endif
 #ifdef Q_OS_LINUX
-    bResult = setCurrentRegById(g_statusCurrent.nThreadId, reg, variant);
+    bResult = setCurrentRegById(m_statusCurrent.nThreadId, reg, variant);
 #endif
     return bResult;
 }
@@ -1981,19 +1981,19 @@ bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
 #ifdef USE_XPROCESS
 QList<XProcess::MEMORY_REGION> *XInfoDB::getCurrentMemoryRegionsList()
 {
-    return &(g_statusCurrent.listMemoryRegions);
+    return &(m_statusCurrent.listMemoryRegions);
 }
 #endif
 #ifdef USE_XPROCESS
 QList<XProcess::MODULE> *XInfoDB::getCurrentModulesList()
 {
-    return &(g_statusCurrent.listModules);
+    return &(m_statusCurrent.listModules);
 }
 #endif
 #ifdef USE_XPROCESS
 QList<XProcess::THREAD_INFO> *XInfoDB::getCurrentThreadsList()
 {
-    return &(g_statusCurrent.listThreads);
+    return &(m_statusCurrent.listThreads);
 }
 #endif
 #ifdef USE_XPROCESS
@@ -2004,7 +2004,7 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
     bool bResult = false;
 
     if ((_breakPoint.bpType == BPT_CODE_SOFTWARE_DEFAULT) || (_breakPoint.bpType == BPT_UNKNOWN)) {
-        _breakPoint.bpType = g_bpTypeDefault;
+    _breakPoint.bpType = m_bpTypeDefault;
     }
 
     if (_breakPoint.sUUID == "") {
@@ -2053,12 +2053,12 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\x0B", _breakPoint.nDataSize);
         }
 
-        g_listBreakpoints.append(_breakPoint);
+    m_listBreakpoints.append(_breakPoint);
 
         if (enableBreakPoint(_breakPoint.sUUID)) {
             bResult = true;
         } else {
-            g_listBreakpoints.removeLast();
+            m_listBreakpoints.removeLast();
         }
     } else if ((_breakPoint.bpType == BPT_CODE_STEP_TO_RESTORE) || (_breakPoint.bpType == BPT_CODE_STEP_FLAG)) {
         bResult = _setStep_Id(_breakPoint.nThreadID);
@@ -2073,11 +2073,11 @@ bool XInfoDB::removeBreakPoint(const QString &sUUID)
     bool bResult = false;
 
     if (disableBreakPoint(sUUID)) {
-        qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
         for (qint32 i = nNumberOfRecords - 1; i >= 0; i--) {
-            if (g_listBreakpoints.at(i).sUUID == sUUID) {
-                g_listBreakpoints.removeAt(i);
+            if (m_listBreakpoints.at(i).sUUID == sUUID) {
+                m_listBreakpoints.removeAt(i);
 
                 bResult = true;
 
@@ -2097,11 +2097,11 @@ bool XInfoDB::isBreakPointPresent(const BREAKPOINT &breakPoint)
     BREAKPOINT result = {};
     result.nAddress = -1;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if ((g_listBreakpoints.at(i).nAddress == breakPoint.nAddress) && (g_listBreakpoints.at(i).bpType == breakPoint.bpType) &&
-            (g_listBreakpoints.at(i).nThreadID == breakPoint.nThreadID)) {
+        if ((m_listBreakpoints.at(i).nAddress == breakPoint.nAddress) && (m_listBreakpoints.at(i).bpType == breakPoint.bpType) &&
+            (m_listBreakpoints.at(i).nThreadID == breakPoint.nThreadID)) {
             bResult = true;
             break;
         }
@@ -2114,27 +2114,27 @@ bool XInfoDB::enableBreakPoint(const QString &sUUID)
 {
     bool bResult = false;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
-                if (read_array(g_listBreakpoints.at(i).nAddress, g_listBreakpoints[i].origData, g_listBreakpoints.at(i).nDataSize) == g_listBreakpoints.at(i).nDataSize) {
-                    if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).bpData, g_listBreakpoints.at(i).nDataSize)) {
+        if (m_listBreakpoints.at(i).sUUID == sUUID) {
+            if ((m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
+                if (read_array(m_listBreakpoints.at(i).nAddress, m_listBreakpoints[i].origData, m_listBreakpoints.at(i).nDataSize) == m_listBreakpoints.at(i).nDataSize) {
+                    if (write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).bpData, m_listBreakpoints.at(i).nDataSize)) {
                         bResult = true;
                     }
                 }
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
+            } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
-                bResult = _setStep_Id(g_listBreakpoints.at(i).nThreadID);
+            } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
+                bResult = _setStep_Id(m_listBreakpoints.at(i).nThreadID);
             }
 
             break;
@@ -2149,24 +2149,24 @@ bool XInfoDB::disableBreakPoint(const QString &sUUID)
 {
     bool bResult = false;
 
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        if (g_listBreakpoints.at(i).sUUID == sUUID) {
-            if ((g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
-                (g_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
-                if (write_array(g_listBreakpoints.at(i).nAddress, (char *)g_listBreakpoints.at(i).origData, g_listBreakpoints.at(i).nDataSize)) {
+        if (m_listBreakpoints.at(i).sUUID == sUUID) {
+            if ((m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_HLT) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_CLI) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_STI) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSB) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
+                if (write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).origData, m_listBreakpoints.at(i).nDataSize)) {
                     bResult = true;
                 }
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
-                       (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
+            } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
+                       (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR2) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR3)) {
                 // TODO
-            } else if ((g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (g_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
+            } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_FLAG) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_STEP_TO_RESTORE)) {
                 // mb TODO
                 bResult = true;
             }
@@ -2179,14 +2179,14 @@ bool XInfoDB::disableBreakPoint(const QString &sUUID)
 #ifdef USE_XPROCESS
 QList<XInfoDB::BREAKPOINT> *XInfoDB::getBreakpoints()
 {
-    return &g_listBreakpoints;
+    return &m_listBreakpoints;
 }
 #endif
 #ifdef USE_XPROCESS
 #ifdef Q_OS_LINUX
 QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 {
-    return &g_mapThreadBreakpoints;
+    return &m_mapThreadBreakpoints;
 }
 #endif
 #endif
@@ -3955,7 +3955,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
 
 bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    if (!g_mapProfiles.contains(fileType)) {
+    if (!m_mapProfiles.contains(fileType)) {
         return false;
     }
 
@@ -4561,10 +4561,10 @@ bool XInfoDB::addSymbolOrUpdateFlags(STATE *pState, XADDR nAddress, quint32 nSiz
 void XInfoDB::dumpBookmarks()
 {
 #ifdef QT_DEBUG
-    qint32 nNumberOfBookmarks = g_listBookmarks.count();
+    qint32 nNumberOfBookmarks = m_listBookmarks.count();
 
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
-        BOOKMARKRECORD bookmark = g_listBookmarks.at(i);
+    BOOKMARKRECORD bookmark = m_listBookmarks.at(i);
 
         QString sDebugString =
             QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
@@ -4588,7 +4588,7 @@ void XInfoDB::dumpSymbols(XBinary::FT fileType)
         QString sSymbolName = "";
 
         if (symbol.nStringIndex != (quint16)-1) {
-            sSymbolName = g_mapProfiles.value(XBinary::FT_MACHO64)->listStrings.at(symbol.nStringIndex);
+            sSymbolName = m_mapProfiles.value(XBinary::FT_MACHO64)->listStrings.at(symbol.nStringIndex);
         }
 
         QString sDebugString = QString("%1 %2 %3 %4 %5")
@@ -4756,7 +4756,7 @@ XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
         result = fileType;
     }
 
-    if (!g_mapProfiles.contains(result)) {
+    if (!m_mapProfiles.contains(result)) {
         XInfoDB::STATE *pState = new STATE;
         pState->bIsAnalyzed = false;
         pState->nCurrentBranch = 0;
@@ -4772,7 +4772,7 @@ XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
 
         pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
 
-        g_mapProfiles.insert(result, pState);
+    m_mapProfiles.insert(result, pState);
     }
 
     return result;
@@ -5134,7 +5134,7 @@ void XInfoDB::updateFunctionSize(XADDR nAddress, qint64 nSize)
 
 QString XInfoDB::_addBookmarkRecord(const BOOKMARKRECORD &record)
 {
-    g_listBookmarks.append(record);
+    m_listBookmarks.append(record);
 
     return record.sUUID;
 }
@@ -5143,11 +5143,11 @@ bool XInfoDB::_removeBookmarkRecord(const QString &sUUID)
 {
     bool bResult = false;
 
-    qint32 nNumberOfBookmarks = g_listBookmarks.size();
+    qint32 nNumberOfBookmarks = m_listBookmarks.size();
 
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
-        if (g_listBookmarks.at(i).sUUID == sUUID) {
-            g_listBookmarks.removeAt(i);
+        if (m_listBookmarks.at(i).sUUID == sUUID) {
+            m_listBookmarks.removeAt(i);
             bResult = true;
             break;
         }
@@ -5180,16 +5180,16 @@ bool XInfoDB::removeBookmarkRecord(const QString &sUUID)
 
 QVector<XInfoDB::BOOKMARKRECORD> *XInfoDB::getBookmarkRecords()
 {
-    return &g_listBookmarks;
+    return &m_listBookmarks;
 }
 
 QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, XBinary::LT locationType, qint64 nSize, XBinary::PDSTRUCT *pPdStruct)
 {
     QVector<XInfoDB::BOOKMARKRECORD> listResult;
 
-    qint32 nNumberOfRecords = g_listBookmarks.size();
+    qint32 nNumberOfRecords = m_listBookmarks.size();
     for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-        const BOOKMARKRECORD &record = g_listBookmarks.at(i);
+    const BOOKMARKRECORD &record = m_listBookmarks.at(i);
 
         bool bMatch = true;
 
@@ -5212,11 +5212,11 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
 
 void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 {
-    qint32 nNumberOfBookmarks = g_listBookmarks.size();
+    qint32 nNumberOfBookmarks = m_listBookmarks.size();
 
     for (int i = 0; i < nNumberOfBookmarks; i++) {
-        if (g_listBookmarks.at(i).sUUID == record.sUUID) {
-            g_listBookmarks[i] = record;
+        if (m_listBookmarks.at(i).sUUID == record.sUUID) {
+            m_listBookmarks[i] = record;
             setDatabaseChanged(true);
             break;
         }
@@ -5225,11 +5225,11 @@ void XInfoDB::updateBookmarkRecord(BOOKMARKRECORD &record)
 
 void XInfoDB::updateBookmarkRecordColorBackground(const QString &sUUID, const QString &sColorBackground)
 {
-    qint32 nNumberOfBookmarks = g_listBookmarks.size();
+    qint32 nNumberOfBookmarks = m_listBookmarks.size();
 
     for (int i = 0; i < nNumberOfBookmarks; i++) {
-        if (g_listBookmarks.at(i).sUUID == sUUID) {
-            g_listBookmarks[i].sColorBackground = sColorBackground;
+        if (m_listBookmarks.at(i).sUUID == sUUID) {
+            m_listBookmarks[i].sColorBackground = sColorBackground;
             setDatabaseChanged(true);
             break;
         }
@@ -5238,11 +5238,11 @@ void XInfoDB::updateBookmarkRecordColorBackground(const QString &sUUID, const QS
 
 void XInfoDB::updateBookmarkRecordComment(const QString &sUUID, const QString &sComment)
 {
-    qint32 nNumberOfBookmarks = g_listBookmarks.size();
+    qint32 nNumberOfBookmarks = m_listBookmarks.size();
 
     for (int i = 0; i < nNumberOfBookmarks; i++) {
-        if (g_listBookmarks.at(i).sUUID == sUUID) {
-            g_listBookmarks[i].sComment = sComment;
+        if (m_listBookmarks.at(i).sUUID == sUUID) {
+            m_listBookmarks[i].sComment = sComment;
             setDatabaseChanged(true);
             break;
         }
@@ -5421,7 +5421,7 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
             }
 
             if (nNumberOfRecords > 0) {
-                g_listBookmarks.clear();
+                m_listBookmarks.clear();
 
                 querySQL(&query, QString("SELECT UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER FROM BOOKMARKS"), false);
 
@@ -5464,7 +5464,7 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
             qint32 nNumberOfKeys = listKeys.count();
 
             for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-                STATE *pState = g_mapProfiles.value(listKeys.at(i));
+                STATE *pState = m_mapProfiles.value(listKeys.at(i));
 
                 if (pState) {
                     pState->listStrings.clear();
@@ -5542,7 +5542,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
         createTable(&dataBase, DBTABLE_RECORDS);
         createTable(&dataBase, DBTABLE_REFINFO);
 
-        QList<XBinary::FT> listKeys = g_mapProfiles.keys();
+    QList<XBinary::FT> listKeys = m_mapProfiles.keys();
 
         QSqlQuery query(dataBase);
 
@@ -5551,13 +5551,13 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
         if (XBinary::isPdStructNotCanceled(pPdStruct)) {
             querySQL(&query, QString("DELETE FROM BOOKMARKS"), true);
 
-            qint32 nNumberOfRecords = g_listBookmarks.count();
+            qint32 nNumberOfRecords = m_listBookmarks.count();
 
             query.prepare(
                 "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-                const BOOKMARKRECORD &record = g_listBookmarks.at(i);
+                const BOOKMARKRECORD &record = m_listBookmarks.at(i);
 
                 query.bindValue(0, record.sUUID);
                 query.bindValue(1, record.nLocation);
@@ -5577,7 +5577,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
             qint32 nNumberOfKeys = listKeys.count();
 
             for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-                STATE *pState = g_mapProfiles.value(listKeys.at(i));
+                STATE *pState = m_mapProfiles.value(listKeys.at(i));
 
                 if (pState) {
                     if (XBinary::isPdStructNotCanceled(pPdStruct)) {
@@ -5837,12 +5837,12 @@ QString XInfoDB::_convertOpcodeString(const QString &sString, XADDR nAddress, co
 
 void XInfoDB::setDatabaseChanged(bool bState)
 {
-    g_bIsDatabaseChanged = bState;
+    m_bIsDatabaseChanged = bState;
 }
 
 bool XInfoDB::isDatabaseChanged()
 {
-    return g_bIsDatabaseChanged;
+    return m_bIsDatabaseChanged;
 }
 
 bool XInfoDB::isAnalyzed(XBinary::FT fileType)
@@ -5850,7 +5850,7 @@ bool XInfoDB::isAnalyzed(XBinary::FT fileType)
     bool bResult = false;
 
     if (isStatePresent(fileType)) {
-        bResult = g_mapProfiles.value(fileType)->bIsAnalyzed;
+    bResult = m_mapProfiles.value(fileType)->bIsAnalyzed;
     }
 
     return bResult;
@@ -5858,12 +5858,12 @@ bool XInfoDB::isAnalyzed(XBinary::FT fileType)
 
 bool XInfoDB::isStatePresent(XBinary::FT fileType)
 {
-    return g_mapProfiles.contains(fileType);
+    return m_mapProfiles.contains(fileType);
 }
 
 XInfoDB::STATE *XInfoDB::getState(XBinary::FT fileType)
 {
-    return g_mapProfiles.value(fileType);
+    return m_mapProfiles.value(fileType);
 }
 
 void XInfoDB::readDataSlot(quint64 nOffset, char *pData, qint64 nSize)
