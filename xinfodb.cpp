@@ -3085,7 +3085,7 @@ void XInfoDB::vacuumDb()
 
 void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
-    g_pMutexSQL->lock();
+    m_pMutexSQL->lock();
 
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
@@ -3190,7 +3190,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
     // #endif
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
-    g_pMutexSQL->unlock();
+    m_pMutexSQL->unlock();
 }
 
 void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
@@ -3254,7 +3254,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     // mb TODO get all symbol info if init
     bool bResult = false;
 #ifdef QT_SQL_LIB
-    g_pMutexSQL->lock();
+    m_pMutexSQL->lock();
 
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
@@ -3936,7 +3936,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     _completeDbAnalyze();
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
-    g_pMutexSQL->unlock();
+    m_pMutexSQL->unlock();
 
     if (XBinary::isPdStructNotCanceled(pPdStruct)) {
         bResult = true;
@@ -5788,13 +5788,13 @@ void XInfoDB::testFunction()
 
 void XInfoDB::setDebuggerState(bool bState)
 {
-    g_bIsDebugger = bState;
+    m_bIsDebugger = bState;
     initDB();
 }
 
 bool XInfoDB::isDebugger()
 {
-    return g_bIsDebugger;
+    return m_bIsDebugger;
 }
 
 QString XInfoDB::convertOpcodeString(XDisasmAbstract::DISASM_RESULT disasmResult, const XInfoDB::RI_TYPE &riType, const XDisasmAbstract::DISASM_OPTIONS &disasmOptions)
