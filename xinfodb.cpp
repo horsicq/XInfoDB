@@ -504,7 +504,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo)
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 {
     if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-    bpType = m_bpTypeDefault;
+        bpType = m_bpTypeDefault;
     }
 
     BREAKPOINT result = {};
@@ -527,7 +527,7 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByAddress(XADDR nAddress, BPT bpType)
 XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAddress, BPT bpType)
 {
     if (bpType == BPT_CODE_SOFTWARE_DEFAULT) {
-    bpType = m_bpTypeDefault;
+        bpType = m_bpTypeDefault;
     }
 
     BREAKPOINT result = {};
@@ -536,9 +536,9 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
     qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
+        XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-    if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (m_listBreakpoints.at(i).bpType == bpType)) {
+        if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (m_listBreakpoints.at(i).bpType == bpType)) {
             result = breakPoint;
 
             break;
@@ -557,9 +557,9 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByThreadID(X_ID nThreadID, BPT bpType
     qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
+        XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-    if ((breakPoint.nThreadID == nThreadID) && (m_listBreakpoints.at(i).bpType == bpType)) {
+        if ((breakPoint.nThreadID == nThreadID) && (m_listBreakpoints.at(i).bpType == bpType)) {
             result = breakPoint;
 
             break;
@@ -615,7 +615,7 @@ qint32 XInfoDB::getThreadBreakpointsCount(X_ID nThreadID)
     qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-    if (m_listBreakpoints.at(i).nThreadID == nThreadID) {
+        if (m_listBreakpoints.at(i).nThreadID == nThreadID) {
             nResult++;
         }
     }
@@ -812,7 +812,7 @@ bool XInfoDB::removeFunctionHook(const QString &sFunctionName)
 
     // TODO Check!
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-    XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
+        XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
         if (breakPoint.vInfo.toString() == sFunctionName) {
             m_listBreakpoints.removeAt(i);
@@ -1771,10 +1771,10 @@ void XInfoDB::updateMemoryRegionsList()
     if (m_statusCurrent.nMemoryRegionsHash != nMemoryRegionsHash) {
         m_statusCurrent.nMemoryRegionsHash = nMemoryRegionsHash;
 #ifdef Q_OS_WIN
-    m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
+        m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcess, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
 #ifdef Q_OS_LINUX
-    m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
+        m_statusCurrent.listMemoryRegions = XProcess::getMemoryRegionsList_Handle(m_processInfo.hProcessMemoryQuery, 0, 0xFFFFFFFFFFFFFFFF);
 #endif
         emit memoryRegionsListChanged();
     }
@@ -2004,7 +2004,7 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
     bool bResult = false;
 
     if ((_breakPoint.bpType == BPT_CODE_SOFTWARE_DEFAULT) || (_breakPoint.bpType == BPT_UNKNOWN)) {
-    _breakPoint.bpType = m_bpTypeDefault;
+        _breakPoint.bpType = m_bpTypeDefault;
     }
 
     if (_breakPoint.sUUID == "") {
@@ -2053,7 +2053,7 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\x0B", _breakPoint.nDataSize);
         }
 
-    m_listBreakpoints.append(_breakPoint);
+        m_listBreakpoints.append(_breakPoint);
 
         if (enableBreakPoint(_breakPoint.sUUID)) {
             bResult = true;
@@ -2073,7 +2073,7 @@ bool XInfoDB::removeBreakPoint(const QString &sUUID)
     bool bResult = false;
 
     if (disableBreakPoint(sUUID)) {
-    qint32 nNumberOfRecords = m_listBreakpoints.count();
+        qint32 nNumberOfRecords = m_listBreakpoints.count();
 
         for (qint32 i = nNumberOfRecords - 1; i >= 0; i--) {
             if (m_listBreakpoints.at(i).sUUID == sUUID) {
@@ -4564,7 +4564,7 @@ void XInfoDB::dumpBookmarks()
     qint32 nNumberOfBookmarks = m_listBookmarks.count();
 
     for (qint32 i = 0; i < nNumberOfBookmarks; i++) {
-    BOOKMARKRECORD bookmark = m_listBookmarks.at(i);
+        BOOKMARKRECORD bookmark = m_listBookmarks.at(i);
 
         QString sDebugString =
             QString("%1 %2 %3 %4 %5 %6 %7 %8 %9")
@@ -4772,7 +4772,7 @@ XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
 
         pState->disasmCore.setMode(XBinary::getDisasmMode(&pState->memoryMap));
 
-    m_mapProfiles.insert(result, pState);
+        m_mapProfiles.insert(result, pState);
     }
 
     return result;
@@ -5189,7 +5189,7 @@ QVector<XInfoDB::BOOKMARKRECORD> XInfoDB::getBookmarkRecords(quint64 nLocation, 
 
     qint32 nNumberOfRecords = m_listBookmarks.size();
     for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
-    const BOOKMARKRECORD &record = m_listBookmarks.at(i);
+        const BOOKMARKRECORD &record = m_listBookmarks.at(i);
 
         bool bMatch = true;
 
@@ -5542,7 +5542,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
         createTable(&dataBase, DBTABLE_RECORDS);
         createTable(&dataBase, DBTABLE_REFINFO);
 
-    QList<XBinary::FT> listKeys = m_mapProfiles.keys();
+        QList<XBinary::FT> listKeys = m_mapProfiles.keys();
 
         QSqlQuery query(dataBase);
 
@@ -5850,7 +5850,7 @@ bool XInfoDB::isAnalyzed(XBinary::FT fileType)
     bool bResult = false;
 
     if (isStatePresent(fileType)) {
-    bResult = m_mapProfiles.value(fileType)->bIsAnalyzed;
+        bResult = m_mapProfiles.value(fileType)->bIsAnalyzed;
     }
 
     return bResult;
