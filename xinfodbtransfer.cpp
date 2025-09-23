@@ -26,7 +26,7 @@ XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : XThreadObject(pParent)
     g_transferType = COMMAND_ANALYZEALL;
     g_options = {};
     g_pResult = nullptr;
-    g_pPdStruct = nullptr;
+    m_pPdStruct = nullptr;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     g_pListImports = nullptr;
@@ -39,7 +39,7 @@ void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPT
     g_pXInfoDB = pXInfoDB;
     g_transferType = transferType;
     g_options = options;
-    g_pPdStruct = pPdStruct;
+    m_pPdStruct = pPdStruct;
 }
 
 void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, RESULT *pResult, XBinary::PDSTRUCT *pPdStruct)
@@ -47,7 +47,7 @@ void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, RESU
     g_transferType = transferType;
     g_options = options;
     g_pResult = pResult;
-    g_pPdStruct = pPdStruct;
+    m_pPdStruct = pPdStruct;
 }
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
@@ -56,7 +56,7 @@ void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, QLis
     g_transferType = transferType;
     g_options = options;
     g_pListImports = pListImports;
-    g_pPdStruct = pPdStruct;
+    m_pPdStruct = pPdStruct;
 }
 #endif
 #endif
@@ -67,8 +67,8 @@ void XInfoDBTransfer::process()
 #endif
     // TODO get string are not in code
 
-    qint32 _nFreeIndex = XBinary::getFreeIndex(g_pPdStruct);
-    XBinary::setPdStructInit(g_pPdStruct, _nFreeIndex, 0);
+    qint32 _nFreeIndex = XBinary::getFreeIndex(m_pPdStruct);
+    XBinary::setPdStructInit(m_pPdStruct, _nFreeIndex, 0);
 
     if (g_pXInfoDB) {
         if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE)) {
@@ -92,7 +92,7 @@ void XInfoDBTransfer::process()
             if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE)) {
                 if (pDevice) {
                     g_pXInfoDB->addMode(g_options.pDevice, g_options.fileType);
-                    g_pXInfoDB->_analyze(g_options.fileType, g_pPdStruct);
+                    g_pXInfoDB->_analyze(g_options.fileType, m_pPdStruct);
                 }
             }
 
@@ -104,11 +104,11 @@ void XInfoDBTransfer::process()
                 delete pFile;
             }
         } else if (g_transferType == COMMAND_IMPORT) {
-            g_pXInfoDB->saveDbToFile(g_options.sDatabaseFileName, g_pPdStruct);
+            g_pXInfoDB->saveDbToFile(g_options.sDatabaseFileName, m_pPdStruct);
         } else if (g_transferType == COMMAND_EXPORT) {
-            g_pXInfoDB->loadDbFromFile(g_options.pDevice, g_options.sDatabaseFileName, g_pPdStruct);
+            g_pXInfoDB->loadDbFromFile(g_options.pDevice, g_options.sDatabaseFileName, m_pPdStruct);
         }
     }
 
-    XBinary::setPdStructFinished(g_pPdStruct, _nFreeIndex);
+    XBinary::setPdStructFinished(m_pPdStruct, _nFreeIndex);
 }

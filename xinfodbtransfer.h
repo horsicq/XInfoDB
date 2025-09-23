@@ -68,7 +68,7 @@ private:
     COMMAND g_transferType;
     OPTIONS g_options;
     RESULT *g_pResult;
-    XBinary::PDSTRUCT *g_pPdStruct;
+    XBinary::PDSTRUCT *m_pPdStruct;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
     QList<XPE::IMPORT_RECORD> *g_pListImports;
