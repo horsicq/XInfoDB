@@ -55,7 +55,7 @@ private:
     QAction *g_pActionExport;
     QAction *g_pActionImport;
     XInfoDB *g_pXInfoDB;
-    QIODevice *g_pDevice;
+    QIODevice *m_pDevice;
     QString g_sDatabaseFileName;
 };
 

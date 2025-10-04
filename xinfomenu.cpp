@@ -30,7 +30,7 @@ XInfoMenu::XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions)
     g_pActionExport = nullptr;
     g_pActionImport = nullptr;
     g_pXInfoDB = nullptr;
-    g_pDevice = nullptr;
+    m_pDevice = nullptr;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
@@ -69,7 +69,7 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB)
 void XInfoMenu::setData(XInfoDB *pXInfoDB, QIODevice *pDevice, const QString &sDatabaseFileName)
 {
     setData(pXInfoDB);
-    g_pDevice = pDevice;
+    m_pDevice = pDevice;
     g_sDatabaseFileName = sDatabaseFileName;
 }
 
@@ -172,7 +172,7 @@ void XInfoMenu::load(const QString &sFileName)
 {
     XInfoDBTransfer::OPTIONS options = {};
     options.sDatabaseFileName = sFileName;
-    options.pDevice = g_pDevice;
+    options.pDevice = m_pDevice;
     // options.nModuleAddress = -1;
 
     XInfoDBTransfer infoTransfer;
