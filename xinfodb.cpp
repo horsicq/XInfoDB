@@ -1408,7 +1408,7 @@ XInfoDB::XHARDWAREBPREG XInfoDB::_bitsToXHARDWAREBP(quint64 nReg, bool bLocal, b
 void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 {
     m_processInfo = processInfo;
-    // g_mode = MODE_PROCESS;
+    // m_mode = MODE_PROCESS;
 
     // g_nMainModuleAddress = processInfo.nImageBase;
     // g_nMainModuleSize = processInfo.nImageSize;

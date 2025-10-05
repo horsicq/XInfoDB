@@ -924,7 +924,7 @@ private:
     QList<THREAD_INFO> m_listThreadInfos;
     QMap<QString, FUNCTIONHOOK_INFO> m_mapFunctionHookInfos;  // TODO QList
 #endif
-    // MODE g_mode;  // TODO remove
+    // MODE m_mode;  // TODO remove
     // MODE g_defaultMode;
 #ifdef USE_XPROCESS
     STATUS m_statusCurrent;
