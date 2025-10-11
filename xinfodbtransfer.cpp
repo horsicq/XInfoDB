@@ -22,40 +22,40 @@
 
 XInfoDBTransfer::XInfoDBTransfer(QObject *pParent) : XThreadObject(pParent)
 {
-    g_pXInfoDB = nullptr;
-    g_transferType = COMMAND_ANALYZEALL;
-    g_options = {};
-    g_pResult = nullptr;
+    m_pXInfoDB = nullptr;
+    m_transferType = COMMAND_ANALYZEALL;
+    m_options = {};
+    m_pResult = nullptr;
     m_pPdStruct = nullptr;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    g_pListImports = nullptr;
+    m_pListImports = nullptr;
 #endif
 #endif
 }
 
 void XInfoDBTransfer::setData(XInfoDB *pXInfoDB, COMMAND transferType, const OPTIONS &options, XBinary::PDSTRUCT *pPdStruct)
 {
-    g_pXInfoDB = pXInfoDB;
-    g_transferType = transferType;
-    g_options = options;
+    m_pXInfoDB = pXInfoDB;
+    m_transferType = transferType;
+    m_options = options;
     m_pPdStruct = pPdStruct;
 }
 
 void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, RESULT *pResult, XBinary::PDSTRUCT *pPdStruct)
 {
-    g_transferType = transferType;
-    g_options = options;
-    g_pResult = pResult;
+    m_transferType = transferType;
+    m_options = options;
+    m_pResult = pResult;
     m_pPdStruct = pPdStruct;
 }
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
 void XInfoDBTransfer::setData(COMMAND transferType, const OPTIONS &options, QList<XPE::IMPORT_RECORD> *pListImports, XBinary::PDSTRUCT *pPdStruct)
 {
-    g_transferType = transferType;
-    g_options = options;
-    g_pListImports = pListImports;
+    m_transferType = transferType;
+    m_options = options;
+    m_pListImports = pListImports;
     m_pPdStruct = pPdStruct;
 }
 #endif
@@ -70,17 +70,17 @@ void XInfoDBTransfer::process()
     qint32 _nFreeIndex = XBinary::getFreeIndex(m_pPdStruct);
     XBinary::setPdStructInit(m_pPdStruct, _nFreeIndex, 0);
 
-    if (g_pXInfoDB) {
-        if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE)) {
+    if (m_pXInfoDB) {
+        if ((m_transferType == COMMAND_ANALYZEALL) || (m_transferType == COMMAND_ANALYZE)) {
             bool bFile = false;
-            QIODevice *pDevice = g_options.pDevice;
+            QIODevice *pDevice = m_options.pDevice;
 
-            if ((!g_options.pDevice) && (g_options.sDatabaseFileName != "")) {
+            if ((!m_options.pDevice) && (m_options.sDatabaseFileName != "")) {
                 bFile = true;
 
                 QFile *pFile = new QFile;
 
-                pFile->setFileName(g_options.sDatabaseFileName);
+                pFile->setFileName(m_options.sDatabaseFileName);
 
                 if (pFile->open(QIODevice::ReadOnly)) {
                     pDevice = pFile;
@@ -89,10 +89,10 @@ void XInfoDBTransfer::process()
                 }
             }
 
-            if ((g_transferType == COMMAND_ANALYZEALL) || (g_transferType == COMMAND_ANALYZE)) {
+            if ((m_transferType == COMMAND_ANALYZEALL) || (m_transferType == COMMAND_ANALYZE)) {
                 if (pDevice) {
-                    g_pXInfoDB->addMode(g_options.pDevice, g_options.fileType);
-                    g_pXInfoDB->_analyze(g_options.fileType, m_pPdStruct);
+                    m_pXInfoDB->addMode(m_options.pDevice, m_options.fileType);
+                    m_pXInfoDB->_analyze(m_options.fileType, m_pPdStruct);
                 }
             }
 
@@ -103,10 +103,10 @@ void XInfoDBTransfer::process()
 
                 delete pFile;
             }
-        } else if (g_transferType == COMMAND_IMPORT) {
-            g_pXInfoDB->saveDbToFile(g_options.sDatabaseFileName, m_pPdStruct);
-        } else if (g_transferType == COMMAND_EXPORT) {
-            g_pXInfoDB->loadDbFromFile(g_options.pDevice, g_options.sDatabaseFileName, m_pPdStruct);
+        } else if (m_transferType == COMMAND_IMPORT) {
+            m_pXInfoDB->saveDbToFile(m_options.sDatabaseFileName, m_pPdStruct);
+        } else if (m_transferType == COMMAND_EXPORT) {
+            m_pXInfoDB->loadDbFromFile(m_options.pDevice, m_options.sDatabaseFileName, m_pPdStruct);
         }
     }
 

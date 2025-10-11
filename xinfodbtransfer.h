@@ -64,14 +64,14 @@ public:
     virtual void process();
 
 private:
-    XInfoDB *g_pXInfoDB;
-    COMMAND g_transferType;
-    OPTIONS g_options;
-    RESULT *g_pResult;
+    XInfoDB *m_pXInfoDB;
+    COMMAND m_transferType;
+    OPTIONS m_options;
+    RESULT *m_pResult;
     XBinary::PDSTRUCT *m_pPdStruct;
 #ifdef USE_XPROCESS
 #ifdef Q_OS_WIN
-    QList<XPE::IMPORT_RECORD> *g_pListImports;
+    QList<XPE::IMPORT_RECORD> *m_pListImports;
 #endif
 #endif
 };
