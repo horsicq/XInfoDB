@@ -47,16 +47,16 @@ private slots:
     void load(const QString &sFileName);
 
 private:
-    XShortcuts *g_pShortcuts;
-    XOptions *g_pXOptions;
-    QWidget *g_pParent;
-    QMenu *g_pMenu;
-    //    QAction *g_pActionAnalyze;
-    QAction *g_pActionExport;
-    QAction *g_pActionImport;
-    XInfoDB *g_pXInfoDB;
+    XShortcuts *m_pShortcuts;
+    XOptions *m_pXOptions;
+    QWidget *m_pParent;
+    QMenu *m_pMenu;
+    //    QAction *m_pActionAnalyze;
+    QAction *m_pActionExport;
+    QAction *m_pActionImport;
+    XInfoDB *m_pXInfoDB;
     QIODevice *m_pDevice;
-    QString g_sDatabaseFileName;
+    QString m_sDatabaseFileName;
 };
 
 #endif  // XINFOMENU_H

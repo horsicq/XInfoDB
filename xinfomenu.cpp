@@ -22,43 +22,43 @@
 
 XInfoMenu::XInfoMenu(XShortcuts *pShortcuts, XOptions *pXOptions)
 {
-    g_pShortcuts = pShortcuts;
-    g_pXOptions = pXOptions;
-    g_pParent = nullptr;
-    g_pMenu = nullptr;
-    //    g_pActionAnalyze = nullptr;
-    g_pActionExport = nullptr;
-    g_pActionImport = nullptr;
-    g_pXInfoDB = nullptr;
+    m_pShortcuts = pShortcuts;
+    m_pXOptions = pXOptions;
+    m_pParent = nullptr;
+    m_pMenu = nullptr;
+    //    m_pActionAnalyze = nullptr;
+    m_pActionExport = nullptr;
+    m_pActionImport = nullptr;
+    m_pXInfoDB = nullptr;
     m_pDevice = nullptr;
 }
 
 QMenu *XInfoMenu::createMenu(QWidget *pParent)
 {
-    g_pParent = pParent;
+    m_pParent = pParent;
 
-    g_pMenu = new QMenu(tr("Database"), pParent);
+    m_pMenu = new QMenu(tr("Database"), pParent);
 
-    //    g_pActionAnalyze = new QAction(tr("Analyze"), pParent);
-    g_pActionImport = new QAction(tr("Import"), pParent);
-    g_pActionExport = new QAction(tr("Export"), pParent);
+    //    m_pActionAnalyze = new QAction(tr("Analyze"), pParent);
+    m_pActionImport = new QAction(tr("Import"), pParent);
+    m_pActionExport = new QAction(tr("Export"), pParent);
 
-    //    g_pMenu->addAction(g_pActionAnalyze);
-    g_pMenu->addAction(g_pActionExport);
-    g_pMenu->addAction(g_pActionImport);
+    //    m_pMenu->addAction(m_pActionAnalyze);
+    m_pMenu->addAction(m_pActionExport);
+    m_pMenu->addAction(m_pActionImport);
 
-    //    connect(g_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
-    connect(g_pActionExport, SIGNAL(triggered()), this, SLOT(actionExport()));
-    connect(g_pActionImport, SIGNAL(triggered()), this, SLOT(actionImport()));
+    //    connect(m_pActionAnalyze, SIGNAL(triggered()), this, SLOT(actionAnalyze()));
+    connect(m_pActionExport, SIGNAL(triggered()), this, SLOT(actionExport()));
+    connect(m_pActionImport, SIGNAL(triggered()), this, SLOT(actionImport()));
 
     updateMenu();
 
-    return g_pMenu;
+    return m_pMenu;
 }
 
 void XInfoMenu::setData(XInfoDB *pXInfoDB)
 {
-    g_pXInfoDB = pXInfoDB;
+    m_pXInfoDB = pXInfoDB;
 
     if (pXInfoDB) {
         connect(pXInfoDB, SIGNAL(reloadViewSignal()), this, SLOT(updateMenu()));
@@ -70,16 +70,16 @@ void XInfoMenu::setData(XInfoDB *pXInfoDB, QIODevice *pDevice, const QString &sD
 {
     setData(pXInfoDB);
     m_pDevice = pDevice;
-    g_sDatabaseFileName = sDatabaseFileName;
+    m_sDatabaseFileName = sDatabaseFileName;
 }
 
 void XInfoMenu::tryToSave()
 {
-    if (g_pXInfoDB->isDatabaseChanged()) {
+    if (m_pXInfoDB->isDatabaseChanged()) {
         QString _sFileName = getDatabaseFileName();
         QString _sString = QString("%1 \"%2\"?").arg(tr("Save"), _sFileName);
 
-        if (QMessageBox::question(g_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
+        if (QMessageBox::question(m_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
             save(_sFileName);
         }
     }
@@ -92,7 +92,7 @@ void XInfoMenu::tryToLoad()
     if (XBinary::isFileExists(_sFileName)) {
         QString _sString = QString("%1 \"%2\"?").arg(tr("Load"), _sFileName);
 
-        if (QMessageBox::question(g_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
+        if (QMessageBox::question(m_pParent, tr("Database"), _sString) == QMessageBox::Yes) {
             load(_sFileName);
         }
     }
@@ -105,19 +105,19 @@ void XInfoMenu::reset()
 
 QString XInfoMenu::getDatabaseFileName()
 {
-    return g_sDatabaseFileName;
+    return m_sDatabaseFileName;
 }
 
 void XInfoMenu::updateMenu()
 {
-    if (g_pXInfoDB) {
-        bool bIsDatabasePresent = g_pXInfoDB->isDbPresent();
+    if (m_pXInfoDB) {
+        bool bIsDatabasePresent = m_pXInfoDB->isDbPresent();
 
-        g_pActionExport->setEnabled(bIsDatabasePresent);
-        g_pActionImport->setEnabled(true);
+        m_pActionExport->setEnabled(bIsDatabasePresent);
+        m_pActionImport->setEnabled(true);
     } else {
-        g_pActionExport->setEnabled(false);
-        g_pActionImport->setEnabled(false);
+        m_pActionExport->setEnabled(false);
+        m_pActionImport->setEnabled(false);
     }
 }
 
@@ -130,9 +130,9 @@ void XInfoMenu::updateMenu()
 
 void XInfoMenu::actionExport()
 {
-    if (g_pXInfoDB) {
+    if (m_pXInfoDB) {
         QString _sFileName = getDatabaseFileName();
-        _sFileName = QFileDialog::getSaveFileName(g_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database"), tr("All files")));
+        _sFileName = QFileDialog::getSaveFileName(m_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database"), tr("All files")));
 
         if (!_sFileName.isEmpty()) {
             load(_sFileName);
@@ -142,10 +142,10 @@ void XInfoMenu::actionExport()
 
 void XInfoMenu::actionImport()
 {
-    if (g_pXInfoDB) {
+    if (m_pXInfoDB) {
         QString _sFileName;
-        //= XBinary::getDeviceDirectory(g_pXInfoDB->getDevice());
-        _sFileName = QFileDialog::getOpenFileName(g_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
+        //= XBinary::getDeviceDirectory(m_pXInfoDB->getDevice());
+        _sFileName = QFileDialog::getOpenFileName(m_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
 
         if (!_sFileName.isEmpty()) {
             save(_sFileName);
@@ -160,12 +160,12 @@ void XInfoMenu::save(const QString &sFileName)
     // options.nModuleAddress = -1;
 
     XInfoDBTransfer infoTransfer;
-    XDialogProcess dialogTransfer(g_pParent, &infoTransfer);
-    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
-    infoTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options, dialogTransfer.getPdStruct());
+    XDialogProcess dialogTransfer(m_pParent, &infoTransfer);
+    dialogTransfer.setGlobal(m_pShortcuts, m_pXOptions);
+    infoTransfer.setData(m_pXInfoDB, XInfoDBTransfer::COMMAND_IMPORT, options, dialogTransfer.getPdStruct());
     dialogTransfer.start();
     dialogTransfer.showDialogDelay();
-    g_pXInfoDB->reloadView();
+    m_pXInfoDB->reloadView();
 }
 
 void XInfoMenu::load(const QString &sFileName)
@@ -176,10 +176,10 @@ void XInfoMenu::load(const QString &sFileName)
     // options.nModuleAddress = -1;
 
     XInfoDBTransfer infoTransfer;
-    XDialogProcess dialogTransfer(g_pParent, &infoTransfer);
-    dialogTransfer.setGlobal(g_pShortcuts, g_pXOptions);
-    infoTransfer.setData(g_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options, dialogTransfer.getPdStruct());
+    XDialogProcess dialogTransfer(m_pParent, &infoTransfer);
+    dialogTransfer.setGlobal(m_pShortcuts, m_pXOptions);
+    infoTransfer.setData(m_pXInfoDB, XInfoDBTransfer::COMMAND_EXPORT, options, dialogTransfer.getPdStruct());
     dialogTransfer.start();
     dialogTransfer.showDialogDelay();
-    g_pXInfoDB->reloadView();
+    m_pXInfoDB->reloadView();
 }
