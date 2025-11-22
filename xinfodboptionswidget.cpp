@@ -26,7 +26,7 @@ XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : XShortcutsWidget(
 {
     ui->setupUi(this);
 
-    g_pOptions = nullptr;
+    m_pOptions = nullptr;
 
     setProperty("GROUPID", XOptions::GROUPID_INFO);
 }
@@ -43,14 +43,14 @@ void XInfoDBOptionsWidget::adjustView()
 
 void XInfoDBOptionsWidget::setOptions(XOptions *pOptions)
 {
-    g_pOptions = pOptions;
+    m_pOptions = pOptions;
 
     reload();
 }
 
 void XInfoDBOptionsWidget::save()
 {
-    g_pOptions->getLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
+    m_pOptions->getLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
 }
 
 void XInfoDBOptionsWidget::setDefaultValues(XOptions *pOptions)
@@ -66,7 +66,7 @@ void XInfoDBOptionsWidget::reloadData(bool bSaveSelection)
 
 void XInfoDBOptionsWidget::reload()
 {
-    g_pOptions->setLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
+    m_pOptions->setLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
 }
 
 void XInfoDBOptionsWidget::on_toolButtonInfoPath_clicked()

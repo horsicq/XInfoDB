@@ -55,7 +55,7 @@ protected:
 
 private:
     Ui::XInfoDBOptionsWidget *ui;
-    XOptions *g_pOptions;
+    XOptions *m_pOptions;
 };
 
 #endif  // XINFODBOPTIONSWIDGET_H
