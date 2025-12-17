@@ -3982,7 +3982,7 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
             if (nOffsetSymTab != -1) {
                 XMACH_DEF::symtab_command symtab = mach._read_symtab_command(nOffsetSymTab);
 
-                QByteArray baStringTable = mach.read_array(symtab.stroff, symtab.strsize);
+                QByteArray baStringTable = mach.read_array(symtab.stroff, symtab.strsize, pPdStruct);
                 char *pBuffer = baStringTable.data();
                 qint64 nBufferSize = baStringTable.size();
 
@@ -4655,7 +4655,7 @@ void XInfoDB::dumpShowRecords(XBinary::FT fileType)
         qint64 nOffset = mr.nOffset + record.nRelOffset;
         XADDR nAddress = mr.nAddress + record.nRelOffset;
 
-        QByteArray baData = binary.read_array(nOffset, record.nSize);
+        QByteArray baData = binary.read_array_simple(nOffset, record.nSize);
 
         QString sShowRecord = getShowString(pState, record, disasmOptions);
 
