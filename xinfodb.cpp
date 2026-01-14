@@ -4257,12 +4257,13 @@ bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
         pState->listRecords.clear();
         pState->listRefs.clear();
         pState->listStrings.clear();
+        pState->bIsAnalyzed = false;
     } else {
         pState->bIsAnalyzed = true;
         reloadView();
     }
 
-    return true;
+    return pState->bIsAnalyzed;
 }
 
 void XInfoDB::_addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch,
