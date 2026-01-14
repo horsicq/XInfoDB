@@ -752,6 +752,8 @@ public:
     void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
                         XBinary::PDSTRUCT *pPdStruct);
 
+    typedef void (*HANDLECODE_CALLBACK)(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
+
     struct ANALYZEOPTIONS {
         QIODevice *pDevice;
         XBinary::_MEMORY_MAP *pMemoryMap;
@@ -762,7 +764,8 @@ public:
 
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
-    void _addCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
+    bool _analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::PDSTRUCT *pPdStruct = nullptr);
+
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString(), quint16 nBranch = 0);
     bool addRefInfo(STATE *pState, XADDR nAddress, XADDR nAddressRef, quint32 nSize, quint16 nFlags, quint16 nBranch = 0);
@@ -783,16 +786,16 @@ public:
     XBinary::FT addMode(QIODevice *pDevice, XBinary::FT fileType);
 
     qint32 _searchXRecordBySegmentRelOffset(QVector<XRECORD> *pListRecords, quint16 nRegionIndex, XADDR nRelOffset, bool bInRecord);
-    bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
+    static bool _insertXRecord(QVector<XRECORD> *pListSymbols, const XRECORD &record);
     qint32 _searchXRecordByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XRECORD> *pListRecords, XADDR nAddress, bool bInRecord);
     qint32 _searchXRecordByAddress(STATE *pState, XADDR nAddress, bool bInRecord);
 
     qint32 _searchXSymbolByAddress(XBinary::_MEMORY_MAP *pMemoryMap, QVector<XSYMBOL> *pListSymbols, XADDR nAddress);
     qint32 _searchXSymbolBySegmentRelOffset(QVector<XSYMBOL> *pListSymbols, quint16 nRegionIndex, XADDR nRelOffset);
-    bool _insertXSymbol(QVector<XSYMBOL> *pListSymbols, const XSYMBOL &symbol);
+    static bool _insertXSymbol(QVector<XSYMBOL> *pListSymbols, const XSYMBOL &symbol);
 
     qint32 _searchXRefinfoBySegmentRelOffset(QVector<XREFINFO> *pListRefs, quint16 nRegionIndex, XADDR nRelOffset);
-    bool _insertXRefinfo(QVector<XREFINFO> *pListRefs, const XREFINFO &refinfo);
+    static bool _insertXRefinfo(QVector<XREFINFO> *pListRefs, const XREFINFO &refinfo);
 
     static qint64 getOffset(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
     static XADDR getAddress(STATE *pState, quint16 nRegionIndex, XADDR nRelOffset);
