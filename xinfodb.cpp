@@ -19,7 +19,6 @@
  * SOFTWARE.
  */
 #include "xinfodb.h"
-#include "../XDecompiler/arch/xx86parser.h"
 
 bool compareXRECORD_location(const XInfoDB::XRECORD &a, const XInfoDB::XRECORD &b)
 {
@@ -4186,6 +4185,19 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
 
 #ifdef QT_DEBUG
             qDebug("stCodeTemp: %d", pState->stCodeTemp.count());
+            // Show the min and max address of pState->stCodeTemp in HEX (only for small sets to avoid performance issues)
+            if (pState->stCodeTemp.count() > 0 && pState->stCodeTemp.count() <= 10000) {
+                XADDR nMinAddress = XADDR_MAX;
+                XADDR nMaxAddress = 0;
+                QSetIterator<XADDR> debugIter(pState->stCodeTemp);
+                while (debugIter.hasNext()) {
+                    XADDR addr = debugIter.next();
+                    if (addr < nMinAddress) nMinAddress = addr;
+                    if (addr > nMaxAddress) nMaxAddress = addr;
+                }
+                qDebug("Min stCodeTemp: %s", XBinary::valueToHexEx(nMinAddress).toLatin1().data());
+                qDebug("Max stCodeTemp: %s", XBinary::valueToHexEx(nMaxAddress).toLatin1().data());
+            }
 #endif
 
             QSetIterator<XADDR> iter(pState->stCodeTemp);
@@ -4222,7 +4234,7 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
         qint32 nNumberOfRecords = pState->listRefs.count();
 
         qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
-        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
+        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, nNumberOfRecords);
 
         for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XREFINFO record = pState->listRefs.at(i);
@@ -4253,7 +4265,7 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
         qint32 nNumberOfRecords = pState->listRecords.count();
 
         qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
-        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
+        XBinary::setPdStructInit(pPdStruct, _nFreeIndex, nNumberOfRecords);
 
         for (qint32 i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XRECORD record = pState->listRecords.at(i);
