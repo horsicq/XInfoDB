@@ -752,7 +752,8 @@ public:
     void _addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
                         XBinary::PDSTRUCT *pPdStruct);
 
-    typedef void (*HANDLECODE_CALLBACK)(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch, XBinary::PDSTRUCT *pPdStruct);
+    typedef void (*HANDLECODE_CALLBACK)(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize, quint16 nBranch,
+                                        XBinary::PDSTRUCT *pPdStruct);
 
     struct ANALYZEOPTIONS {
         QIODevice *pDevice;

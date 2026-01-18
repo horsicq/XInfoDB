@@ -165,7 +165,8 @@ void XInfoDB::setEdited(qint64 nDeviceOffset, qint64 nDeviceSize)
     // TODO
 }
 
-void XInfoDB::_createTableNames(){
+void XInfoDB::_createTableNames()
+{
 #ifdef QT_SQL_LIB
 // QString sPrefix = XBinary::fileTypeIdToString(g_fileType);
 // s_sql_tableName[DBTABLE_SYMBOLS] = convertStringSQLTableName(QString("%1_SYMBOLS").arg(sPrefix));
