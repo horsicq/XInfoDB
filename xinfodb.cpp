@@ -421,7 +421,7 @@ QList<QString> XInfoDB::loadStrDB(const QString &sPath, STRDB strDB, XBinary::PD
     }
 
     if (sStrDBFileName != "") {
-        listResult = getStringsFromFile(XBinary::convertPathName(sPath) + QDir::separator() + sStrDBFileName, pPdStruct);
+        listResult = getStringsFromFile(XOptions::convertPathName(sPath) + QDir::separator() + sStrDBFileName, pPdStruct);
     }
 
     return listResult;

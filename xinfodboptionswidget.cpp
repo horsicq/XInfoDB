@@ -72,7 +72,7 @@ void XInfoDBOptionsWidget::reload()
 void XInfoDBOptionsWidget::on_toolButtonInfoPath_clicked()
 {
     QString sText = ui->lineEditInfoPath->text();
-    QString sInitDirectory = XBinary::convertPathName(sText);
+    QString sInitDirectory = XOptions::convertPathName(sText);
 
     QString sDirectoryName = QFileDialog::getExistingDirectory(this, tr("Open directory") + QString("..."), sInitDirectory, QFileDialog::ShowDirsOnly);
 
