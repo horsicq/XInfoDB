@@ -3092,7 +3092,7 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
     if (fileType == XBinary::FT_UNKNOWN) {
-        fileType = XBinary::getPrefFileType(pDevice);
+        fileType = XFormats::getPrefFileType(pDevice);
     }
 
     // #ifdef QT_SQL_LIB
