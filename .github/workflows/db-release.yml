@@ -1,0 +1,44 @@
+name: DB Release
+
+on:
+    push:
+        branches: ["master"]
+    workflow_dispatch:
+
+jobs:
+    release:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Clone XInfoDB
+              run: |
+                  git clone https://github.com/horsicq/XInfoDB XInfoDB
+
+            - name: Create info.zip
+              if: ${{ hashFiles('XInfoDB/info/info.ini') != '' }}
+              run: |
+                  cd XInfoDB
+                  zip -r ../info.zip info
+                  cd ..
+
+            - name: Read info/info.ini
+              if: ${{ hashFiles('XInfoDB/info/info.ini') != '' }}
+              id: info_info
+              run: |
+                  INFO=$(cat XInfoDB/info/info.ini)
+                  echo "INFO<<EOF" >> $GITHUB_OUTPUT
+                  echo "$INFO" >> $GITHUB_OUTPUT
+                  echo "EOF" >> $GITHUB_OUTPUT
+
+            - name: Update info release
+              if: ${{ hashFiles('XInfoDB/info/info.ini') != '' }}
+              uses: softprops/action-gh-release@v1
+              with:
+                  files: info.zip
+                  name: "info"
+                  tag_name: info
+                  body: ${{ steps.info_info.outputs.INFO }}
+                  draft: false
+                  prerelease: true
+              env:
+                  GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
