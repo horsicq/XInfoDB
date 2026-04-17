@@ -50,12 +50,16 @@ void XInfoDBOptionsWidget::setOptions(XOptions *pOptions)
 
 void XInfoDBOptionsWidget::save()
 {
-    m_pOptions->getLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
+    m_pOptions->getLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_DATABASE_PATH);
+    if (m_pOptions->isIDPresent(XOptions::ID_INFO_DATABASE_UPDATE_URL)) {
+        m_pOptions->getLineEdit(ui->lineEditInfoDatabaseUpdateUrl, XOptions::ID_INFO_DATABASE_UPDATE_URL);
+    }
 }
 
 void XInfoDBOptionsWidget::setDefaultValues(XOptions *pOptions)
 {
-    pOptions->addID(XOptions::ID_INFO_PATH, "$data/info");
+    pOptions->addID(XOptions::ID_INFO_DATABASE_PATH, "$data/info");
+    pOptions->addID(XOptions::ID_INFO_DATABASE_UPDATE_URL, "https://github.com/horsicq/XInfoDB/releases/tag/info");
 }
 
 void XInfoDBOptionsWidget::reloadData(bool bSaveSelection)
@@ -66,7 +70,13 @@ void XInfoDBOptionsWidget::reloadData(bool bSaveSelection)
 
 void XInfoDBOptionsWidget::reload()
 {
-    m_pOptions->setLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_PATH);
+    m_pOptions->setLineEdit(ui->lineEditInfoPath, XOptions::ID_INFO_DATABASE_PATH);
+    if (m_pOptions->isIDPresent(XOptions::ID_INFO_DATABASE_UPDATE_URL)) {
+        ui->groupBoxInfoDatabaseUpdateUrl->show();
+        m_pOptions->setLineEdit(ui->lineEditInfoDatabaseUpdateUrl, XOptions::ID_INFO_DATABASE_UPDATE_URL);
+    } else {
+        ui->groupBoxInfoDatabaseUpdateUrl->hide();
+    }
 }
 
 void XInfoDBOptionsWidget::on_toolButtonInfoPath_clicked()
