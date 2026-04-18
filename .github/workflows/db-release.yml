@@ -32,7 +32,7 @@ jobs:
 
             - name: Update info release
               if: ${{ hashFiles('XInfoDB/info/info.ini') != '' }}
-              uses: softprops/action-gh-release@v1
+              uses: softprops/action-gh-release@v3
               with:
                   files: info.zip
                   name: "info"
