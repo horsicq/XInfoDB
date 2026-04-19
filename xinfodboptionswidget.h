@@ -49,6 +49,7 @@ public slots:
 
 private slots:
     void on_toolButtonInfoPath_clicked();
+    void on_pushButtonUpdateInfoDatabase_clicked();
 
 protected:
     virtual void registerShortcuts(bool bState);
@@ -56,6 +57,7 @@ protected:
 private:
     Ui::XInfoDBOptionsWidget *ui;
     XOptions *m_pOptions;
+    bool m_bIsNetPresent;
 };
 
 #endif  // XINFODBOPTIONSWIDGET_H

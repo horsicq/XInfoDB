@@ -22,11 +22,20 @@
 
 #include "ui_xinfodboptionswidget.h"
 
+#include <QDesktopServices>
+
 XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : XShortcutsWidget(pParent), ui(new Ui::XInfoDBOptionsWidget)
 {
     ui->setupUi(this);
 
     m_pOptions = nullptr;
+    m_bIsNetPresent = false;
+
+#ifdef QT_NETWORK_LIB
+    m_bIsNetPresent = true;
+#endif
+
+    ui->pushButtonUpdateInfoDatabase->hide();
 
     setProperty("GROUPID", XOptions::GROUPID_INFO);
 }
@@ -74,6 +83,10 @@ void XInfoDBOptionsWidget::reload()
     if (m_pOptions->isIDPresent(XOptions::ID_INFO_DATABASE_UPDATE_URL)) {
         ui->groupBoxInfoDatabaseUpdateUrl->show();
         m_pOptions->setLineEdit(ui->lineEditInfoDatabaseUpdateUrl, XOptions::ID_INFO_DATABASE_UPDATE_URL);
+
+        if (m_bIsNetPresent) {
+            ui->pushButtonUpdateInfoDatabase->show();
+        }
     } else {
         ui->groupBoxInfoDatabaseUpdateUrl->hide();
     }
@@ -89,6 +102,11 @@ void XInfoDBOptionsWidget::on_toolButtonInfoPath_clicked()
     if (!sDirectoryName.isEmpty()) {
         ui->lineEditInfoPath->setText(sDirectoryName);
     }
+}
+
+void XInfoDBOptionsWidget::on_pushButtonUpdateInfoDatabase_clicked()
+{
+    QDesktopServices::openUrl(QUrl(ui->lineEditInfoDatabaseUpdateUrl->text()));
 }
 
 void XInfoDBOptionsWidget::registerShortcuts(bool bState)

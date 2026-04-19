@@ -111,6 +111,13 @@
           <item>
            <widget class="QLineEdit" name="lineEditInfoDatabaseUpdateUrl"/>
           </item>
+          <item>
+           <widget class="QPushButton" name="pushButtonUpdateInfoDatabase">
+            <property name="text">
+             <string>Update</string>
+            </property>
+           </widget>
+          </item>
          </layout>
         </widget>
        </item>
