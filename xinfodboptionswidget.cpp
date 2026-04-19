@@ -22,8 +22,6 @@
 
 #include "ui_xinfodboptionswidget.h"
 
-#include <QDesktopServices>
-
 XInfoDBOptionsWidget::XInfoDBOptionsWidget(QWidget *pParent) : XShortcutsWidget(pParent), ui(new Ui::XInfoDBOptionsWidget)
 {
     ui->setupUi(this);
