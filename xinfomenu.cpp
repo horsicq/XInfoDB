@@ -132,10 +132,10 @@ void XInfoMenu::actionExport()
 {
     if (m_pXInfoDB) {
         QString _sFileName = getDatabaseFileName();
-        _sFileName = QFileDialog::getSaveFileName(m_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database"), tr("All files")));
+        _sFileName = QFileDialog::getSaveFileName(m_pParent, tr("Save"), _sFileName, QString("%1 (*.db);;%2 (*)").arg(tr("Database")).arg(tr("All files")));
 
         if (!_sFileName.isEmpty()) {
-            load(_sFileName);
+            save(_sFileName);
         }
     }
 }
@@ -148,7 +148,7 @@ void XInfoMenu::actionImport()
         _sFileName = QFileDialog::getOpenFileName(m_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
 
         if (!_sFileName.isEmpty()) {
-            save(_sFileName);
+            load(_sFileName);
         }
     }
 }

@@ -30,7 +30,7 @@ class XInfoDBTransfer : public XThreadObject {
 public:
     explicit XInfoDBTransfer(QObject *pParent = nullptr);
 
-    enum COMMAND {
+    enum COMMAND : qint32 {
         COMMAND_UNKNOWN = 0,
         COMMAND_ANALYZEALL,
         COMMAND_ANALYZE,

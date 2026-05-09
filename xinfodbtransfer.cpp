@@ -75,7 +75,7 @@ void XInfoDBTransfer::process()
             bool bFile = false;
             QIODevice *pDevice = m_options.pDevice;
 
-            if ((!m_options.pDevice) && (m_options.sDatabaseFileName != "")) {
+            if ((!m_options.pDevice) && (!m_options.sDatabaseFileName.isEmpty())) {
                 bFile = true;
 
                 QFile *pFile = new QFile;
@@ -91,7 +91,7 @@ void XInfoDBTransfer::process()
 
             if ((m_transferType == COMMAND_ANALYZEALL) || (m_transferType == COMMAND_ANALYZE)) {
                 if (pDevice) {
-                    m_pXInfoDB->addMode(m_options.pDevice, m_options.fileType);
+                    m_pXInfoDB->addMode(pDevice, m_options.fileType);
                     m_pXInfoDB->_analyze(m_options.fileType, m_pPdStruct);
                 }
             }
