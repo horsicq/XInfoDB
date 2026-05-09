@@ -143,9 +143,7 @@ void XInfoMenu::actionExport()
 void XInfoMenu::actionImport()
 {
     if (m_pXInfoDB) {
-        QString _sFileName;
-        //= XBinary::getDeviceDirectory(m_pXInfoDB->getDevice());
-        _sFileName = QFileDialog::getOpenFileName(m_pParent, tr("Open file") + QString("..."), _sFileName, tr("Database") + QString(" (*.db)"));
+        QString _sFileName = QFileDialog::getOpenFileName(m_pParent, tr("Open file") + "...", {}, tr("Database") + " (*.db)");
 
         if (!_sFileName.isEmpty()) {
             load(_sFileName);
