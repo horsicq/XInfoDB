@@ -3395,7 +3395,7 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
                     bSuspect = true;
                 }*/
 
-                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address"), XBinary::valueToHexEx(nEntryAddress)));
+                XBinary::setPdStructStatus(pPdStruct, _nFreeIndex, QString("%1: %2").arg(tr("Address")).arg(XBinary::valueToHexEx(nEntryAddress)));
 
                 // XADDR nCurrentAddress = nEntryAddress;
 
@@ -4313,6 +4313,7 @@ bool XInfoDB::_isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, cha
     Q_UNUSED(pMemoryRecord)
     Q_UNUSED(pMemory)
     Q_UNUSED(nRelOffset)
+    Q_UNUSED(nSize)
 
     return true;
 }
@@ -4546,7 +4547,7 @@ void XInfoDB::dumpShowRecords(XBinary::FT fileType)
 
         QString sShowRecord = getShowString(pState, record, disasmOptions);
 
-        QString sDebugString = QString("%1: %2 %3").arg(XBinary::valueToHex(nAddress), baData.toHex(), sShowRecord);
+        QString sDebugString = QString("%1: %2 %3").arg(XBinary::valueToHex(nAddress)).arg(QString::fromLatin1(baData.toHex())).arg(sShowRecord);
 
         qDebug("%s", sDebugString.toUtf8().data());
     }
@@ -5433,17 +5434,17 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
         QSqlQuery query(dataBase);
 
-        dataBase.transaction();
+        bResult = dataBase.transaction();
 
-        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-            querySQL(&query, QString("DELETE FROM BOOKMARKS"), true);
+        if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
+            bResult = querySQL(&query, QString("DELETE FROM BOOKMARKS"), true);
 
             qint32 nNumberOfRecords = m_listBookmarks.count();
 
-            query.prepare(
+            bResult = bResult && query.prepare(
                 "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER) "
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            for (int i = 0; (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+            for (int i = 0; bResult && (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 const BOOKMARKRECORD &record = m_listBookmarks.at(i);
 
                 query.bindValue(0, record.sUUID);
@@ -5460,23 +5461,23 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
             }
         }
 
-        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+        if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
             qint32 nNumberOfKeys = listKeys.count();
 
-            for (int i = 0; (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+            for (int i = 0; bResult && (i < nNumberOfKeys) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 STATE *pState = m_mapProfiles.value(listKeys.at(i));
 
                 if (pState) {
-                    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                        querySQL(&query, QString("DELETE FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+                    if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        bResult = querySQL(&query, QString("DELETE FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
 
                         qint32 nNumberOfRecords = pState->listSymbols.count();
 
-                        query.prepare(
+                        bResult = bResult && query.prepare(
                             "INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
                             "VALUES (?, ?, ?, ?, ?, ?)");
 
-                        for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                        for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XSYMBOL &symbol = pState->listSymbols.at(j);
 
                             QString sName;
@@ -5496,16 +5497,16 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                         }
                     }
 
-                    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                        querySQL(&query, QString("DELETE FROM REFINFO WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+                    if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        bResult = querySQL(&query, QString("DELETE FROM REFINFO WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
 
                         qint32 nNumberOfRecords = pState->listRefs.count();
 
-                        query.prepare(
+                        bResult = bResult && query.prepare(
                             "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
                             "VALUES (?, ?, ?, ?, ?, ?)");
 
-                        for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                        for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XREFINFO &refInfo = pState->listRefs.at(j);
 
                             query.bindValue(0, listKeys.at(i));
@@ -5519,16 +5520,16 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                         }
                     }
 
-                    if (XBinary::isPdStructNotCanceled(pPdStruct)) {
-                        querySQL(&query, QString("DELETE FROM RECORDS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
+                    if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
+                        bResult = querySQL(&query, QString("DELETE FROM RECORDS WHERE FILETYPE = %1").arg(listKeys.at(i)), true);
 
                         qint32 nNumberOfRecords = pState->listRecords.count();
 
-                        query.prepare(
+                        bResult = bResult && query.prepare(
                             "INSERT OR REPLACE INTO RECORDS (FILETYPE, ADDRESS, SIZE, FLAGS, BRANCH) "
                             "VALUES (?, ?, ?, ?, ?)");
 
-                        for (int j = 0; (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
+                        for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XRECORD &record = pState->listRecords.at(j);
 
                             query.bindValue(0, listKeys.at(i));
@@ -5544,8 +5545,12 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
             }
         }
 
-        dataBase.commit();
-        // TODO
+        if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
+            bResult = dataBase.commit();
+        } else {
+            dataBase.rollback();
+            bResult = false;
+        }
 
         dataBase.close();
     }
