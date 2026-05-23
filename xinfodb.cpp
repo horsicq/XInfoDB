@@ -5442,8 +5442,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
             qint32 nNumberOfRecords = m_listBookmarks.count();
 
             bResult = bResult && query.prepare(
-                "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                     "INSERT OR REPLACE INTO BOOKMARKS (UUID, LOCATION, LOCTYPE, LOCSIZE, TEXTCOLOR, BACKGROUNDCOLOR, TEMPLATE, COMMENT, ISUSER) "
+                                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
             for (int i = 0; bResult && (i < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
                 const BOOKMARKRECORD &record = m_listBookmarks.at(i);
 
@@ -5474,8 +5474,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                         qint32 nNumberOfRecords = pState->listSymbols.count();
 
                         bResult = bResult && query.prepare(
-                            "INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
-                            "VALUES (?, ?, ?, ?, ?, ?)");
+                                                 "INSERT OR REPLACE INTO SYMBOLS (FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH) "
+                                                 "VALUES (?, ?, ?, ?, ?, ?)");
 
                         for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XSYMBOL &symbol = pState->listSymbols.at(j);
@@ -5503,8 +5503,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                         qint32 nNumberOfRecords = pState->listRefs.count();
 
                         bResult = bResult && query.prepare(
-                            "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
-                            "VALUES (?, ?, ?, ?, ?, ?)");
+                                                 "INSERT OR REPLACE INTO REFINFO (FILETYPE, ADDRESS, REFADDRESS, SIZE, FLAGS, BRANCH) "
+                                                 "VALUES (?, ?, ?, ?, ?, ?)");
 
                         for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XREFINFO &refInfo = pState->listRefs.at(j);
@@ -5526,8 +5526,8 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                         qint32 nNumberOfRecords = pState->listRecords.count();
 
                         bResult = bResult && query.prepare(
-                            "INSERT OR REPLACE INTO RECORDS (FILETYPE, ADDRESS, SIZE, FLAGS, BRANCH) "
-                            "VALUES (?, ?, ?, ?, ?)");
+                                                 "INSERT OR REPLACE INTO RECORDS (FILETYPE, ADDRESS, SIZE, FLAGS, BRANCH) "
+                                                 "VALUES (?, ?, ?, ?, ?)");
 
                         for (int j = 0; bResult && (j < nNumberOfRecords) && XBinary::isPdStructNotCanceled(pPdStruct); j++) {
                             const XRECORD &record = pState->listRecords.at(j);
