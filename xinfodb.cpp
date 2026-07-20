@@ -3084,8 +3084,18 @@ void XInfoDB::vacuumDb()
 #endif
 }
 
-void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModuleAddress, XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
+void XInfoDB::_addSymbolsFromFile(const XBinary::INDATA &inData, XBinary::PDSTRUCT *pPdStruct)
 {
+    QIODevice *pDevice = XFormats::createDevice(inData);
+
+    if (!pDevice) {
+        return;
+    }
+
+    bool bIsImage = inData.bIsImage;
+    XADDR nModuleAddress = inData.nModuleAddress;
+    XBinary::FT fileType = inData.fileType;
+
     m_pMutexSQL->lock();
 
     qint32 _nFreeIndex = XBinary::getFreeIndex(pPdStruct);
@@ -3192,6 +3202,8 @@ void XInfoDB::_addSymbolsFromFile(QIODevice *pDevice, bool bIsImage, XADDR nModu
 
     XBinary::setPdStructFinished(pPdStruct, _nFreeIndex);
     m_pMutexSQL->unlock();
+
+    XFormats::removeDevice(pDevice, inData);
 }
 
 void XInfoDB::_addELFSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nDataOffset, qint64 nDataSize, qint64 nStringsTableOffset, qint64 nStringsTableSize,
