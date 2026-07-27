@@ -1759,7 +1759,7 @@ void XInfoDB::updateMemoryRegionsList()
 {
     // TODO mark new Regions
     // TODO watch changes
-    //    g_statusPrev.listMemoryRegions = g_statusCurrent.listMemoryRegions;
+    //    g_statusPrev.listMemoryRegions = m_statusCurrent.listMemoryRegions;
 #ifdef Q_OS_WIN
     quint32 nMemoryRegionsHash = XProcess::getMemoryRegionsListHash_Handle(m_processInfo.hProcess);
 #endif
@@ -1785,7 +1785,7 @@ void XInfoDB::updateMemoryRegionsList()
 void XInfoDB::updateModulesList()
 {
     // mb TODO function for compare 2 lists
-    //    g_statusPrev.listModules = g_statusCurrent.listModules;
+    //    g_statusPrev.listModules = m_statusCurrent.listModules;
     quint32 nModulesHash = XProcess::getModulesListHash(m_processInfo.nProcessID);
 
     if (m_statusCurrent.nModulesHash != nModulesHash) {
@@ -1800,7 +1800,7 @@ void XInfoDB::updateModulesList()
 void XInfoDB::updateThreadsList()
 {
     // mb TODO function for compare 2 lists
-    //    g_statusPrev.listModules = g_statusCurrent.listModules;
+    //    g_statusPrev.listModules = m_statusCurrent.listModules;
     quint32 nThreadsHash = XProcess::getThreadsListHash(m_processInfo.nProcessID);
 
     if (m_statusCurrent.nThreadsHash != nThreadsHash) {
@@ -1856,7 +1856,7 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
                  (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
                  (reg == XInfoDB::XREG_FLAGS_OF)) {
-            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.toULongLong();
+            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.toBool()).var.toULongLong();
         } else bUnknownRegister = true;
 #endif
 #ifdef Q_PROCESSOR_X86_64
@@ -1887,7 +1887,7 @@ bool XInfoDB::setCurrentRegByThread(X_HANDLE hThread, XREG reg, XBinary::XVARIAN
         else if ((reg == XInfoDB::XREG_FLAGS_CF) || (reg == XInfoDB::XREG_FLAGS_PF) || (reg == XInfoDB::XREG_FLAGS_AF) || (reg == XInfoDB::XREG_FLAGS_ZF) ||
                  (reg == XInfoDB::XREG_FLAGS_SF) || (reg == XInfoDB::XREG_FLAGS_TF) || (reg == XInfoDB::XREG_FLAGS_IF) || (reg == XInfoDB::XREG_FLAGS_DF) ||
                  (reg == XInfoDB::XREG_FLAGS_OF)) {
-            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.v_bool).var.toULongLong();
+            context.EFlags = setFlagToReg(XBinary::getXVariant((quint64)context.EFlags), reg, variant.var.toBool()).var.toULongLong();
         } else bUnknownRegister = true;
 #endif
 #endif
@@ -2195,8 +2195,8 @@ QMap<X_ID, XInfoDB::BREAKPOINT> *XInfoDB::getThreadBreakpoints()
 bool XInfoDB::isRegChanged(XREG reg)
 {
     // mb TODO if init and 0 -> not changed
-    XBinary::XVARIANT varReg = _getRegCache(&(g_statusCurrent.listRegs), reg);
-    XBinary::XVARIANT varRegPrev = _getRegCache(&(g_statusCurrent.listRegsPrev), reg);
+    XBinary::XVARIANT varReg = _getRegCache(&(m_statusCurrent.listRegs), reg);
+    XBinary::XVARIANT varRegPrev = _getRegCache(&(m_statusCurrent.listRegsPrev), reg);
 
     return !(XBinary::isXVariantEqual(varReg, varRegPrev));
 }
@@ -2204,7 +2204,7 @@ bool XInfoDB::isRegChanged(XREG reg)
 #ifdef USE_XPROCESS
 QList<XInfoDB::REG_RECORD> XInfoDB::getCurrentRegs()
 {
-    return g_statusCurrent.listRegs;
+    return m_statusCurrent.listRegs;
 }
 #endif
 #ifdef USE_XPROCESS
@@ -2410,7 +2410,7 @@ bool XInfoDB::isAddressValid(XADDR nAddress)
 {
     bool bResult = false;
 
-    if (XProcess::getMemoryRegionByAddress(&g_statusCurrent.listMemoryRegions, nAddress).nSize != 0) {
+    if (XProcess::getMemoryRegionByAddress(&m_statusCurrent.listMemoryRegions, nAddress).nSize != 0) {
         bResult = true;
     }
 
@@ -2467,10 +2467,10 @@ QList<XBinary::MEMORY_REPLACE> XInfoDB::getMemoryReplaces(quint64 nBase, quint64
 {
     QList<XBinary::MEMORY_REPLACE> listResult;
 #ifdef USE_XPROCESS
-    qint32 nNumberOfRecords = g_listBreakpoints.count();
+    qint32 nNumberOfRecords = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
-        XInfoDB::BREAKPOINT breakPoint = g_listBreakpoints.at(i);
+        XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
         if (breakPoint.nDataSize) {
             if ((breakPoint.nAddress >= nBase) && (breakPoint.nAddress < nBase + nSize)) {
@@ -2795,13 +2795,13 @@ XInfoDB::RECORD_INFO XInfoDB::getRecordInfo(quint64 nValue, RI_TYPE riType)
     // #ifdef USE_XPROCESS
     //     else {
     //         // TODO mapRegions
-    //         XProcess::MEMORY_REGION memoryRegion = XProcess::getMemoryRegionByAddress(&(g_statusCurrent.listMemoryRegions), nValue);
+    //         XProcess::MEMORY_REGION memoryRegion = XProcess::getMemoryRegionByAddress(&(m_statusCurrent.listMemoryRegions), nValue);
 
     //         if (memoryRegion.nSize) {
     //             result.bValid = true;
     //             result.nAddress = nValue;
 
-    //             XProcess::MODULE _module = XProcess::getModuleByAddress(&(g_statusCurrent.listModules), nValue);
+    //             XProcess::MODULE _module = XProcess::getModuleByAddress(&(m_statusCurrent.listModules), nValue);
 
     //             if (_module.nSize) {
     //                 result.sModule = _module.sName;
@@ -5677,7 +5677,7 @@ void XInfoDB::testFunction()
 
     errno = 0;
 
-    long int nRet = ptrace(PTRACE_GETREGS, g_statusCurrent.nThreadId, nullptr, &regs);
+    long int nRet = ptrace(PTRACE_GETREGS, m_statusCurrent.nThreadId, nullptr, &regs);
 
     qDebug("ptrace failed: %s", strerror(errno));
 
@@ -5794,26 +5794,26 @@ void XInfoDB::replaceMemory(quint64 nOffset, char *pData, qint64 nSize)
     Q_UNUSED(nSize)
 #endif
 #ifdef USE_XPROCESS
-    qint32 nNumberOfBreakPoints = g_listBreakpoints.count();
+    qint32 nNumberOfBreakPoints = m_listBreakpoints.count();
 
     for (qint32 i = 0; i < nNumberOfBreakPoints; i++) {
-        if (g_listBreakpoints.at(i).nDataSize && XBinary::_isAddressCrossed(nOffset, nSize, g_listBreakpoints.at(i).nAddress, g_listBreakpoints.at(i).nDataSize)) {
+        if (m_listBreakpoints.at(i).nDataSize && XBinary::_isAddressCrossed(nOffset, nSize, m_listBreakpoints.at(i).nAddress, m_listBreakpoints.at(i).nDataSize)) {
 #ifdef QT_DEBUG
-            qDebug("Breakpoint replace: %llX", g_listBreakpoints.at(i).nAddress);
+            qDebug("Breakpoint replace: %llX", m_listBreakpoints.at(i).nAddress);
             qDebug("nOffset: %llX", nOffset);
 #endif
             char *pSource = nullptr;
             char *pDest = nullptr;
             qint64 nDataSize = 0;
 
-            if (g_listBreakpoints.at(i).nAddress >= nOffset) {
-                pSource = (char *)g_listBreakpoints.at(i).origData;
-                pDest = pData + (g_listBreakpoints.at(i).nAddress - nOffset);
-                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nDataSize, nOffset + nSize - g_listBreakpoints.at(i).nAddress);
-            } else if (nOffset > g_listBreakpoints.at(i).nAddress) {
-                pSource = (char *)g_listBreakpoints.at(i).origData + (nOffset - g_listBreakpoints.at(i).nAddress);
+            if (m_listBreakpoints.at(i).nAddress >= nOffset) {
+                pSource = (char *)m_listBreakpoints.at(i).origData;
+                pDest = pData + (m_listBreakpoints.at(i).nAddress - nOffset);
+                nDataSize = qMin((quint64)m_listBreakpoints.at(i).nDataSize, (quint64)(nOffset + nSize - m_listBreakpoints.at(i).nAddress));
+            } else if (nOffset > m_listBreakpoints.at(i).nAddress) {
+                pSource = (char *)m_listBreakpoints.at(i).origData + (nOffset - m_listBreakpoints.at(i).nAddress);
                 pDest = pData;
-                nDataSize = qMin((quint64)g_listBreakpoints.at(i).nDataSize, nOffset - g_listBreakpoints.at(i).nAddress);
+                nDataSize = qMin((quint64)m_listBreakpoints.at(i).nDataSize, (quint64)(nOffset - m_listBreakpoints.at(i).nAddress));
             }
 
             if (pSource && pDest && nDataSize) {
@@ -5900,7 +5900,7 @@ void XInfoDB::_addCurrentRegRecord(XREG reg, XBinary::XVARIANT value)
     record.reg = reg;
     record.value = value;
 
-    g_statusCurrent.listRegs.append(record);
+    m_statusCurrent.listRegs.append(record);
 }
 #endif
 #ifdef USE_XPROCESS
