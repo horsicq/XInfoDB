@@ -2904,6 +2904,31 @@ bool XInfoDB::isFunctionPresent(XADDR nAddress)
     return bResult;
 }
 
+QString XInfoDB::getSymbolStringByAddress(XADDR nAddress)
+{
+    QString sResult;
+
+    // Return the symbol/label for nAddress from any loaded analysis profile. Each
+    // STATE carries its own memory map + symbol tables, so try them in turn and
+    // return the first match; empty when nothing is loaded (e.g. a live emulator
+    // target with no symbols) -- callers treat an empty string as "no symbol".
+    QList<STATE *> listStates = m_mapProfiles.values();
+
+    for (qint32 i = 0; i < listStates.count(); i++) {
+        STATE *pState = listStates.at(i);
+
+        if (pState) {
+            sResult = _getSymbolStringByAddress(pState, nAddress);
+
+            if (!sResult.isEmpty()) {
+                break;
+            }
+        }
+    }
+
+    return sResult;
+}
+
 #ifdef QT_SQL_LIB
 bool XInfoDB::isTablePresent(QSqlDatabase *pDatabase, DBTABLE dbTable)
 {
@@ -4650,9 +4675,19 @@ XBinary::FT XInfoDB::addMode(QIODevice *pDevice, XBinary::FT fileType)
 {
     XBinary::FT result = XBinary::FT_UNKNOWN;
 
-    if (fileType == XBinary::FT_MACHO64) {
+    // Every executable format we can build a real memory map for keeps its own profile.
+    // Anything not listed here collapses to FT_UNKNOWN and gets a FT_BINARY map below,
+    // which loses the section/segment layout - so add a format here rather than relying
+    // on the fallback.
+    if ((fileType == XBinary::FT_MACHO32) || (fileType == XBinary::FT_MACHO64)) {
         result = fileType;
     } else if ((fileType == XBinary::FT_PE32) || (fileType == XBinary::FT_PE64)) {
+        result = fileType;
+    } else if ((fileType == XBinary::FT_ELF32) || (fileType == XBinary::FT_ELF64)) {
+        result = fileType;
+    } else if ((fileType == XBinary::FT_COM) || (fileType == XBinary::FT_MSDOS)) {
+        result = fileType;
+    } else if ((fileType == XBinary::FT_NE) || (fileType == XBinary::FT_LE) || (fileType == XBinary::FT_LX)) {
         result = fileType;
     }
 
