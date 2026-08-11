@@ -20,6 +20,9 @@
  */
 #include "xinfodb.h"
 
+#include <QHash>
+#include <algorithm>
+
 bool compareXRECORD_location(const XInfoDB::XRECORD &a, const XInfoDB::XRECORD &b)
 {
     if (a.nRegionIndex != b.nRegionIndex) {
@@ -55,6 +58,183 @@ bool compareXSYMBOL_location(const XInfoDB::XSYMBOL &a, const XInfoDB::XSYMBOL &
         return a.nRelOffset < b.nRelOffset;
     }
 }
+
+#ifdef QT_SQL_LIB
+// ---------------------------------------------------------------------------
+// Large-file support helpers.
+// The historical load path called addSymbol/addRefInfo/addRecord per row, each
+// doing a std::lower_bound + QVector::insert (O(n) shift) on unordered rows =>
+// O(n^2) load, plus an un-deduplicated string append per named symbol. The save
+// path set no PRAGMAs and created no secondary indexes. These helpers fix both:
+// pragmas + indexes for fast SQLite I/O, and an append-then-sort-once bulk load
+// with string interning that keeps loading O(n log n).
+// ---------------------------------------------------------------------------
+
+// Tuned pragmas. bForWrite: one-shot bulk save of a regenerable cache -> fastest
+// (MEMORY journal, synchronous OFF), atomicity still guaranteed by the single
+// wrapping transaction. Read path -> memory-mapped reads.
+static void applyDbPragmas(QSqlDatabase *pDatabase, bool bForWrite)
+{
+    QSqlQuery query(*pDatabase);
+    query.exec("PRAGMA temp_store = MEMORY");
+    query.exec("PRAGMA cache_size = -65536");  // ~64 MB page cache (negative => KiB)
+    if (bForWrite) {
+        query.exec("PRAGMA synchronous = OFF");
+        query.exec("PRAGMA journal_mode = MEMORY");
+    } else {
+        query.exec("PRAGMA mmap_size = 268435456");  // 256 MB memory-mapped reads
+    }
+}
+
+// No separate secondary index is needed: the analysis tables are WITHOUT ROWID with
+// PRIMARY KEY (FILETYPE, ADDRESS, SIZE), so the table itself IS the B-tree the load path
+// scans (WHERE FILETYPE = ? hits the (FILETYPE, ADDRESS) key prefix). This drops one whole
+// index per table AND the hidden rowid B-tree — the old schema kept three B-trees per table
+// (rowid + PK-on-(ADDRESS,SIZE) + IDX_*_FT-on-(FILETYPE,ADDRESS)).
+
+// Sort by (nRegionIndex, nRelOffset) then drop same-location duplicates keeping the
+// first-appended one — reproduces the sequential insert-with-dedupe end state.
+static void sortDedupeSymbols(QVector<XInfoDB::XSYMBOL> *pList)
+{
+    std::stable_sort(pList->begin(), pList->end(), compareXSYMBOL_location);
+    qint32 nWrite = 0;
+    qint32 nCount = pList->size();
+    for (qint32 i = 0; i < nCount; i++) {
+        if ((nWrite > 0) && (pList->at(nWrite - 1).nRegionIndex == pList->at(i).nRegionIndex) && (pList->at(nWrite - 1).nRelOffset == pList->at(i).nRelOffset)) {
+            continue;
+        }
+        if (i != nWrite) {
+            (*pList)[nWrite] = pList->at(i);
+        }
+        nWrite++;
+    }
+    pList->resize(nWrite);
+}
+
+static void sortDedupeRefs(QVector<XInfoDB::XREFINFO> *pList)
+{
+    std::stable_sort(pList->begin(), pList->end(), compareXREFINFO_location);
+    qint32 nWrite = 0;
+    qint32 nCount = pList->size();
+    for (qint32 i = 0; i < nCount; i++) {
+        if ((nWrite > 0) && (pList->at(nWrite - 1).nRegionIndex == pList->at(i).nRegionIndex) && (pList->at(nWrite - 1).nRelOffset == pList->at(i).nRelOffset)) {
+            continue;
+        }
+        if (i != nWrite) {
+            (*pList)[nWrite] = pList->at(i);
+        }
+        nWrite++;
+    }
+    pList->resize(nWrite);
+}
+
+static void sortDedupeRecords(QVector<XInfoDB::XRECORD> *pList)
+{
+    std::stable_sort(pList->begin(), pList->end(), compareXRECORD_location);
+    qint32 nWrite = 0;
+    qint32 nCount = pList->size();
+    for (qint32 i = 0; i < nCount; i++) {
+        if ((nWrite > 0) && (pList->at(nWrite - 1).nRegionIndex == pList->at(i).nRegionIndex) && (pList->at(nWrite - 1).nRelOffset == pList->at(i).nRelOffset)) {
+            continue;
+        }
+        if (i != nWrite) {
+            (*pList)[nWrite] = pList->at(i);
+        }
+        nWrite++;
+    }
+    pList->resize(nWrite);
+}
+
+// Bulk counterparts of addSymbol/addRefInfo/addRecord: build the struct and APPEND
+// (no sorted insert). Callers must sortDedupe* afterwards. Strings are interned via
+// pStringCache so listStrings holds each distinct name once.
+static void bulkAppendSymbol(XInfoDB::STATE *pState, QHash<QString, qint64> *pStringCache, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sName,
+                             quint16 nBranch)
+{
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    XInfoDB::XSYMBOL symbol = {};
+    symbol.nStringIndex = (quint32)-1;
+
+    if (mr.nSize) {
+        symbol.nRegionIndex = mr.nIndex;
+        symbol.nRelOffset = nAddress - mr.nAddress;
+    } else {
+        symbol.nRegionIndex = (quint16)-1;
+        symbol.nRelOffset = mr.nAddress;
+    }
+
+    symbol.nSize = nSize;
+    symbol.nFlags = nFlags;
+    symbol.nBranch = nBranch;
+
+    if (!sName.isEmpty()) {
+        qint64 nIndex = -1;
+        QHash<QString, qint64>::const_iterator it = pStringCache->constFind(sName);
+        if (it != pStringCache->constEnd()) {
+            nIndex = it.value();
+        } else {
+            pState->listStrings.append(sName);
+            nIndex = (qint64)(pState->listStrings.size() - 1);
+            pStringCache->insert(sName, nIndex);
+        }
+        symbol.nStringIndex = (quint32)nIndex;
+    }
+
+    pState->listSymbols.append(symbol);
+}
+
+static void bulkAppendRef(XInfoDB::STATE *pState, XADDR nAddress, XADDR nAddressRef, quint32 nSize, quint16 nFlags, quint16 nBranch)
+{
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+    XBinary::_MEMORY_RECORD mrRef = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddressRef);
+
+    XInfoDB::XREFINFO refInfo = {};
+
+    if (mr.nSize) {
+        refInfo.nRegionIndex = mr.nIndex;
+        refInfo.nRelOffset = nAddress - mr.nAddress;
+    } else {
+        refInfo.nRegionIndex = (quint16)-1;
+        refInfo.nRelOffset = mr.nAddress;
+    }
+
+    if (mrRef.nSize) {
+        refInfo.nRegionIndexRef = mrRef.nIndex;
+        refInfo.nRelOffsetRef = nAddressRef - mrRef.nAddress;
+    } else {
+        refInfo.nRegionIndexRef = (quint16)-1;
+        refInfo.nRelOffsetRef = mrRef.nAddress;
+    }
+
+    refInfo.nSize = nSize;
+    refInfo.nFlags = nFlags;
+    refInfo.nBranch = nBranch;
+
+    pState->listRefs.append(refInfo);
+}
+
+static void bulkAppendRecord(XInfoDB::STATE *pState, XADDR nAddress, quint16 nSize, quint16 nFlags, quint16 nBranch)
+{
+    XBinary::_MEMORY_RECORD mr = XBinary::getMemoryRecordByAddress(&(pState->memoryMap), nAddress);
+
+    XInfoDB::XRECORD record = {};
+
+    if (mr.nSize) {
+        record.nRegionIndex = mr.nIndex;
+        record.nRelOffset = nAddress - mr.nAddress;
+    } else {
+        record.nRegionIndex = (quint16)-1;
+        record.nRelOffset = mr.nAddress;
+    }
+
+    record.nSize = nSize;
+    record.nFlags = nFlags;
+    record.nBranch = nBranch;
+
+    pState->listRecords.append(record);
+}
+#endif
 
 XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
@@ -2995,8 +3175,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "NAME TEXT,"
                          "FLAGS INTEGER,"
                          "BRANCH INTEGER,"
-                         "PRIMARY KEY (ADDRESS, SIZE)"
-                         ")"),
+                         "PRIMARY KEY (FILETYPE, ADDRESS, SIZE)"
+                         ") WITHOUT ROWID"),
                  false);
     } else if (dbTable == DBTABLE_REFINFO) {
         querySQL(&query,
@@ -3007,8 +3187,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "SIZE INTEGER,"
                          "FLAGS INTEGER,"
                          "BRANCH INTEGER,"
-                         "PRIMARY KEY (ADDRESS, SIZE)"
-                         ")"),
+                         "PRIMARY KEY (FILETYPE, ADDRESS, SIZE)"
+                         ") WITHOUT ROWID"),
                  false);
     } else if (dbTable == DBTABLE_RECORDS) {
         querySQL(&query,
@@ -3018,8 +3198,8 @@ void XInfoDB::createTable(QSqlDatabase *pDatabase, DBTABLE dbTable)
                          "SIZE INTEGER,"
                          "FLAGS INTEGER,"
                          "BRANCH INTEGER,"
-                         "PRIMARY KEY (ADDRESS, SIZE)"
-                         ")"),
+                         "PRIMARY KEY (FILETYPE, ADDRESS, SIZE)"
+                         ") WITHOUT ROWID"),
                  false);
     }
 }
@@ -3991,6 +4171,220 @@ bool XInfoDB::_analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRU
     return bResult;
 }
 
+// Every COFF symbol whose complex type is "function" is a discovery ROOT of its own.
+//
+// Code discovery is otherwise call-graph driven: it starts at the entry point (plus the
+// exports) and descends through calls. From -O1 upwards a compiler constant-folds,
+// inlines and tail-merges call sites, so a perfectly ordinary function can end up with
+// NO call site anywhere in the image while still being present in .text. Recursive
+// descent can never reach such a function and it is silently missing from the analysis.
+// The COFF symbol table names it, so use it.
+//
+// Only "ty 0x20" (IMAGE_SYM_DTYPE_FUNCTION in the complex-type nibble) entries that live
+// in a real section become FUNCTION symbols; file, section and label symbols are ignored,
+// and an entry is never invented for a section number the image does not have.
+//
+// A symbol that lives in a NON-executable section is a DATUM, and it is recorded with
+// XSYMBOL_FLAG_DATA. That is the only thing in the image that says which object an
+// absolute address belongs to: without it a consumer can see that 0x14000b034 lies in
+// .bss but not that it IS `g_rmw`, and anything rebuilt from the analysis then operates
+// on a private copy of the section instead of on the real object. The flag is purely
+// descriptive - unlike XSYMBOL_FLAG_FUNCTION it seeds no analysis branch, so naming a
+// datum cannot make the disassembler invent code.
+void XInfoDB::_addCoffFunctionSymbols(STATE *pState, XPE *pPE, XBinary::PDSTRUCT *pPdStruct)
+{
+    if ((pState == nullptr) || (pPE == nullptr)) {
+        return;
+    }
+
+    const qint64 nSymbolEntrySize = 18;
+    const quint32 nMaxSymbols = 200000;  // guard against a corrupted NumberOfSymbols
+
+    quint32 nSymbolTableOffset = pPE->getFileHeader_PointerToSymbolTable();
+    quint32 nNumberOfSymbols = pPE->getFileHeader_NumberOfSymbols();
+
+    if ((nSymbolTableOffset == 0) || (nNumberOfSymbols == 0) || (nNumberOfSymbols > nMaxSymbols)) {
+        return;
+    }
+
+    if (!pPE->checkOffsetSize(nSymbolTableOffset, (qint64)nNumberOfSymbols * nSymbolEntrySize)) {
+        return;
+    }
+
+    QList<XPE_DEF::IMAGE_SECTION_HEADER> listSectionHeaders = pPE->getSectionHeaders(pPdStruct);
+
+    qint32 nNumberOfSections = listSectionHeaders.count();
+
+    if (nNumberOfSections == 0) {
+        return;
+    }
+
+    XADDR nImageBase = pPE->getBaseAddress();
+    qint64 nStringTableOffset = (qint64)nSymbolTableOffset + (qint64)nNumberOfSymbols * nSymbolEntrySize;
+
+    quint32 nIndex = 0;
+
+    while ((nIndex < nNumberOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct)) {
+        qint64 nEntryOffset = (qint64)nSymbolTableOffset + (qint64)nIndex * nSymbolEntrySize;
+
+        quint32 nShortOrZero = pPE->read_uint32(nEntryOffset);
+        quint32 nValue = pPE->read_uint32(nEntryOffset + 8);
+        qint16 nSectionNumber = (qint16)pPE->read_uint16(nEntryOffset + 12);
+        quint16 nType = pPE->read_uint16(nEntryOffset + 14);
+        quint8 nNumberOfAuxSymbols = pPE->read_uint8(nEntryOffset + 17);
+
+        quint8 nStorageClass = pPE->read_uint8(nEntryOffset + 16);
+
+        // IMAGE_SYM_TYPE ... DTYPE_FUNCTION == 0x20 is the only spelling of "this symbol
+        // is a function" the format has, and a great deal of real code does not use it.
+        // Everything gcc's runtime contributes -- ___chkstk_ms among them -- is emitted as
+        // an EXTERNAL symbol of type 0 that happens to live in a code section, and with
+        // the 0x20 test alone those addresses had no name at all. A helper cannot be
+        // recognised by a name that was never read.
+        //
+        // Such a symbol is NAMED here and nothing more: it is deliberately not flagged
+        // XSYMBOL_FLAG_FUNCTION, because that flag seeds a new analysis branch and a
+        // type-0 symbol is not proof of an entry point. Naming is free; inventing a
+        // function is not.
+        bool bIsDeclaredFunction = (nType == 0x20);
+        bool bIsExternalInCode = false;
+
+        if ((!bIsDeclaredFunction) && (nType == 0) && (nStorageClass == 2) && (nSectionNumber > 0) && (nSectionNumber <= nNumberOfSections)) {
+            const XPE_DEF::IMAGE_SECTION_HEADER &codeSection = listSectionHeaders.at(nSectionNumber - 1);
+
+            bIsExternalInCode = ((codeSection.Characteristics & 0x20000000) != 0);  // IMAGE_SCN_MEM_EXECUTE
+        }
+
+        // A datum: anything that is not declared a function and lives in a section that
+        // holds data rather than code. Both EXTERNAL (2) and STATIC (3) are taken - a
+        // file-scope `static int g_x;` is class 3 and is every bit as much the identity of
+        // its address as an exported one. Section symbols share class 3 and are named
+        // after their section, so the leading-dot names are dropped below with the rest of
+        // the compiler's internal labels.
+        bool bIsData = false;
+
+        if ((!bIsDeclaredFunction) && (!bIsExternalInCode) && ((nStorageClass == 2) || (nStorageClass == 3)) && (nSectionNumber > 0) &&
+            (nSectionNumber <= nNumberOfSections)) {
+            const XPE_DEF::IMAGE_SECTION_HEADER &dataSection = listSectionHeaders.at(nSectionNumber - 1);
+
+            bool bExecutable = ((dataSection.Characteristics & 0x20000000) != 0);            // IMAGE_SCN_MEM_EXECUTE
+            bool bHoldsData = ((dataSection.Characteristics & 0x000000C0) != 0);             // CNT_INITIALIZED_DATA | CNT_UNINITIALIZED_DATA
+
+            bIsData = ((!bExecutable) && bHoldsData);
+        }
+
+        if ((bIsDeclaredFunction || bIsExternalInCode || bIsData) && (nSectionNumber > 0) && (nSectionNumber <= nNumberOfSections)) {
+            const XPE_DEF::IMAGE_SECTION_HEADER &sectionHeader = listSectionHeaders.at(nSectionNumber - 1);
+
+            // A function symbol must point at something that is actually mapped.
+            if (nValue < sectionHeader.Misc.VirtualSize) {
+                QString sName;
+
+                if (nShortOrZero != 0) {
+                    sName = pPE->read_ansiString(nEntryOffset, 8);
+                } else {
+                    sName = pPE->read_ansiString(nStringTableOffset + (qint64)pPE->read_uint32(nEntryOffset + 4), 4096);
+                }
+
+                bool bInternalName = (sName.isEmpty() || sName.startsWith(QString(".")));
+
+                if (!(bIsData && bInternalName)) {
+                    XADDR nAddress = nImageBase + (XADDR)sectionHeader.VirtualAddress + (XADDR)nValue;
+
+                    quint16 nSymbolFlags = XSYMBOL_FLAG_UNKNOWN;
+
+                    if (bIsDeclaredFunction) {
+                        nSymbolFlags = XSYMBOL_FLAG_FUNCTION;
+                    } else if (bIsData) {
+                        nSymbolFlags = XSYMBOL_FLAG_DATA;
+                    }
+
+                    // IMAGE_SYM_CLASS_STATIC: the name has INTERNAL LINKAGE. It names the
+                    // object here and nowhere else, so a consumer that rebuilds source
+                    // from this analysis must not spell it - `s_last` inside one function
+                    // and `CSWTCH.4` behind one switch are not names another translation
+                    // unit can resolve, or even mean the same object by.
+                    if (nStorageClass == 3) {
+                        nSymbolFlags |= XSYMBOL_FLAG_LOCAL;
+                    }
+
+                    addSymbolOrUpdateFlags(pState, nAddress, 0, nSymbolFlags, sName);
+                }
+            }
+        }
+
+        nIndex += (1 + (quint32)nNumberOfAuxSymbols);
+    }
+}
+
+// ELF function-symbol seeding for the STATE-based analyzer. Reads FUNC symbols from both the
+// dynamic symbol table (via PT_DYNAMIC tags) and the section .symtab/.strtab, returning
+// (address, size, name) tuples the ELF branch of _analyze feeds to addSymbolOrUpdateFlags.
+struct ELF_FUNCSYM {
+    XADDR nAddress;
+    quint32 nSize;
+    QString sName;
+};
+
+static void collectElfFuncSyms(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, qint64 nSymOffset, qint64 nSymSize, qint64 nStrOffset, qint64 nStrSize,
+                               QList<ELF_FUNCSYM> *pList, XBinary::PDSTRUCT *pPdStruct)
+{
+    QList<XELF_DEF::Elf_Sym> listSymbols = pELF->getElf_SymList(nSymOffset, nSymSize);
+    qint32 nCount = listSymbols.count();
+
+    for (qint32 i = 0; (i < nCount) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+        XELF_DEF::Elf_Sym record = listSymbols.at(i);
+
+        XADDR nSymbolAddress = record.st_value;
+        qint32 nType = S_ELF64_ST_TYPE(record.st_info);
+
+        if (nSymbolAddress && (nType == 2)) {  // STT_FUNC
+            if (XBinary::isAddressValid(pMemoryMap, nSymbolAddress)) {
+                ELF_FUNCSYM funcSym;
+                funcSym.nAddress = nSymbolAddress;
+                funcSym.nSize = (quint32)record.st_size;
+                funcSym.sName = pELF->getStringFromIndex(nStrOffset, nStrSize, record.st_name);
+                pList->append(funcSym);
+            }
+        }
+    }
+}
+
+static QList<ELF_FUNCSYM> readElfFunctionSymbols(XELF *pELF, XBinary::_MEMORY_MAP *pMemoryMap, XBinary::PDSTRUCT *pPdStruct)
+{
+    QList<ELF_FUNCSYM> listResult;
+
+    // .dynsym via the dynamic tags.
+    QList<XELF_DEF::Elf_Phdr> listProgramHeaders = pELF->getElf_PhdrList(1000);
+    QList<XELF::TAG_STRUCT> listTagStructs = pELF->getTagStructs(&listProgramHeaders, pMemoryMap);
+    QList<XELF::TAG_STRUCT> listDynSym = pELF->_getTagStructs(&listTagStructs, XELF_DEF::S_DT_SYMTAB);
+    QList<XELF::TAG_STRUCT> listStrTab = pELF->_getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRTAB);
+    QList<XELF::TAG_STRUCT> listStrSize = pELF->_getTagStructs(&listTagStructs, XELF_DEF::S_DT_STRSZ);
+
+    if (listDynSym.count() && listStrTab.count() && listStrSize.count()) {
+        qint64 nSymTabOffset = XBinary::addressToOffset(pMemoryMap, listDynSym.at(0).nValue);
+        qint64 nSymTabSize = pELF->getSymTableSize(nSymTabOffset);
+        qint64 nStringTableOffset = XBinary::addressToOffset(pMemoryMap, listStrTab.at(0).nValue);
+        qint64 nStringTableSize = listStrSize.at(0).nValue;
+        collectElfFuncSyms(pELF, pMemoryMap, nSymTabOffset, nSymTabSize, nStringTableOffset, nStringTableSize, &listResult, pPdStruct);
+    }
+
+    // .symtab / .strtab sections (present in unstripped binaries).
+    qint32 nSectionStrIndex = pELF->getSectionStringTable();
+    QByteArray baStringTable = pELF->getSection(nSectionStrIndex);
+    QList<XELF_DEF::Elf_Shdr> listSectionHeaders = pELF->getElf_ShdrList(200);
+    QList<XELF::SECTION_RECORD> listSectionRecords = pELF->getSectionRecords(&listSectionHeaders, pELF->isImage(), &baStringTable);
+    QList<XELF::SECTION_RECORD> listSymTab = pELF->_getSectionRecords(&listSectionRecords, ".symtab");
+    QList<XELF::SECTION_RECORD> listStrTabSec = pELF->_getSectionRecords(&listSectionRecords, ".strtab");
+
+    if (listSymTab.count() && listStrTabSec.count()) {
+        collectElfFuncSyms(pELF, pMemoryMap, listSymTab.at(0).nOffset, listSymTab.at(0).nSize, listStrTabSec.at(0).nOffset, listStrTabSec.at(0).nSize, &listResult,
+                           pPdStruct);
+    }
+
+    return listResult;
+}
+
 bool XInfoDB::_analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct)
 {
     if (!m_mapProfiles.contains(fileType)) {
@@ -4151,6 +4545,31 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
                 addSymbolOrUpdateFlags(pState, exportHeader.listPositions.at(i).nAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_EXPORT,
                                        exportHeader.listPositions.at(i).sFunctionName);
             }
+
+            _addCoffFunctionSymbols(pState, &pe, pPdStruct);
+        }
+    } else if ((fileType == XBinary::FT_ELF32) || (fileType == XBinary::FT_ELF64)) {
+        XELF elf(pState->pDevice, pState->bIsImage, pState->nModuleAddress);
+
+        if (elf.isValid()) {
+            pState->memoryMap = elf.getMemoryMap(XBinary::MAPMODE_UNKNOWN, pPdStruct);
+
+            if (pState->memoryMap.nEntryPointAddress) {
+                addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
+            }
+
+            QList<ELF_FUNCSYM> listFunctions = readElfFunctionSymbols(&elf, &(pState->memoryMap), pPdStruct);
+
+            qint32 nNumberOfFunctions = listFunctions.count();
+            for (qint32 i = 0; (i < nNumberOfFunctions) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
+                addSymbolOrUpdateFlags(pState, listFunctions.at(i).nAddress, listFunctions.at(i).nSize, XSYMBOL_FLAG_FUNCTION, listFunctions.at(i).sName);
+            }
+        }
+    } else if ((fileType == XBinary::FT_MSDOS) || (fileType == XBinary::FT_COM)) {
+        // 16-bit real-mode: no symbol table, so seed the entry point (from the memory map built by
+        // addMode) and let the recursive-descent decode discover the rest.
+        if (pState->memoryMap.nEntryPointAddress != (XADDR)-1) {
+            addSymbolOrUpdateFlags(pState, pState->memoryMap.nEntryPointAddress, 0, XSYMBOL_FLAG_FUNCTION | XSYMBOL_FLAG_ENTRYPOINT);
         }
     }
 
@@ -4198,9 +4617,21 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
                     if (pMemory) {
                         qint32 nSize = mr.nSize - function.nRelOffset;
 
-                        if (i + 1 < nNumbersOfSymbols) {
-                            if (function.nRegionIndex == pState->listSymbols.at(i + 1).nRegionIndex) {
-                                nSize = pState->listSymbols.at(i + 1).nRelOffset - function.nRelOffset;
+                        // The extent of a function is "up to the next symbol". Several
+                        // symbols can share one address (aliases, or a name plus an
+                        // export), so skip forward to the first STRICTLY greater offset:
+                        // taking listSymbols[i + 1] blindly yields a zero-sized extent
+                        // for an aliased entry and the function is then never decoded.
+                        for (qint32 j = i + 1; j < nNumbersOfSymbols; j++) {
+                            const XSYMBOL &next = pState->listSymbols.at(j);
+
+                            if (next.nRegionIndex != function.nRegionIndex) {
+                                break;
+                            }
+
+                            if (next.nRelOffset > function.nRelOffset) {
+                                nSize = (qint32)(next.nRelOffset - function.nRelOffset);
+                                break;
                             }
                         }
 
@@ -4512,7 +4943,7 @@ void XInfoDB::dumpSymbols(XBinary::FT fileType)
         XSYMBOL symbol = pState->listSymbols.at(i);
         QString sSymbolName = "";
 
-        if (symbol.nStringIndex != (quint16)-1) {
+        if (symbol.nStringIndex != (quint32)-1) {
             sSymbolName = m_mapProfiles.value(XBinary::FT_MACHO64)->listStrings.at(symbol.nStringIndex);
         }
 
@@ -4643,7 +5074,7 @@ QString XInfoDB::_getSymbolStringBySegmentRelOffset(STATE *pState, quint16 nRegi
     if (nIndex != -1) {
         XSYMBOL xsymbol = pState->listSymbols.at(nIndex);
 
-        if (xsymbol.nStringIndex != (quint16)-1) {
+        if (xsymbol.nStringIndex != (quint32)-1) {
             sResult = pState->listStrings.at(xsymbol.nStringIndex);
         } else {
             sResult = QString("loc_%1").arg(XBinary::valueToHexEx(pState->memoryMap.listRecords.at(nRegionIndex).nAddress + nRelOffset));
@@ -5344,6 +5775,8 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
     dataBase.setDatabaseName(sDBFileName);
 
     if (dataBase.open()) {
+        applyDbPragmas(&dataBase, false);
+
         QSqlQuery query(dataBase);
 
         if (XBinary::isPdStructNotCanceled(pPdStruct)) {
@@ -5405,6 +5838,10 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                     pState->listStrings.clear();
                     pState->listSymbols.clear();
 
+                    // Interning cache: keeps listStrings holding each distinct name once,
+                    // and lets bulk load append + sort once instead of O(n^2) sorted insert.
+                    QHash<QString, qint64> stringCache;
+
                     querySQL(&query, QString("SELECT FILETYPE, ADDRESS, SIZE, NAME, FLAGS, BRANCH FROM SYMBOLS WHERE FILETYPE = %1").arg(listKeys.at(i)), false);
 
                     while (query.next() && XBinary::isPdStructNotCanceled(pPdStruct)) {
@@ -5414,8 +5851,10 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                         quint16 nFlags = query.value(4).toULongLong();
                         quint16 nBranch = query.value(5).toULongLong();
 
-                        addSymbol(pState, nAddress, nSize, nFlags, sName, nBranch);
+                        bulkAppendSymbol(pState, &stringCache, nAddress, nSize, nFlags, sName, nBranch);
                     }
+
+                    sortDedupeSymbols(&(pState->listSymbols));
 
                     pState->listRefs.clear();
 
@@ -5428,8 +5867,10 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                         quint16 nFlags = query.value(4).toULongLong();
                         quint16 nBranch = query.value(5).toULongLong();
 
-                        addRefInfo(pState, nAddress, nRefAddress, nSize, nFlags, nBranch);
+                        bulkAppendRef(pState, nAddress, nRefAddress, nSize, nFlags, nBranch);
                     }
+
+                    sortDedupeRefs(&(pState->listRefs));
 
                     pState->listRecords.clear();
 
@@ -5441,17 +5882,20 @@ bool XInfoDB::loadDbFromFile(QIODevice *pDevice, const QString &sDBFileName, XBi
                         quint16 nFlags = query.value(3).toULongLong();
                         quint16 nBranch = query.value(4).toULongLong();
 
-                        addRecord(pState, nAddress, nSize, nFlags, nBranch);
+                        bulkAppendRecord(pState, nAddress, nSize, nFlags, nBranch);
                     }
+
+                    sortDedupeRecords(&(pState->listRecords));
                 }
             }
         }
 
-        dataBase.close();
+        if (XBinary::isPdStructNotCanceled(pPdStruct)) {
+            bResult = true;
+            setDatabaseChanged(false);
+        }
 
-        // if (bResult) {
-        //     setDatabaseChanged(false);
-        // }
+        dataBase.close();
     }
 
     dataBase = QSqlDatabase();
@@ -5472,7 +5916,18 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
     dataBase.setDatabaseName(sDBFileName);
 
     if (dataBase.open()) {
+        applyDbPragmas(&dataBase, true);
+
         createTable(&dataBase, DBTABLE_BOOKMARKS);
+
+        // Drop + recreate the analysis tables so an .xdec written by an older build is migrated to the
+        // compact WITHOUT ROWID schema on the next save. saveDbToFile rewrites the full in-memory state
+        // (every profile in m_mapProfiles) below, so dropping loses nothing.
+        QSqlQuery dropQuery(dataBase);
+        dropQuery.exec("DROP TABLE IF EXISTS SYMBOLS");
+        dropQuery.exec("DROP TABLE IF EXISTS RECORDS");
+        dropQuery.exec("DROP TABLE IF EXISTS REFINFO");
+
         createTable(&dataBase, DBTABLE_SYMBOLS);
         createTable(&dataBase, DBTABLE_RECORDS);
         createTable(&dataBase, DBTABLE_REFINFO);
@@ -5529,7 +5984,7 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
 
                             QString sName;
 
-                            if (symbol.nStringIndex != (quint16)-1) {
+                            if (symbol.nStringIndex != (quint32)-1) {
                                 sName = pState->listStrings.at(symbol.nStringIndex);
                             }
 
@@ -5591,6 +6046,9 @@ bool XInfoDB::saveDbToFile(const QString &sDBFileName, XBinary::PDSTRUCT *pPdStr
                 }
             }
         }
+
+        // No secondary index build: the WITHOUT ROWID PRIMARY KEY (FILETYPE, ADDRESS, SIZE) already
+        // orders each table for the load path's WHERE FILETYPE = ? scan.
 
         if (bResult && XBinary::isPdStructNotCanceled(pPdStruct)) {
             bResult = dataBase.commit();
