@@ -55,6 +55,12 @@ public:
         XSYMBOL_FLAG_IMPORT = 1 << 3,
         XSYMBOL_FLAG_ADDRESS = 1 << 4,
         XSYMBOL_FLAG_DATA = 1 << 5,
+        // Internal linkage: the name is private to the translation unit that produced it
+        // (a COFF IMAGE_SYM_CLASS_STATIC entry - a file-scope `static`, a function-local
+        // `static`, or a compiler-generated datum such as gcc's `CSWTCH.4`). It still
+        // names the object in THIS image, which is why it is recorded, but it is not a
+        // name any other translation unit can refer to.
+        XSYMBOL_FLAG_LOCAL = 1 << 6,
     };
 
     enum XRECORD_FLAG {
@@ -95,9 +101,9 @@ public:
     };
 
     struct XSYMBOL {
-        quint16 nStringIndex;
-        quint16 nBranch;
-        quint16 nRegionIndex;
+        quint32 nStringIndex;  // widened from quint16: large files can hold >65535 distinct symbol names. In-memory only, never serialized (save writes the resolved NAME text). Sentinel "no name" = (quint32)-1.
+        quint16 nBranch;       // TODO large files: >65535 functions/branches overflow this (branch-id collision). Widen with its API params + XUniversalCode callers.
+        quint16 nRegionIndex;  // TODO large files: >65535 regions overflow this. Higher ripple (getAddress/getOffset signatures + narrow locals in XSymbolsWidget) — widen deliberately.
         quint16 nFlags;
         quint32 nSize;
         quint64 nRelOffset;
@@ -765,6 +771,9 @@ public:
     bool _analyzeCode(const ANALYZEOPTIONS &analyzeOptions, XBinary::PDSTRUCT *pPdStruct = nullptr);
     bool _analyze(XBinary::FT fileType, XBinary::PDSTRUCT *pPdStruct);
     bool _analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::PDSTRUCT *pPdStruct = nullptr);
+    // Seeds a discovery root for every COFF "function" symbol: from -O1 upwards a callee
+    // can have no call site at all and recursive descent alone never finds it.
+    void _addCoffFunctionSymbols(STATE *pState, XPE *pPE, XBinary::PDSTRUCT *pPdStruct = nullptr);
 
     bool _isCode(STATE *pState, XBinary::_MEMORY_RECORD *pMemoryRecord, char *pMemory, XADDR nRelOffset, qint64 nSize);
     bool addSymbol(STATE *pState, XADDR nAddress, quint32 nSize, quint16 nFlags, const QString &sSymbolName = QString(), quint16 nBranch = 0);
