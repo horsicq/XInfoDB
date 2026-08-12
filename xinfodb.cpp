@@ -4755,8 +4755,17 @@ bool XInfoDB::_analyze(STATE *pState, HANDLECODE_CALLBACK handleCode, XBinary::P
         for (qint32 i = 0; (i < nNumberOfSymbols) && XBinary::isPdStructNotCanceled(pPdStruct); i++) {
             XSYMBOL symbol = pState->listSymbols.at(i);
 
-            if (symbol.nBranch) {
-                pState->listSymbols[i].nSize = mapMaxAddress.value(symbol.nBranch) - symbol.nRelOffset;
+            // Size = the branch's extent (max decoded address - start), but ONLY when that branch
+            // actually produced records. In the symbols-only pass (handleCode == nullptr) nothing is
+            // decoded, so mapMaxAddress is empty and "mapMaxAddress.value() - nRelOffset" would be
+            // "0 - nRelOffset", underflowing quint32 to a bogus multi-GB size (e.g. 0xfffff640). Leave
+            // such symbols at their seeded size instead.
+            if (symbol.nBranch && mapMaxAddress.contains(symbol.nBranch)) {
+                XADDR nMaxAddress = mapMaxAddress.value(symbol.nBranch);
+
+                if (nMaxAddress > symbol.nRelOffset) {
+                    pState->listSymbols[i].nSize = (quint32)(nMaxAddress - symbol.nRelOffset);
+                }
             }
         }
     }
