@@ -3307,7 +3307,7 @@ void XInfoDB::_addSymbolsFromFile(const XBinary::INDATA &inData, XBinary::PDSTRU
     XBinary::setPdStructInit(pPdStruct, _nFreeIndex, 0);
 
     if (fileType == XBinary::FT_UNKNOWN) {
-        fileType = XFormats::getPrefFileType(pDevice);
+        fileType = XFormats::getPrefFileType(pDevice, XBinary::FT_FLAG_EXECUTABLES);
     }
 
     // #ifdef QT_SQL_LIB
