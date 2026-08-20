@@ -3033,7 +3033,9 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
             }
 
             if ((nUnicodeSymbol >= 8) && (nUnicodeSymbol < 128)) {
-                sUnicodeString = QString::fromUtf16((quint16 *)(recordInfo.baData.data()), recordInfo.baData.size() / 2);  // TODO Check Qt6
+                sUnicodeString = QString::fromUtf16(
+                    reinterpret_cast<const char16_t *>(recordInfo.baData.constData()),
+                    recordInfo.baData.size() / 2);
             }
 
             qint32 nAnsiSize = sAnsiString.size();
@@ -3055,7 +3057,9 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
         } else if (riType == RI_TYPE_ANSI) {
             sResult = QString::fromLatin1(recordInfo.baData);
         } else if (riType == RI_TYPE_UNICODE) {
-            sResult = QString::fromUtf16((quint16 *)(recordInfo.baData.data()), recordInfo.baData.size() / 2);  // TODO Check Qt6
+            sResult = QString::fromUtf16(
+                reinterpret_cast<const char16_t *>(recordInfo.baData.constData()),
+                recordInfo.baData.size() / 2);
         } else if (riType == RI_TYPE_UTF8) {
             sResult = QString::fromUtf8(recordInfo.baData);
         } else if (riType == RI_TYPE_SYMBOLADDRESS) {
