@@ -1349,7 +1349,7 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId, bool bEnable)
                       if (bEnable) {
                           state.__mdscr_el1 |= 1;
                       } else {
-                          state.__mdscr_el1 &= ~static_cast<quint32>(1);
+                          state.__mdscr_el1 &= ~static_cast<decltype(state.__mdscr_el1)>(1);
                       }
                       result = thread_set_state(hThread, ARM_DEBUG_STATE64, reinterpret_cast<thread_state_t>(&state), ARM_DEBUG_STATE64_COUNT);
                   }
