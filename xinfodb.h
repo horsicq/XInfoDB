@@ -467,13 +467,13 @@ public:
     };
 
     struct EXITTHREAD_INFO {
-        qint64 nThreadID;
+        X_ID nThreadID;
         qint64 nExitCode;
     };
 
     struct PROCESS_INFO {
         qint64 nProcessID;
-        qint64 nMainThreadID;  // TODO Check mb Remove
+        X_ID nMainThreadID;  // TODO Check mb Remove
         QString sFileName;
         QString sBaseFileName;
         XADDR nImageBase;
@@ -495,7 +495,7 @@ public:
 
     struct EXITPROCESS_INFO {
         qint64 nProcessID;
-        qint64 nThreadID;
+        X_ID nThreadID;
         qint64 nExitCode;
         QString sFileName;
     };
@@ -509,7 +509,7 @@ public:
     };
 
     struct DEBUGSTRING_INFO {
-        qint64 nThreadID;
+        X_ID nThreadID;
         QString sDebugString;
     };
 
@@ -612,6 +612,10 @@ public:
     void setDefaultBreakpointType(BPT bpType);
     void setProcessInfo(PROCESS_INFO processInfo);
     PROCESS_INFO *getProcessInfo();
+#ifdef Q_OS_MACOS
+    bool updateDarwinThreadPorts(QList<X_ID> *pThreadIds = nullptr);
+    void clearDarwinThreadPorts();
+#endif
     void setCurrentThreadId(X_ID nThreadId);
     void setCurrentThreadHandle(X_HANDLE hThread);
     X_ID getCurrentThreadId();
@@ -671,7 +675,7 @@ public:
     bool stepOver_Handle(X_HANDLE hThread, BPI bpInfo);
     bool stepOver_Id(X_ID nThreadId, BPI bpInfo);
     bool _setStep_Handle(X_HANDLE hThread);
-    bool _setStep_Id(X_ID nThreadId);
+    bool _setStep_Id(X_ID nThreadId, bool bEnable = true);
     bool suspendThread_Id(X_ID nThreadId);
     bool suspendThread_Handle(X_HANDLE hThread);
     bool resumeThread_Id(X_ID nThreadId, qint32 nSignal = 0);
@@ -972,6 +976,9 @@ private:
     //    ThreadID/BP TODO QList
     QMap<XADDR, SHAREDOBJECT_INFO> m_mapSharedObjectInfos;  // TODO QList
     QList<THREAD_INFO> m_listThreadInfos;
+#ifdef Q_OS_MACOS
+    QHash<X_ID, thread_act_t> m_mapDarwinThreadPorts;
+#endif
     QMap<QString, FUNCTIONHOOK_INFO> m_mapFunctionHookInfos;  // TODO QList
 #endif
     // MODE m_mode;  // TODO remove
