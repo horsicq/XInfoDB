@@ -23,6 +23,72 @@
 #include <QHash>
 #include <algorithm>
 
+#ifdef Q_OS_MACOS
+#include <mach/mach.h>
+#endif
+
+#if defined(Q_OS_MACOS) && (defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64))
+namespace {
+#if defined(Q_PROCESSOR_X86_64)
+using XDARWIN_THREAD_STATE = x86_thread_state64_t;
+static const thread_state_flavor_t XDARWIN_THREAD_STATE_FLAVOR = x86_THREAD_STATE64;
+static const mach_msg_type_number_t XDARWIN_THREAD_STATE_COUNT = x86_THREAD_STATE64_COUNT;
+#elif defined(Q_PROCESSOR_ARM_64)
+using XDARWIN_THREAD_STATE = arm_thread_state64_t;
+static const thread_state_flavor_t XDARWIN_THREAD_STATE_FLAVOR = ARM_THREAD_STATE64;
+static const mach_msg_type_number_t XDARWIN_THREAD_STATE_COUNT = ARM_THREAD_STATE64_COUNT;
+#endif
+
+template <typename TCallback>
+static kern_return_t withDarwinThread(task_t hTask, TCallback callback)
+{
+    if (hTask == MACH_PORT_NULL) {
+        return KERN_INVALID_ARGUMENT;
+    }
+
+    thread_act_array_t pThreads = nullptr;
+    mach_msg_type_number_t nThreadCount = 0;
+    kern_return_t result = task_threads(hTask, &pThreads, &nThreadCount);
+
+    if (result != KERN_SUCCESS) {
+        return result;
+    }
+
+    // Darwin's PT_STEP/PT_CONTINUE implementation operates on the task's first
+    // thread too. Keep register access on that same thread until this backend
+    // grows Mach-exception delivery with an explicit 64-bit thread identity.
+    if (nThreadCount) {
+        result = callback(pThreads[0]);
+    } else {
+        result = KERN_FAILURE;
+    }
+
+    for (mach_msg_type_number_t i = 0; i < nThreadCount; i++) {
+        mach_port_deallocate(mach_task_self(), pThreads[i]);
+    }
+
+    if (pThreads) {
+        vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(pThreads), static_cast<vm_size_t>(nThreadCount) * sizeof(*pThreads));
+    }
+
+    return result;
+}
+
+static kern_return_t readDarwinThreadState(thread_act_t hThread, XDARWIN_THREAD_STATE *pState)
+{
+    mach_msg_type_number_t nStateCount = XDARWIN_THREAD_STATE_COUNT;
+
+    return thread_get_state(hThread, XDARWIN_THREAD_STATE_FLAVOR, reinterpret_cast<thread_state_t>(pState), &nStateCount);
+}
+
+static kern_return_t writeDarwinThreadState(thread_act_t hThread, const XDARWIN_THREAD_STATE *pState)
+{
+    return thread_set_state(hThread, XDARWIN_THREAD_STATE_FLAVOR, reinterpret_cast<thread_state_t>(const_cast<XDARWIN_THREAD_STATE *>(pState)),
+                            XDARWIN_THREAD_STATE_COUNT);
+}
+}  // namespace
+#endif
+
 bool compareXRECORD_location(const XInfoDB::XRECORD &a, const XInfoDB::XRECORD &b)
 {
     if (a.nRegionIndex != b.nRegionIndex) {
@@ -930,6 +996,7 @@ bool XInfoDB::setThreadStatus(X_ID nThreadID, THREAD_STATUS status)
     for (qint32 i = 0; i < nNumberOfThread; i++) {
         if (m_listThreadInfos.at(i).nThreadID == nThreadID) {
             m_listThreadInfos[i].threadStatus = status;
+            bResult = true;
 
             break;
         }
@@ -1210,6 +1277,11 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId)
         }
     }
 #endif
+#ifdef Q_OS_MACOS
+    if (ptrace(PT_STEP, nThreadId, (caddr_t)1, 0) != -1) {
+        bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
+    }
+#endif
     // #ifdef Q_OS_LINUX
     //     errno = 0;
 
@@ -1261,17 +1333,32 @@ bool XInfoDB::suspendThread_Handle(X_HANDLE hThread)
 }
 #endif
 #ifdef USE_XPROCESS
-bool XInfoDB::resumeThread_Id(X_ID nThreadId)
+bool XInfoDB::resumeThread_Id(X_ID nThreadId, qint32 nSignal)
 {
     bool bResult = false;
 
     if (getThreadStatus(nThreadId) == THREAD_STATUS_PAUSED) {
 #ifdef Q_OS_LINUX
-        if (ptrace(PTRACE_CONT, nThreadId, 0, 0) != -1) {
+        // The fourth PTRACE_CONT argument is the signal delivered to the tracee. Passing zero
+        // suppresses the signal, while passing the original stop signal preserves normal process
+        // semantics (for example, an unhandled SIGSEGV must still terminate the tracee).
+        void *pSignal = reinterpret_cast<void *>(static_cast<quintptr>(nSignal));
+        if (ptrace(PTRACE_CONT, nThreadId, nullptr, pSignal) != -1) {
+            bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
+        }
+#endif
+#ifdef Q_OS_MACOS
+        // Darwin uses address 1 to continue from the current instruction pointer. Its fourth
+        // argument carries the signal to deliver, matching the Linux reinjection semantics.
+        if (ptrace(PT_CONTINUE, nThreadId, (caddr_t)1, nSignal) != -1) {
             bResult = setThreadStatus(nThreadId, THREAD_STATUS_RUNNING);
         }
 #endif
     }
+
+#if !defined(Q_OS_LINUX) && !defined(Q_OS_MACOS)
+    Q_UNUSED(nSignal)
+#endif
 
     return bResult;
 }
@@ -1351,6 +1438,13 @@ bool XInfoDB::resumeAllThreads()
 #ifdef Q_OS_LINUX
         if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
             if (ptrace(PTRACE_CONT, m_listThreadInfos.at(i).nThreadID, 0, 0) != -1) {
+                m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+            }
+        }
+#endif
+#ifdef Q_OS_MACOS
+        if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
+            if (ptrace(PT_CONTINUE, m_listThreadInfos.at(i).nThreadID, (caddr_t)1, 0) != -1) {
                 m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
             }
         }
@@ -1735,12 +1829,83 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 #endif
     }
 
-    emit registersListChanged();
-
 //    __extension__ unsigned long long int orig_rax;
 //    __extension__ unsigned long long int fs_base;
 //    __extension__ unsigned long long int gs_base;
 #endif
+#ifdef Q_OS_MACOS
+#if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
+#if defined(Q_PROCESSOR_X86_64)
+    const bool bReadState = regOptions.bGeneral || regOptions.bIP || regOptions.bFlags || regOptions.bSegments;
+#elif defined(Q_PROCESSOR_ARM_64)
+    const bool bReadState = regOptions.bGeneral || regOptions.bIP;
+#endif
+
+    if (bReadState) {
+        withDarwinThread(m_processInfo.hProcess, [&](thread_act_t hThread) -> kern_return_t {
+            XDARWIN_THREAD_STATE state = {};
+            const kern_return_t result = readDarwinThreadState(hThread, &state);
+
+            if (result != KERN_SUCCESS) {
+                return result;
+            }
+
+#if defined(Q_PROCESSOR_X86_64)
+            if (regOptions.bGeneral) {
+                _addCurrentRegRecord(XREG_RAX, XBinary::getXVariant((quint64)(state.__rax)));
+                _addCurrentRegRecord(XREG_RBX, XBinary::getXVariant((quint64)(state.__rbx)));
+                _addCurrentRegRecord(XREG_RCX, XBinary::getXVariant((quint64)(state.__rcx)));
+                _addCurrentRegRecord(XREG_RDX, XBinary::getXVariant((quint64)(state.__rdx)));
+                _addCurrentRegRecord(XREG_RBP, XBinary::getXVariant((quint64)(state.__rbp)));
+                _addCurrentRegRecord(XREG_RSP, XBinary::getXVariant((quint64)(state.__rsp)));
+                _addCurrentRegRecord(XREG_RSI, XBinary::getXVariant((quint64)(state.__rsi)));
+                _addCurrentRegRecord(XREG_RDI, XBinary::getXVariant((quint64)(state.__rdi)));
+                _addCurrentRegRecord(XREG_R8, XBinary::getXVariant((quint64)(state.__r8)));
+                _addCurrentRegRecord(XREG_R9, XBinary::getXVariant((quint64)(state.__r9)));
+                _addCurrentRegRecord(XREG_R10, XBinary::getXVariant((quint64)(state.__r10)));
+                _addCurrentRegRecord(XREG_R11, XBinary::getXVariant((quint64)(state.__r11)));
+                _addCurrentRegRecord(XREG_R12, XBinary::getXVariant((quint64)(state.__r12)));
+                _addCurrentRegRecord(XREG_R13, XBinary::getXVariant((quint64)(state.__r13)));
+                _addCurrentRegRecord(XREG_R14, XBinary::getXVariant((quint64)(state.__r14)));
+                _addCurrentRegRecord(XREG_R15, XBinary::getXVariant((quint64)(state.__r15)));
+            }
+
+            if (regOptions.bIP) {
+                _addCurrentRegRecord(XREG_RIP, XBinary::getXVariant((quint64)(state.__rip)));
+            }
+
+            if (regOptions.bFlags) {
+                _addCurrentRegRecord(XREG_RFLAGS, XBinary::getXVariant((quint64)(state.__rflags)));
+            }
+
+            if (regOptions.bSegments) {
+                _addCurrentRegRecord(XREG_CS, XBinary::getXVariant((quint16)(state.__cs)));
+                _addCurrentRegRecord(XREG_FS, XBinary::getXVariant((quint16)(state.__fs)));
+                _addCurrentRegRecord(XREG_GS, XBinary::getXVariant((quint16)(state.__gs)));
+            }
+#elif defined(Q_PROCESSOR_ARM_64)
+            if (regOptions.bGeneral) {
+                for (qint32 i = 0; i < 29; i++) {
+                    _addCurrentRegRecord(XREG(XREG_X0 + i), XBinary::getXVariant((quint64)(state.__x[i])));
+                }
+
+                _addCurrentRegRecord(XREG_FP, XBinary::getXVariant((quint64)(arm_thread_state64_get_fp(state))));
+                _addCurrentRegRecord(XREG_LR, XBinary::getXVariant((quint64)(arm_thread_state64_get_lr(state))));
+                _addCurrentRegRecord(XREG_SP, XBinary::getXVariant((quint64)(arm_thread_state64_get_sp(state))));
+                _addCurrentRegRecord(XREG_CPSR, XBinary::getXVariant((quint32)(state.__cpsr)));
+            }
+
+            if (regOptions.bIP) {
+                _addCurrentRegRecord(XREG_PC, XBinary::getXVariant((quint64)(arm_thread_state64_get_pc(state))));
+            }
+#endif
+            return KERN_SUCCESS;
+        });
+    }
+#endif
+#endif
+
+    emit registersListChanged();
 }
 #endif
 #ifdef USE_XPROCESS
@@ -2143,6 +2308,74 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
         }
     }
 #endif
+#ifdef Q_OS_MACOS
+#if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
+    Q_UNUSED(nThreadId)
+    const quint64 nValue = variant.var.toULongLong();
+
+    bResult = withDarwinThread(m_processInfo.hProcess, [&](thread_act_t hThread) -> kern_return_t {
+                  XDARWIN_THREAD_STATE state = {};
+                  kern_return_t result = readDarwinThreadState(hThread, &state);
+
+                  if (result != KERN_SUCCESS) {
+                      return result;
+                  }
+
+                  bool bKnownRegister = true;
+
+#if defined(Q_PROCESSOR_X86_64)
+                  if (reg == XREG_RAX) state.__rax = nValue;
+                  else if (reg == XREG_RBX) state.__rbx = nValue;
+                  else if (reg == XREG_RCX) state.__rcx = nValue;
+                  else if (reg == XREG_RDX) state.__rdx = nValue;
+                  else if (reg == XREG_RBP) state.__rbp = nValue;
+                  else if (reg == XREG_RSP) state.__rsp = nValue;
+                  else if (reg == XREG_RSI) state.__rsi = nValue;
+                  else if (reg == XREG_RDI) state.__rdi = nValue;
+                  else if (reg == XREG_R8) state.__r8 = nValue;
+                  else if (reg == XREG_R9) state.__r9 = nValue;
+                  else if (reg == XREG_R10) state.__r10 = nValue;
+                  else if (reg == XREG_R11) state.__r11 = nValue;
+                  else if (reg == XREG_R12) state.__r12 = nValue;
+                  else if (reg == XREG_R13) state.__r13 = nValue;
+                  else if (reg == XREG_R14) state.__r14 = nValue;
+                  else if (reg == XREG_R15) state.__r15 = nValue;
+                  else if (reg == XREG_RIP) state.__rip = nValue;
+                  else if (reg == XREG_RFLAGS) state.__rflags = nValue;
+                  else bKnownRegister = false;
+#elif defined(Q_PROCESSOR_ARM_64)
+                  if ((reg >= XREG_X0) && (reg <= XREG_X28)) {
+                      state.__x[reg - XREG_X0] = nValue;
+                  } else if (reg == XREG_FP) {
+                      arm_thread_state64_set_fp(state, nValue);
+                  } else if (reg == XREG_LR) {
+                      using XDARWIN_CODE_POINTER = void (*)();
+                      arm_thread_state64_set_lr_fptr(state, reinterpret_cast<XDARWIN_CODE_POINTER>(static_cast<quintptr>(nValue)));
+                  } else if (reg == XREG_SP) {
+                      arm_thread_state64_set_sp(state, nValue);
+                  } else if (reg == XREG_PC) {
+                      using XDARWIN_CODE_POINTER = void (*)();
+                      arm_thread_state64_set_pc_fptr(state, reinterpret_cast<XDARWIN_CODE_POINTER>(static_cast<quintptr>(nValue)));
+                  } else if (reg == XREG_CPSR) {
+                      state.__cpsr = (quint32)nValue;
+                  } else {
+                      bKnownRegister = false;
+                  }
+#endif
+
+                  if (!bKnownRegister) {
+                      return KERN_INVALID_ARGUMENT;
+                  }
+
+                  result = writeDarwinThreadState(hThread, &state);
+                  return result;
+              }) == KERN_SUCCESS;
+#else
+    Q_UNUSED(nThreadId)
+    Q_UNUSED(reg)
+    Q_UNUSED(variant)
+#endif
+#endif
     return bResult;
 }
 #endif
@@ -2153,7 +2386,7 @@ bool XInfoDB::setCurrentReg(XREG reg, XBinary::XVARIANT variant)
 #ifdef Q_OS_WIN
     bResult = setCurrentRegByThread(m_statusCurrent.hThread, reg, variant);
 #endif
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) || defined(Q_OS_MACOS)
     bResult = setCurrentRegById(m_statusCurrent.nThreadId, reg, variant);
 #endif
     return bResult;
@@ -2393,10 +2626,13 @@ XADDR XInfoDB::getCurrentStackPointerCache()
     XADDR nResult = 0;
 
 #ifdef Q_PROCESSOR_X86_32
-    nResult = getCurrentRegCache(XInfoDB::XREG_ESP).var.toULongLong;
+    nResult = getCurrentRegCache(XInfoDB::XREG_ESP).var.toULongLong();
 #endif
 #ifdef Q_PROCESSOR_X86_64
     nResult = getCurrentRegCache(XInfoDB::XREG_RSP).var.toULongLong();
+#endif
+#ifdef Q_PROCESSOR_ARM_64
+    nResult = getCurrentRegCache(XInfoDB::XREG_SP).var.toULongLong();
 #endif
 
     return nResult;
@@ -2412,6 +2648,9 @@ XADDR XInfoDB::getCurrentInstructionPointerCache()
 #endif
 #ifdef Q_PROCESSOR_X86_64
     nResult = getCurrentRegCache(XInfoDB::XREG_RIP).var.toULongLong();
+#endif
+#ifdef Q_PROCESSOR_ARM_64
+    nResult = getCurrentRegCache(XInfoDB::XREG_PC).var.toULongLong();
 #endif
 
     return nResult;
@@ -2453,6 +2692,25 @@ XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId)
         nResult = regs.eip;
 #endif
     }
+#endif
+#ifdef Q_OS_MACOS
+    Q_UNUSED(nThreadId)
+#if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
+    withDarwinThread(m_processInfo.hProcess, [&](thread_act_t hThread) -> kern_return_t {
+        XDARWIN_THREAD_STATE state = {};
+        const kern_return_t result = readDarwinThreadState(hThread, &state);
+
+        if (result == KERN_SUCCESS) {
+#if defined(Q_PROCESSOR_X86_64)
+            nResult = (XADDR)state.__rip;
+#elif defined(Q_PROCESSOR_ARM_64)
+            nResult = (XADDR)arm_thread_state64_get_pc(state);
+#endif
+        }
+
+        return result;
+    });
+#endif
 #endif
     return nResult;
 }
@@ -2499,6 +2757,28 @@ bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue)
             bResult = true;
         }
     }
+#endif
+#ifdef Q_OS_MACOS
+    Q_UNUSED(nThreadId)
+#if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
+    bResult = withDarwinThread(m_processInfo.hProcess, [&](thread_act_t hThread) -> kern_return_t {
+                  XDARWIN_THREAD_STATE state = {};
+                  kern_return_t result = readDarwinThreadState(hThread, &state);
+
+                  if (result != KERN_SUCCESS) {
+                      return result;
+                  }
+
+#if defined(Q_PROCESSOR_X86_64)
+                  state.__rip = nValue;
+#elif defined(Q_PROCESSOR_ARM_64)
+                  using XDARWIN_CODE_POINTER = void (*)();
+                  arm_thread_state64_set_pc_fptr(state, reinterpret_cast<XDARWIN_CODE_POINTER>(static_cast<quintptr>(nValue)));
+#endif
+                  result = writeDarwinThreadState(hThread, &state);
+                  return result;
+              }) == KERN_SUCCESS;
+#endif
 #endif
     return bResult;
 }
@@ -2551,10 +2831,41 @@ XADDR XInfoDB::getCurrentStackPointer_Handle(X_HANDLE hThread)
 #ifdef USE_XPROCESS
 XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
 {
-    Q_UNUSED(nThreadId)
     XADDR nResult = 0;
 
-    // TODO
+#ifdef Q_OS_LINUX
+    user_regs_struct regs = {};
+
+    if (ptrace(PTRACE_GETREGS, nThreadId, nullptr, &regs) != -1) {
+#if defined(Q_PROCESSOR_X86_64)
+        nResult = regs.rsp;
+#elif defined(Q_PROCESSOR_X86_32)
+        nResult = regs.esp;
+#endif
+    }
+#endif
+#ifdef Q_OS_MACOS
+    Q_UNUSED(nThreadId)
+#if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
+    withDarwinThread(m_processInfo.hProcess, [&](thread_act_t hThread) -> kern_return_t {
+        XDARWIN_THREAD_STATE state = {};
+        const kern_return_t result = readDarwinThreadState(hThread, &state);
+
+        if (result == KERN_SUCCESS) {
+#if defined(Q_PROCESSOR_X86_64)
+            nResult = (XADDR)state.__rsp;
+#elif defined(Q_PROCESSOR_ARM_64)
+            nResult = (XADDR)arm_thread_state64_get_sp(state);
+#endif
+        }
+
+        return result;
+    });
+#endif
+#endif
+#if !defined(Q_OS_LINUX) && !defined(Q_OS_MACOS)
+    Q_UNUSED(nThreadId)
+#endif
 
     return nResult;
 }
@@ -2789,6 +3100,14 @@ QString XInfoDB::regIdToString(XREG reg)
     else if (reg == XREG_R15B) sResult = QString("R15B");
 #endif
 #endif
+#ifdef Q_PROCESSOR_ARM_64
+    else if ((reg >= XREG_X0) && (reg <= XREG_X28)) sResult = QString("X%1").arg(reg - XREG_X0);
+    else if (reg == XREG_FP) sResult = QString("FP");
+    else if (reg == XREG_LR) sResult = QString("LR");
+    else if (reg == XREG_SP) sResult = QString("SP");
+    else if (reg == XREG_PC) sResult = QString("PC");
+    else if (reg == XREG_CPSR) sResult = QString("CPSR");
+#endif
     return sResult;
 }
 #endif
@@ -2859,7 +3178,6 @@ XInfoDB::XREG XInfoDB::getSubReg16(XREG reg)
     else if ((reg == XREG_RFLAGS) || (reg == XREG_EFLAGS)) result = XREG_FLAGS;
 #endif
 #endif
-
     return result;
 }
 #endif
@@ -2941,6 +3259,13 @@ XInfoDB::XREG_OPTIONS XInfoDB::getRegOptions(XREG reg)
         result.bFlags = true;
     }
 #endif
+#endif
+#ifdef Q_PROCESSOR_ARM_64
+    if (((reg >= XREG_X0) && (reg <= XREG_X28)) || (reg == XREG_FP) || (reg == XREG_LR) || (reg == XREG_SP) || (reg == XREG_CPSR)) {
+        result.bGeneral = true;
+    } else if (reg == XREG_PC) {
+        result.bIP = true;
+    }
 #endif
 
     return result;

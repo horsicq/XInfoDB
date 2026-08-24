@@ -338,6 +338,42 @@ public:
         XREG_R15B,
 #endif
 #endif
+#ifdef Q_PROCESSOR_ARM_64
+        XREG_X0,
+        XREG_X1,
+        XREG_X2,
+        XREG_X3,
+        XREG_X4,
+        XREG_X5,
+        XREG_X6,
+        XREG_X7,
+        XREG_X8,
+        XREG_X9,
+        XREG_X10,
+        XREG_X11,
+        XREG_X12,
+        XREG_X13,
+        XREG_X14,
+        XREG_X15,
+        XREG_X16,
+        XREG_X17,
+        XREG_X18,
+        XREG_X19,
+        XREG_X20,
+        XREG_X21,
+        XREG_X22,
+        XREG_X23,
+        XREG_X24,
+        XREG_X25,
+        XREG_X26,
+        XREG_X27,
+        XREG_X28,
+        XREG_FP,
+        XREG_LR,
+        XREG_SP,
+        XREG_PC,
+        XREG_CPSR,
+#endif
     };
 
     struct REG_RECORD {
@@ -636,7 +672,7 @@ public:
     bool _setStep_Id(X_ID nThreadId);
     bool suspendThread_Id(X_ID nThreadId);
     bool suspendThread_Handle(X_HANDLE hThread);
-    bool resumeThread_Id(X_ID nThreadId);
+    bool resumeThread_Id(X_ID nThreadId, qint32 nSignal = 0);
     bool resumeThread_Handle(X_HANDLE hThread);
     bool suspendAllThreads();
     bool resumeAllThreads();
