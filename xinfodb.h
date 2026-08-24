@@ -406,7 +406,9 @@ public:
         BPT_CODE_HARDWARE_DR1,
         BPT_CODE_HARDWARE_DR2,
         BPT_CODE_HARDWARE_DR3,
-        BPT_CODE_MEMORY
+        BPT_CODE_MEMORY,
+        // Keep this appended so persisted numeric values for the older breakpoint types stay stable.
+        BPT_CODE_SOFTWARE_BRK  // AArch64 BRK #0 (0xD4200000)
     };
 
     enum BPM {

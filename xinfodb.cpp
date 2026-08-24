@@ -308,7 +308,11 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
     m_processInfo = {};
 
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
+#if defined(Q_OS_MACOS) && defined(Q_PROCESSOR_ARM_64)
+    setDefaultBreakpointType(BPT_CODE_SOFTWARE_BRK);
+#else
     setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT3);  // Checked Win
+#endif
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_HLT); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_CLI); // Checked Win
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_STI);
@@ -436,6 +440,9 @@ quint32 XInfoDB::read_uint32(XADDR nAddress, bool bIsBigEndian)
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_uint32(m_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
+#ifdef Q_OS_MACOS
+    nResult = XProcess::read_uint32(m_processInfo.hProcess, nAddress, bIsBigEndian);
+#endif
 
     return nResult;
 }
@@ -450,6 +457,9 @@ quint64 XInfoDB::read_uint64(XADDR nAddress, bool bIsBigEndian)
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_uint64(m_processInfo.hProcessMemoryIO, nAddress, bIsBigEndian);
 #endif
+#ifdef Q_OS_MACOS
+    nResult = XProcess::read_uint64(m_processInfo.hProcess, nAddress, bIsBigEndian);
+#endif
     return nResult;
 }
 #endif
@@ -462,6 +472,9 @@ qint64 XInfoDB::read_array(XADDR nAddress, char *pData, quint64 nSize)
 #endif
 #ifdef Q_OS_LINUX
     nResult = XProcess::read_array(m_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
+#endif
+#ifdef Q_OS_MACOS
+    nResult = XProcess::read_array(m_processInfo.hProcess, nAddress, pData, nSize);
 #endif
     return nResult;
 }
@@ -476,6 +489,9 @@ qint64 XInfoDB::write_array(XADDR nAddress, char *pData, quint64 nSize)
 #ifdef Q_OS_LINUX
     nResult = XProcess::write_array(m_processInfo.hProcessMemoryIO, nAddress, pData, nSize);
 #endif
+#ifdef Q_OS_MACOS
+    nResult = XProcess::write_array(m_processInfo.hProcess, nAddress, pData, nSize);
+#endif
     return nResult;
 }
 #endif
@@ -488,6 +504,9 @@ QByteArray XInfoDB::read_array(XADDR nAddress, quint64 nSize)
 #endif
 #ifdef Q_OS_LINUX
     baResult = XProcess::read_array(m_processInfo.hProcessMemoryIO, nAddress, nSize);
+#endif
+#ifdef Q_OS_MACOS
+    baResult = XProcess::read_array(m_processInfo.hProcess, nAddress, nSize);
 #endif
     return baResult;
 }
@@ -502,6 +521,9 @@ QString XInfoDB::read_ansiString(XADDR nAddress, quint64 nMaxSize)
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_ansiString(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
+#ifdef Q_OS_MACOS
+    sResult = XProcess::read_ansiString(m_processInfo.hProcess, nAddress, nMaxSize);
+#endif
     return sResult;
 }
 #endif
@@ -515,6 +537,9 @@ QString XInfoDB::read_unicodeString(XADDR nAddress, quint64 nMaxSize)
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_unicodeString(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
 #endif
+#ifdef Q_OS_MACOS
+    sResult = XProcess::read_unicodeString(m_processInfo.hProcess, nAddress, nMaxSize);
+#endif
     return sResult;
 }
 #endif
@@ -527,6 +552,9 @@ QString XInfoDB::read_utf8String(XADDR nAddress, quint64 nMaxSize)
 #endif
 #ifdef Q_OS_LINUX
     sResult = XProcess::read_utf8String(m_processInfo.hProcessMemoryIO, nAddress, nMaxSize);
+#endif
+#ifdef Q_OS_MACOS
+    sResult = XProcess::read_utf8String(m_processInfo.hProcess, nAddress, nMaxSize);
 #endif
     return sResult;
 }
@@ -785,7 +813,13 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-        if ((breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)) && (m_listBreakpoints.at(i).bpType == bpType)) {
+        const bool bAddressMatches =
+            (bpType == BPT_CODE_SOFTWARE_BRK)
+                ? (breakPoint.nAddress == nExceptionAddress)
+                : ((breakPoint.nDataSize > 0) && (nExceptionAddress >= (XADDR)breakPoint.nDataSize) &&
+                   (breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)));
+
+        if (bAddressMatches && (breakPoint.bpType == bpType)) {
             result = breakPoint;
 
             break;
@@ -914,8 +948,10 @@ bool XInfoDB::breakpointRemove(XADDR nAddress)
 QString XInfoDB::bptToString(BPT bpType)
 {
     QString sResult = tr("Unknown");
+
+    if (bpType == BPT_CODE_SOFTWARE_BRK) sResult = QString("BRK #0 (0xD4200000)");
 #ifdef Q_PROCESSOR_X86
-    if (bpType == BPT_CODE_SOFTWARE_INT1) sResult = QString("INT1(0xF1)");
+    else if (bpType == BPT_CODE_SOFTWARE_INT1) sResult = QString("INT1(0xF1)");
     else if (bpType == BPT_CODE_SOFTWARE_INT3) sResult = QString("INT3(0xCC)");
     else if (bpType == BPT_CODE_SOFTWARE_HLT) sResult = QString("HLT(0xF4)");
     else if (bpType == BPT_CODE_SOFTWARE_CLI) sResult = QString("CLI(0xFA)");
@@ -2421,6 +2457,26 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         _breakPoint.bpType = m_bpTypeDefault;
     }
 
+    const bool bSoftwareBreakpoint = ((_breakPoint.bpType >= BPT_CODE_SOFTWARE_INT1) && (_breakPoint.bpType <= BPT_CODE_SOFTWARE_UD2)) ||
+                                     (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK);
+
+    if (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK) {
+#if defined(Q_PROCESSOR_ARM_64)
+        if ((_breakPoint.nAddress & 3) != 0) {
+            return false;
+        }
+#else
+        return false;
+#endif
+    }
+
+#if defined(Q_OS_MACOS) && defined(Q_PROCESSOR_ARM_64)
+    // This backend is same-architecture: never plant an x86 trap in an ARM64 process.
+    if ((_breakPoint.bpType >= BPT_CODE_SOFTWARE_INT1) && (_breakPoint.bpType <= BPT_CODE_SOFTWARE_UD2)) {
+        return false;
+    }
+#endif
+
     if (_breakPoint.sUUID == "") {
         _breakPoint.sUUID = XBinary::generateUUID();
     }
@@ -2465,8 +2521,20 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_UD2) {
             _breakPoint.nDataSize = 2;
             XBinary::_copyMemory(_breakPoint.bpData, (char *)"\x0F\x0B", _breakPoint.nDataSize);
+        } else if (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK) {
+            static const char g_arm64BreakpointOpcode[4] = {0x00, 0x00, 0x20, (char)0xD4};
+            _breakPoint.nDataSize = sizeof(g_arm64BreakpointOpcode);
+            _breakPoint.nSize = _breakPoint.nDataSize;
+            XBinary::_copyMemory(_breakPoint.bpData, (char *)g_arm64BreakpointOpcode, _breakPoint.nDataSize);
         }
 
+        if (bSoftwareBreakpoint &&
+            ((_breakPoint.nDataSize <= 0) || (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.bpData)) ||
+             (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.origData)))) {
+            return false;
+        }
+
+        _breakPoint.bIsEnable = false;
         m_listBreakpoints.append(_breakPoint);
 
         if (enableBreakPoint(_breakPoint.sUUID)) {
@@ -2538,10 +2606,19 @@ bool XInfoDB::enableBreakPoint(const QString &sUUID)
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
-                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_BRK)) {
+                if (m_listBreakpoints.at(i).bIsEnable) {
+                    return true;
+                }
+
                 if (read_array(m_listBreakpoints.at(i).nAddress, m_listBreakpoints[i].origData, m_listBreakpoints.at(i).nDataSize) == m_listBreakpoints.at(i).nDataSize) {
-                    if (write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).bpData, m_listBreakpoints.at(i).nDataSize)) {
+                    const qint64 nWritten = write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).bpData,
+                                                        m_listBreakpoints.at(i).nDataSize);
+                    if (nWritten == m_listBreakpoints.at(i).nDataSize) {
+                        m_listBreakpoints[i].bIsEnable = true;
                         bResult = true;
+                    } else if (nWritten > 0) {
+                        write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).origData, m_listBreakpoints.at(i).nDataSize);
                     }
                 }
             } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
@@ -2573,8 +2650,14 @@ bool XInfoDB::disableBreakPoint(const QString &sUUID)
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSB) ||
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_OUTSD) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT1LONG) ||
                 (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_INT3LONG) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD0) ||
-                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2)) {
-                if (write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).origData, m_listBreakpoints.at(i).nDataSize)) {
+                (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_UD2) || (m_listBreakpoints.at(i).bpType == BPT_CODE_SOFTWARE_BRK)) {
+                if (!m_listBreakpoints.at(i).bIsEnable) {
+                    return true;
+                }
+
+                if (write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).origData, m_listBreakpoints.at(i).nDataSize) ==
+                    m_listBreakpoints.at(i).nDataSize) {
+                    m_listBreakpoints[i].bIsEnable = false;
                     bResult = true;
                 }
             } else if ((m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR0) || (m_listBreakpoints.at(i).bpType == XInfoDB::BPT_CODE_HARDWARE_DR1) ||
