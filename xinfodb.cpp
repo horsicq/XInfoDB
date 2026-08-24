@@ -57,11 +57,23 @@ static kern_return_t getDarwinThreadIdentifier(thread_act_t hThread, X_ID *pThre
 }
 
 template <typename TCallback>
-static kern_return_t withDarwinThread(const QHash<X_ID, thread_act_t> &mapThreadPorts, X_ID nThreadId, TCallback callback)
+static kern_return_t withDarwinThread(QMutex *pMutex, const QHash<X_ID, thread_act_t> &mapThreadPorts, X_ID nThreadId, TCallback callback)
 {
+    pMutex->lock();
     const thread_act_t hThread = mapThreadPorts.value(nThreadId, MACH_PORT_NULL);
+    const kern_return_t retainResult = (hThread != MACH_PORT_NULL)
+                                           ? mach_port_mod_refs(mach_task_self(), hThread, MACH_PORT_RIGHT_SEND, 1)
+                                           : KERN_INVALID_ARGUMENT;
+    pMutex->unlock();
 
-    return (hThread != MACH_PORT_NULL) ? callback(hThread) : KERN_INVALID_ARGUMENT;
+    if (retainResult != KERN_SUCCESS) {
+        return retainResult;
+    }
+
+    const kern_return_t result = callback(hThread);
+    mach_port_deallocate(mach_task_self(), hThread);
+
+    return result;
 }
 
 static kern_return_t readDarwinThreadState(thread_act_t hThread, XDARWIN_THREAD_STATE *pState)
@@ -1312,7 +1324,7 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId, bool bEnable)
 #endif
 #ifdef Q_OS_MACOS
 #if defined(Q_PROCESSOR_X86_64)
-    bResult = withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    bResult = withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
                   XDARWIN_THREAD_STATE state = {};
                   kern_return_t result = readDarwinThreadState(hThread, &state);
 
@@ -1328,7 +1340,7 @@ bool XInfoDB::_setStep_Id(X_ID nThreadId, bool bEnable)
                   return result;
               }) == KERN_SUCCESS;
 #elif defined(Q_PROCESSOR_ARM_64)
-    bResult = withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    bResult = withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
                   arm_debug_state64_t state = {};
                   mach_msg_type_number_t nStateCount = ARM_DEBUG_STATE64_COUNT;
                   kern_return_t result = thread_get_state(hThread, ARM_DEBUG_STATE64, reinterpret_cast<thread_state_t>(&state), &nStateCount);
@@ -1999,7 +2011,7 @@ void XInfoDB::updateRegsById(X_ID nThreadId, const XREG_OPTIONS &regOptions)
 #endif
 
     if (bReadState) {
-        withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+        withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
             XDARWIN_THREAD_STATE state = {};
             const kern_return_t result = readDarwinThreadState(hThread, &state);
 
@@ -2469,7 +2481,7 @@ bool XInfoDB::setCurrentRegById(X_ID nThreadId, XREG reg, XBinary::XVARIANT vari
 #if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
     const quint64 nValue = variant.var.toULongLong();
 
-    bResult = withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    bResult = withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
                   XDARWIN_THREAD_STATE state = {};
                   kern_return_t result = readDarwinThreadState(hThread, &state);
 
@@ -2898,7 +2910,7 @@ XADDR XInfoDB::getCurrentInstructionPointer_Id(X_ID nThreadId)
 #endif
 #ifdef Q_OS_MACOS
 #if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
-    withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
         XDARWIN_THREAD_STATE state = {};
         const kern_return_t result = readDarwinThreadState(hThread, &state);
 
@@ -2962,7 +2974,7 @@ bool XInfoDB::setCurrentIntructionPointer_Id(X_ID nThreadId, XADDR nValue)
 #endif
 #ifdef Q_OS_MACOS
 #if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
-    bResult = withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    bResult = withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
                   XDARWIN_THREAD_STATE state = {};
                   kern_return_t result = readDarwinThreadState(hThread, &state);
 
@@ -3047,7 +3059,7 @@ XADDR XInfoDB::getCurrentStackPointer_Id(X_ID nThreadId)
 #endif
 #ifdef Q_OS_MACOS
 #if defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64)
-    withDarwinThread(m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
+    withDarwinThread(m_pMutexThread, m_mapDarwinThreadPorts, nThreadId, [&](thread_act_t hThread) -> kern_return_t {
         XDARWIN_THREAD_STATE state = {};
         const kern_return_t result = readDarwinThreadState(hThread, &state);
 

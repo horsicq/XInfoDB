@@ -21,6 +21,7 @@
 #ifndef XINFODB_H
 #define XINFODB_H
 
+#include <QHash>
 #include <QMutex>
 #ifdef QT_GUI_LIB
 #include <QColor>
