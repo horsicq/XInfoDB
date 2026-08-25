@@ -308,6 +308,7 @@ XInfoDB::XInfoDB(QObject *pParent) : QObject(pParent)
 {
 #ifdef USE_XPROCESS
     m_processInfo = {};
+    m_processDisasmMode = XBinary::DM_UNKNOWN;
 
     //    setDefaultBreakpointType(BPT_CODE_SOFTWARE_INT1); // Checked Win
 #if defined(Q_OS_MACOS) && defined(Q_PROCESSOR_ARM_64)
@@ -771,6 +772,7 @@ bool XInfoDB::stepOver_Id(X_ID nThreadId, BPI bpInfo)
         breakPoint.nAddress = nNextAddress;
         breakPoint.bpType = XInfoDB::BPT_CODE_SOFTWARE_DEFAULT;
         breakPoint.bpInfo = bpInfo;
+        breakPoint.bOneShot = true;
 
         bResult = addBreakPoint(breakPoint);
     } else {
@@ -1230,17 +1232,33 @@ quint64 XInfoDB::getFunctionAddress(const QString &sFunctionName)
 #ifdef USE_XPROCESS
 XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
 {
-    Q_UNUSED(nAddress)
+    XADDR nResult = (XADDR)-1;
 
-    XADDR nResult = -1;
+    if ((nAddress == (XADDR)-1) || (m_processDisasmMode == XBinary::DM_UNKNOWN)) {
+        return nResult;
+    }
 
-    // QByteArray baData = read_array(nAddress, 15);
+    QByteArray baData = read_array(nAddress, 15);
 
-    // XCapstone::OPCODE_ID opcodeID = XCapstone::getOpcodeID(g_handle, nAddress, baData.data(), baData.size());
+    if (baData.isEmpty()) {
+        return nResult;
+    }
 
-    // if (XCapstone::isCallOpcode(XBinary::getDisasmFamily(g_disasmMode), opcodeID.nOpcodeID)) {
-    //     nResult = nAddress + opcodeID.nSize;
-    // }
+    // This function runs on the debugger worker. Keeping the decoder thread-local avoids both
+    // reopening Capstone on every trace step and using a QObject owned by XInfoDB's GUI thread.
+    thread_local XDisasmCore processDisasmCore;
+
+    if (processDisasmCore.getDisasmMode() != m_processDisasmMode) {
+        processDisasmCore.setMode(m_processDisasmMode);
+    }
+
+    XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
+    XDisasmAbstract::DISASM_RESULT disasmResult = processDisasmCore.disAsm(baData.data(), baData.size(), nAddress, disasmOptions);
+
+    if (disasmResult.bIsValid && disasmResult.bIsCall && (disasmResult.nSize > 0) &&
+        ((XADDR)disasmResult.nSize <= ((XADDR)-1) - nAddress)) {
+        nResult = nAddress + (XADDR)disasmResult.nSize;
+    }
 
     return nResult;
 }
@@ -1511,6 +1529,7 @@ bool XInfoDB::resumeAllThreads()
         if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
             if (resumeThread_Handle(m_listThreadInfos.at(i).hThread)) {
                 m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+                bResult = true;
             }
         }
 #endif
@@ -1518,14 +1537,13 @@ bool XInfoDB::resumeAllThreads()
         if (m_listThreadInfos.at(i).threadStatus == THREAD_STATUS_PAUSED) {
             if (ptrace(PTRACE_CONT, m_listThreadInfos.at(i).nThreadID, 0, 0) != -1) {
                 m_listThreadInfos[i].threadStatus = THREAD_STATUS_RUNNING;
+                bResult = true;
             }
         }
 #endif
 #ifdef Q_OS_MACOS
         // Stable Mach thread IDs are intentionally not passed to ptrace here.
 #endif
-
-        bResult = true;
     }
 
 #ifdef Q_OS_MACOS
@@ -1776,7 +1794,11 @@ void XInfoDB::setProcessInfo(PROCESS_INFO processInfo)
 #ifdef Q_OS_MACOS
     clearDarwinThreadPorts();
 #endif
+    m_processDisasmMode = XBinary::DM_UNKNOWN;
     m_processInfo = processInfo;
+
+    XBinary::_MEMORY_MAP memoryMap = XFormats::getMemoryMap(processInfo.sFileName, XBinary::MAPMODE_UNKNOWN);
+    m_processDisasmMode = XBinary::getDisasmMode(&memoryMap);
     // m_mode = MODE_PROCESS;
 
     // g_nMainModuleAddress = processInfo.nImageBase;

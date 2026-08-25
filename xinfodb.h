@@ -968,6 +968,7 @@ private:
 private:
 #ifdef USE_XPROCESS
     XInfoDB::PROCESS_INFO m_processInfo;
+    XBinary::DM m_processDisasmMode;
     QList<BREAKPOINT> m_listBreakpoints;
     BPT m_bpTypeDefault;
 #ifdef Q_OS_LINUX
