@@ -102,9 +102,11 @@ public:
     };
 
     struct XSYMBOL {
-        quint32 nStringIndex;  // widened from quint16: large files can hold >65535 distinct symbol names. In-memory only, never serialized (save writes the resolved NAME text). Sentinel "no name" = (quint32)-1.
+        quint32 nStringIndex;  // widened from quint16: large files can hold >65535 distinct symbol names. In-memory only, never serialized (save writes the resolved NAME
+                               // text). Sentinel "no name" = (quint32)-1.
         quint16 nBranch;       // TODO large files: >65535 functions/branches overflow this (branch-id collision). Widen with its API params + XUniversalCode callers.
-        quint16 nRegionIndex;  // TODO large files: >65535 regions overflow this. Higher ripple (getAddress/getOffset signatures + narrow locals in XSymbolsWidget) — widen deliberately.
+        quint16 nRegionIndex;  // TODO large files: >65535 regions overflow this. Higher ripple (getAddress/getOffset signatures + narrow locals in XSymbolsWidget) —
+                               // widen deliberately.
         quint16 nFlags;
         quint32 nSize;
         quint64 nRelOffset;

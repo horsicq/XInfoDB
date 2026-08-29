@@ -61,9 +61,7 @@ static kern_return_t withDarwinThread(QMutex *pMutex, const QHash<X_ID, thread_a
 {
     pMutex->lock();
     const thread_act_t hThread = mapThreadPorts.value(nThreadId, MACH_PORT_NULL);
-    const kern_return_t retainResult = (hThread != MACH_PORT_NULL)
-                                           ? mach_port_mod_refs(mach_task_self(), hThread, MACH_PORT_RIGHT_SEND, 1)
-                                           : KERN_INVALID_ARGUMENT;
+    const kern_return_t retainResult = (hThread != MACH_PORT_NULL) ? mach_port_mod_refs(mach_task_self(), hThread, MACH_PORT_RIGHT_SEND, 1) : KERN_INVALID_ARGUMENT;
     pMutex->unlock();
 
     if (retainResult != KERN_SUCCESS) {
@@ -820,11 +818,9 @@ XInfoDB::BREAKPOINT XInfoDB::findBreakPointByExceptionAddress(XADDR nExceptionAd
     for (qint32 i = 0; i < nNumberOfRecords; i++) {
         XInfoDB::BREAKPOINT breakPoint = m_listBreakpoints.at(i);
 
-        const bool bAddressMatches =
-            (bpType == BPT_CODE_SOFTWARE_BRK)
-                ? (breakPoint.nAddress == nExceptionAddress)
-                : ((breakPoint.nDataSize > 0) && (nExceptionAddress >= (XADDR)breakPoint.nDataSize) &&
-                   (breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)));
+        const bool bAddressMatches = (bpType == BPT_CODE_SOFTWARE_BRK) ? (breakPoint.nAddress == nExceptionAddress)
+                                                                       : ((breakPoint.nDataSize > 0) && (nExceptionAddress >= (XADDR)breakPoint.nDataSize) &&
+                                                                          (breakPoint.nAddress == (nExceptionAddress - breakPoint.nDataSize)));
 
         if (bAddressMatches && (breakPoint.bpType == bpType)) {
             result = breakPoint;
@@ -1255,8 +1251,7 @@ XADDR XInfoDB::getAddressNextInstructionAfterCall(XADDR nAddress)
     XDisasmAbstract::DISASM_OPTIONS disasmOptions = {};
     XDisasmAbstract::DISASM_RESULT disasmResult = processDisasmCore.disAsm(baData.data(), baData.size(), nAddress, disasmOptions);
 
-    if (disasmResult.bIsValid && disasmResult.bIsCall && (disasmResult.nSize > 0) &&
-        ((XADDR)disasmResult.nSize <= ((XADDR)-1) - nAddress)) {
+    if (disasmResult.bIsValid && disasmResult.bIsCall && (disasmResult.nSize > 0) && ((XADDR)disasmResult.nSize <= ((XADDR)-1) - nAddress)) {
         nResult = nAddress + (XADDR)disasmResult.nSize;
     }
 
@@ -2611,8 +2606,8 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
         _breakPoint.bpType = m_bpTypeDefault;
     }
 
-    const bool bSoftwareBreakpoint = ((_breakPoint.bpType >= BPT_CODE_SOFTWARE_INT1) && (_breakPoint.bpType <= BPT_CODE_SOFTWARE_UD2)) ||
-                                     (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK);
+    const bool bSoftwareBreakpoint =
+        ((_breakPoint.bpType >= BPT_CODE_SOFTWARE_INT1) && (_breakPoint.bpType <= BPT_CODE_SOFTWARE_UD2)) || (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK);
 
     if (_breakPoint.bpType == BPT_CODE_SOFTWARE_BRK) {
 #if defined(Q_PROCESSOR_ARM_64)
@@ -2682,9 +2677,8 @@ bool XInfoDB::addBreakPoint(const BREAKPOINT &breakPoint)
             XBinary::_copyMemory(_breakPoint.bpData, (char *)g_arm64BreakpointOpcode, _breakPoint.nDataSize);
         }
 
-        if (bSoftwareBreakpoint &&
-            ((_breakPoint.nDataSize <= 0) || (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.bpData)) ||
-             (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.origData)))) {
+        if (bSoftwareBreakpoint && ((_breakPoint.nDataSize <= 0) || (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.bpData)) ||
+                                    (_breakPoint.nDataSize > (qint32)sizeof(_breakPoint.origData)))) {
             return false;
         }
 
@@ -2766,8 +2760,7 @@ bool XInfoDB::enableBreakPoint(const QString &sUUID)
                 }
 
                 if (read_array(m_listBreakpoints.at(i).nAddress, m_listBreakpoints[i].origData, m_listBreakpoints.at(i).nDataSize) == m_listBreakpoints.at(i).nDataSize) {
-                    const qint64 nWritten = write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).bpData,
-                                                        m_listBreakpoints.at(i).nDataSize);
+                    const qint64 nWritten = write_array(m_listBreakpoints.at(i).nAddress, (char *)m_listBreakpoints.at(i).bpData, m_listBreakpoints.at(i).nDataSize);
                     if (nWritten == m_listBreakpoints.at(i).nDataSize) {
                         m_listBreakpoints[i].bIsEnable = true;
                         bResult = true;
@@ -3592,9 +3585,7 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
             }
 
             if ((nUnicodeSymbol >= 8) && (nUnicodeSymbol < 128)) {
-                sUnicodeString = QString::fromUtf16(
-                    reinterpret_cast<const char16_t *>(recordInfo.baData.constData()),
-                    recordInfo.baData.size() / 2);
+                sUnicodeString = QString::fromUtf16(reinterpret_cast<const char16_t *>(recordInfo.baData.constData()), recordInfo.baData.size() / 2);
             }
 
             qint32 nAnsiSize = sAnsiString.size();
@@ -3616,9 +3607,7 @@ QString XInfoDB::recordInfoToString(RECORD_INFO recordInfo, RI_TYPE riType)
         } else if (riType == RI_TYPE_ANSI) {
             sResult = QString::fromLatin1(recordInfo.baData);
         } else if (riType == RI_TYPE_UNICODE) {
-            sResult = QString::fromUtf16(
-                reinterpret_cast<const char16_t *>(recordInfo.baData.constData()),
-                recordInfo.baData.size() / 2);
+            sResult = QString::fromUtf16(reinterpret_cast<const char16_t *>(recordInfo.baData.constData()), recordInfo.baData.size() / 2);
         } else if (riType == RI_TYPE_UTF8) {
             sResult = QString::fromUtf8(recordInfo.baData);
         } else if (riType == RI_TYPE_SYMBOLADDRESS) {
@@ -4830,8 +4819,8 @@ void XInfoDB::_addCoffFunctionSymbols(STATE *pState, XPE *pPE, XBinary::PDSTRUCT
             (nSectionNumber <= nNumberOfSections)) {
             const XPE_DEF::IMAGE_SECTION_HEADER &dataSection = listSectionHeaders.at(nSectionNumber - 1);
 
-            bool bExecutable = ((dataSection.Characteristics & 0x20000000) != 0);            // IMAGE_SCN_MEM_EXECUTE
-            bool bHoldsData = ((dataSection.Characteristics & 0x000000C0) != 0);             // CNT_INITIALIZED_DATA | CNT_UNINITIALIZED_DATA
+            bool bExecutable = ((dataSection.Characteristics & 0x20000000) != 0);  // IMAGE_SCN_MEM_EXECUTE
+            bool bHoldsData = ((dataSection.Characteristics & 0x000000C0) != 0);   // CNT_INITIALIZED_DATA | CNT_UNINITIALIZED_DATA
 
             bIsData = ((!bExecutable) && bHoldsData);
         }
