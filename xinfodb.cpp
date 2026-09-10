@@ -23,11 +23,11 @@
 #include <QHash>
 #include <algorithm>
 
-#if defined(USE_XPROCESS) && defined(Q_OS_MACOS)
+#ifdef Q_OS_MACOS
 #include <mach/mach.h>
 #endif
 
-#if defined(USE_XPROCESS) && defined(Q_OS_MACOS) && (defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64))
+#if defined(Q_OS_MACOS) && (defined(Q_PROCESSOR_X86_64) || defined(Q_PROCESSOR_ARM_64))
 namespace {
 #if defined(Q_PROCESSOR_X86_64)
 using XDARWIN_THREAD_STATE = x86_thread_state64_t;
